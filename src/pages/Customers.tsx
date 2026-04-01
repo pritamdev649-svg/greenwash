@@ -13,7 +13,7 @@ import {
   TrendingUp,
   AlertCircle,
   Receipt,
-  Printer
+  ArrowRight
 } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -42,6 +42,7 @@ interface Order {
   id: string;
   total_amount: number;
   payment_status: string;
+  balance_amount?: number;
   created_at: string;
 }
 

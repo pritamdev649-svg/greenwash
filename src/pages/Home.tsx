@@ -164,7 +164,7 @@ const Home: React.FC = () => {
       <section id="steps" className="py-24 bg-white relative overflow-hidden">
         <div className="max-w-6xl mx-auto px-6">
           <div className="text-center mb-16">
-            <p className="text-emerald-600 font-bold uppercase tracking-widest text-[10px] mb-3">The Process</p>
+            <p className="text-emerald-600 font-black uppercase tracking-[0.2em] text-xs lg:text-sm mb-3">The Process</p>
             <h2 className="text-3xl lg:text-5xl font-black text-slate-900 leading-tight">Perfectly clean in 6 steps</h2>
           </div>
 
@@ -184,13 +184,13 @@ const Home: React.FC = () => {
                {/* Row 1: 1 2 3 */}
                <div className="grid lg:grid-cols-3 gap-20 lg:mb-40">
                   {[
-                    { id: 1, label: "Pickup", color: "bg-emerald-500", desc: "Eco-friendly van pickup", icon: Smartphone },
-                    { id: 2, label: "Reception", color: "bg-blue-500", desc: "Expert assessment", icon: ShieldCheck },
-                    { id: 3, label: "Washing", color: "bg-indigo-500", desc: "Advanced washing tech", icon: WashingMachine }
+                    { id: 1, label: "Pickup", color: "bg-emerald-500", desc: "Eco-friendly van pickup", img: "/assets/step1.png" },
+                    { id: 2, label: "Reception", color: "bg-blue-500", desc: "Expert assessment", img: "/assets/step2.png" },
+                    { id: 3, label: "Washing", color: "bg-indigo-500", desc: "Advanced washing tech", img: "/assets/step3.png" }
                   ].map((step) => (
                     <div key={step.id} className="relative z-10 group flex flex-col items-center">
-                       <div className="w-40 h-32 rounded-[2rem] bg-white border border-emerald-50 flex items-center justify-center p-4 shadow-2xl group-hover:-translate-y-3 transition-all duration-500 overflow-hidden relative text-emerald-600">
-                           <step.icon size={48} className="group-hover:scale-110 transition-transform" strokeWidth={1.5} />
+                       <div className="w-40 h-32 rounded-[2rem] bg-white border border-emerald-50 flex items-center justify-center p-4 shadow-lg group-hover:shadow-2xl group-hover:-translate-y-3 transition-all duration-500 relative text-emerald-600">
+                           <img src={step.img} alt={step.label} className="w-24 h-24 object-contain group-hover:scale-110 transition-transform duration-500" />
                            <div className={cn("absolute -top-2 -right-2 w-10 h-10 rounded-xl flex items-center justify-center text-white text-sm font-black shadow-xl", step.color)}>
                               {step.id}
                            </div>
@@ -206,13 +206,13 @@ const Home: React.FC = () => {
                {/* Row 2: 4 5 6 */}
                <div className="grid lg:grid-cols-3 gap-20">
                   {[
-                     { id: 4, label: "Folding", color: "bg-rose-500", desc: "Quality inspection", icon: Shirt },
-                     { id: 5, label: "Packaging", color: "bg-amber-500", desc: "Eco-friendly wrap", icon: ShieldCheck },
-                     { id: 6, label: "Delivery", color: "bg-emerald-600", desc: "Doorstep delivery", icon: Truck }
+                     { id: 4, label: "Folding", color: "bg-rose-500", desc: "Quality inspection", img: "/assets/step4.png" },
+                     { id: 5, label: "Packaging", color: "bg-amber-500", desc: "Eco-friendly wrap", img: "/assets/step5.png" },
+                     { id: 6, label: "Delivery", color: "bg-emerald-600", desc: "Doorstep delivery", img: "/assets/step6.png" }
                   ].map((step) => (
                     <div key={step.id} className="relative z-10 group flex flex-col items-center">
-                       <div className="w-40 h-32 rounded-[2rem] bg-white border border-emerald-50 flex items-center justify-center p-4 shadow-2xl group-hover:-translate-y-3 transition-all duration-500 overflow-hidden relative text-emerald-600">
-                           <step.icon size={48} className="group-hover:scale-110 transition-transform" strokeWidth={1.5} />
+                       <div className="w-40 h-32 rounded-[2rem] bg-white border border-emerald-50 flex items-center justify-center p-4 shadow-lg group-hover:shadow-2xl group-hover:-translate-y-3 transition-all duration-500 relative text-emerald-600">
+                           <img src={step.img} alt={step.label} className="w-24 h-24 object-contain group-hover:scale-110 transition-transform duration-500" />
                            <div className={cn("absolute -top-2 -right-2 w-10 h-10 rounded-xl flex items-center justify-center text-white text-sm font-black shadow-xl", step.color)}>
                               {step.id}
                            </div>
@@ -233,26 +233,31 @@ const Home: React.FC = () => {
       <section id="services" className="py-24 bg-emerald-50/20">
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-20">
-            <p className="text-emerald-600 font-bold uppercase tracking-widest text-[10px] mb-3">Professional Care</p>
+            <p className="text-emerald-600 font-black uppercase tracking-[0.2em] text-xs lg:text-sm mb-3">Professional Care</p>
             <h2 className="text-3xl lg:text-5xl font-black text-slate-900 leading-tight">Get Every Service Very Easily</h2>
           </div>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {[
-              { title: "Wash & Fold", subtitle: "Standard wash cycle", icon: WashingMachine },
-              { title: "Wash & Iron", subtitle: "Pressed to perfection", icon: Shirt },
-              { title: "Dry Clean", subtitle: "Special care fabrics", icon: ShieldCheck },
-              { title: "Starching", subtitle: "Crisp cotton finish", icon: Star },
-              { title: "Steam Press", subtitle: "Quick wrinkle removal", icon: Zap },
-              { title: "Premium Laundry", subtitle: "Luxury item handling", icon: Zap }
+              { title: "Wash & Fold", subtitle: "Standard wash cycle", img: "/assets/wash_fold.png" },
+              { title: "Wash & Iron", subtitle: "Pressed to perfection", img: "/assets/wash_iron.png" },
+              { title: "Dry Clean", subtitle: "Special care fabrics", img: "/assets/dry_clean.png" },
+              { title: "Starching", subtitle: "Crisp cotton finish", img: "/assets/starching.png" },
+              { title: "Steam Press", subtitle: "Quick wrinkle removal", img: "/assets/steam_press.png" },
+              { title: "Premium Laundry", subtitle: "Luxury item handling", img: "/assets/premium_laundry.png" }
             ].map((service, i) => (
-              <div key={i} className="bg-white p-8 rounded-[2.5rem] border border-emerald-50 hover:border-emerald-200 hover:shadow-2xl hover:shadow-emerald-900/10 transition-all group overflow-hidden relative">
+              <div key={i} className="bg-white p-8 rounded-[2.5rem] border border-emerald-50 hover:border-emerald-200 shadow-sm hover:shadow-xl hover:shadow-emerald-900/5 transition-all group overflow-hidden relative">
                 <div className="flex flex-col items-center text-center">
-                   <div className="w-full h-36 mb-6 rounded-3xl bg-emerald-50 flex items-center justify-center overflow-hidden p-4 text-emerald-600">
-                       <service.icon size={64} strokeWidth={1.5} className="group-hover:scale-110 transition-transform duration-500" />
+                   <div className="w-full h-48 mb-6 rounded-3xl bg-emerald-50 flex items-center justify-center overflow-hidden relative shadow-inner">
+                       <img 
+                         src={service.img} 
+                         alt={service.title} 
+                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
+                       />
+                       <div className="absolute inset-0 bg-emerald-900/10 group-hover:opacity-0 transition-opacity" />
                    </div>
-                   <h4 className="font-black text-xl text-slate-900 mb-2">{service.title}</h4>
-                   <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">{service.subtitle}</p>
+                   <h4 className="font-black text-2xl text-slate-900 mb-2">{service.title}</h4>
+                   <p className="text-[10px] text-slate-400 font-black uppercase tracking-[0.2em]">{service.subtitle}</p>
                 </div>
               </div>
             ))}

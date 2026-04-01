@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   Plus, 
   Printer, 
@@ -83,6 +83,7 @@ export default function Orders() {
     const branchName = order.branches?.name || 'our branch';
     const orderRef = order.id.slice(0, 8).toUpperCase();
     const mobile = order.customers?.mobile;
+    const formattedDueDate = order.due_date ? new Date(order.due_date).toLocaleDateString('en-GB') : 'TBD';
 
     if (!mobile) return alert("System Error: Customer mobile contact not found.");
 
@@ -91,7 +92,7 @@ export default function Orders() {
     if (order.order_status === 'Ready') {
       message = `Hello ${customerName}! \n\n✅ Your clothes (Order #${orderRef}) are cleaned and ready for pickup at our ${branchName}! \n\nPlease visit us during business hours. \n\nThank you for choosing Green Wash Co! 👕✨`;
     } else {
-      message = `Hello ${customerName}! \n\n📋 *Green Wash Co. Order Update* \n\nOrder ID: #${orderRef} \nCurrent Status: ${order.order_status} \nPayment: ${order.payment_status.toUpperCase()} \n\nThank you! ✨`;
+      message = `Hello ${customerName}! \n\n📋 *Green Wash Co. Order Update* \n\n*Order ID:* #${orderRef} \n*Status:* ${order.order_status} \n*Due Date:* ${formattedDueDate} \n*Payment:* ${order.payment_status.toUpperCase()} \n\nThank you! ✨`;
     }
 
     const cleanedMobile = mobile.replace(/\D/g, '');
@@ -312,38 +313,39 @@ export default function Orders() {
                           </button>
                        </td>
                        <td className="table-cell px-6 text-right">
-                          <div className="flex justify-end gap-1 opacity-20 group-hover:opacity-100 transition-opacity">
-                             <button 
-                                onClick={() => handlePrintOrder(order.id)}
-                                className="p-2.5 rounded-xl text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
-                                title="Print Receipt"
-                             >
-                                <Printer size={18} />
-                             </button>
-                             <button 
-                                onClick={() => handleWhatsAppShare(order)}
-                                className="p-2.5 rounded-xl text-slate-400 hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                title="WhatsApp"
-                             >
-                                <MessageCircle size={18} />
-                             </button>
-                             {(order.balance_amount || 0) > 0 && (
-                               <button 
-                                  onClick={() => handleCollectBalance(order.id)}
-                                  className="p-2.5 rounded-xl text-indigo-400 hover:bg-indigo-50 hover:text-indigo-600 transition-all active:scale-90"
-                                  title="Collect Balance"
-                               >
-                                  <CreditCard size={18} />
-                               </button>
-                             )}
-                             <button 
-                                onClick={() => handleDeleteOrder(order.id)}
-                                className="p-2.5 rounded-xl text-slate-400 hover:bg-red-50 hover:text-red-600 transition-colors"
-                             >
-                                <Trash2 size={18} />
-                             </button>
-                          </div>
-                       </td>
+                           <div className="flex justify-end gap-2">
+                              <button 
+                                 onClick={() => handlePrintOrder(order.id)}
+                                 className="w-9 h-9 flex items-center justify-center bg-slate-800 hover:bg-slate-900 text-white rounded-xl shadow-lg shadow-slate-900/10 transition-all active:scale-90"
+                                 title="Print Receipt"
+                              >
+                                 <Printer size={16} strokeWidth={2.5} />
+                              </button>
+                              <button 
+                                 onClick={() => handleWhatsAppShare(order)}
+                                 className="w-9 h-9 flex items-center justify-center bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-lg shadow-emerald-600/10 transition-all active:scale-90"
+                                 title="WhatsApp Notification"
+                              >
+                                 <MessageCircle size={16} strokeWidth={2.5} />
+                              </button>
+                              {(order.balance_amount || 0) > 0 && (
+                                <button 
+                                   onClick={() => handleCollectBalance(order.id)}
+                                   className="w-9 h-9 flex items-center justify-center bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-lg shadow-indigo-600/10 transition-all active:scale-90"
+                                   title="Collect Balance / Final Pay"
+                                >
+                                   <CreditCard size={16} strokeWidth={2.5} />
+                                </button>
+                              )}
+                              <button 
+                                 onClick={() => handleDeleteOrder(order.id)}
+                                 className="w-9 h-9 flex items-center justify-center bg-rose-600 hover:bg-rose-700 text-white rounded-xl shadow-lg shadow-rose-600/10 transition-all active:scale-90"
+                                 title="Delete Order Permanently"
+                              >
+                                 <Trash2 size={16} strokeWidth={2.5} />
+                              </button>
+                           </div>
+                        </td>
                     </tr>
                  ))}
                </tbody>

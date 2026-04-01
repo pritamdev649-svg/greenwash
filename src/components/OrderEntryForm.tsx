@@ -6,7 +6,6 @@ import {
   ChevronDown,
   X,
   AlertCircle,
-  CreditCard,
   MessageCircle,
   Printer,
   Check
@@ -155,21 +154,24 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
   };
 
   const handleWhatsAppShare = () => {
-    const orderRef = createdOrderId.slice(0, 6).toUpperCase();
+    const orderRef = createdOrderId.slice(0, 8).toUpperCase();
     const total = grandTotal.toLocaleString();
     const date = new Date().toLocaleDateString('en-GB');
+    const formattedDueDate = dueDate ? new Date(dueDate).toLocaleDateString('en-GB') : 'To be confirmed';
     
     const message = `*Green Wash Co. - Order Receipt* \uD83E\uDDFA\n\n` +
       `Hello *${selectedCustomer?.name || 'Customer'}*,\n` +
       `Your laundry order has been recorded successfully!\n\n` +
       `*Order No:* #${orderRef}\n` +
       `*Date:* ${date}\n` +
+      `*Due Date:* ${formattedDueDate}\n` +
       `*Total Amount:* ₹${total}\n\n` +
       `Thank you for choosing *Green Wash Co!* ✨`;
 
     const phone = selectedCustomer?.mobile?.replace(/\D/g, '');
     if (!phone) return alert("Mobile number not found!");
-    const url = `https://wa.me/${phone.startsWith('91') ? phone : '91' + phone}?text=${encodeURIComponent(message)}`;
+    const cleanedPhone = phone.startsWith('91') ? phone : '91' + phone;
+    const url = `https://wa.me/${cleanedPhone}?text=${encodeURIComponent(message)}`;
     window.open(url, '_blank');
   };
 
