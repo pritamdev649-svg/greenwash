@@ -12,8 +12,7 @@ import {
   ArrowRight,
   TrendingUp,
   AlertCircle,
-  Receipt,
-  ArrowRight
+  Receipt
 } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -413,7 +412,7 @@ const Customers: React.FC = () => {
                                    "text-[10px] font-bold uppercase",
                                    (order.balance_amount || 0) > 0 ? "text-rose-500" : "text-emerald-500"
                                 )}>
-                                   {(order.balance_amount || 0) > 0 ? `Balance: ₹${(order.balance_amount).toLocaleString()}` : "Fully Paid"}
+                                    {(order.balance_amount || 0) > 0 ? `Balance: ₹${(order.balance_amount ?? 0).toLocaleString()}` : "Fully Paid"}
                                 </div>
                                 <button 
                                    onClick={() => handlePrintOrder(order.id)}

@@ -3,17 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
 import { 
-  Shirt, 
   Mail, 
   Lock, 
   ChevronRight, 
-  WashingMachine, 
-  Truck, 
   Zap,
   Menu,
   X,
   Smartphone,
-  ShieldCheck,
   Star
 } from 'lucide-react';
 
