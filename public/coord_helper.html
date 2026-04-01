@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<body style="margin:0; background: #333;">
+  <img src="assets/sprite.png" id="sprite" style="max-width: none;">
+  <div id="coords" style="position:fixed; top:0; left:0; background:rgba(0,0,0,0.8); color:white; padding:10px; font-family:sans-serif;">
+    Move mouse to find coordinates
+  </div>
+  <script>
+    document.addEventListener('mousemove', (e) => {
+      const img = document.getElementById('sprite');
+      const x = (e.pageX / img.width * 100).toFixed(2);
+      const y = (e.pageY / img.height * 100).toFixed(2);
+      document.getElementById('coords').innerText = `X: ${x}%, Y: ${y}%`;
+    });
+  </script>
+</body>
+</html>
