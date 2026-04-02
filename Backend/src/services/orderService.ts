@@ -6,13 +6,61 @@ export const orderService = {
    * Fetch all cloth types (pricing data)
    */
   async getAllClothTypes() {
+    try {
+      console.log("orderService.getAllClothTypes started");
+      const { data, error } = await supabase
+        .from('cloth_types')
+        .select('*, categories(name)')
+        .order('name');
+      
+      if (error) {
+        console.warn("orderService.getAllClothTypes error (likely missing categories table):", error);
+        // Fallback: try fetching without categories if it fails
+        const { data: fallbackData, error: fallbackError } = await supabase
+          .from('cloth_types')
+          .select('*')
+          .order('name');
+        if (fallbackError) {
+          console.error("orderService.getAllClothTypes fallback failed:", fallbackError);
+          throw fallbackError;
+        }
+        return (fallbackData || []).map((x: any) => ({ ...x, categories: { name: 'Uncategorized' } }));
+      }
+      return data || [];
+    } catch (err) {
+      console.error("orderService.getAllClothTypes fatal:", err);
+      throw err;
+    }
+  },
+
+  async getAllCategories() {
     const { data, error } = await supabase
-      .from('cloth_types')
+      .from('categories')
       .select('*')
       .order('name');
     
     if (error) throw error;
     return data || [];
+  },
+
+  async addCategory(name: string) {
+    const { data, error } = await supabase
+      .from('categories')
+      .insert([{ name }])
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
+  },
+
+  async deleteCategory(id: string) {
+    const { error } = await supabase
+      .from('categories')
+      .delete()
+      .eq('id', id);
+    if (error) throw error;
+    return true;
   },
 
   async addClothType(item: any) {

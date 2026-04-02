@@ -84,15 +84,18 @@ export default function Orders() {
     const orderRef = order.id.slice(0, 8).toUpperCase();
     const mobile = order.customers?.mobile;
     const formattedDueDate = order.due_date ? new Date(order.due_date).toLocaleDateString('en-GB') : 'TBD';
+    const totalAmount = Number(order.total_amount).toLocaleString();
+    const paidAmount = (order.advance_amount || 0).toLocaleString();
+    const balanceAmount = (order.balance_amount || 0).toLocaleString();
 
     if (!mobile) return alert("System Error: Customer mobile contact not found.");
 
     let message = "";
     
     if (order.order_status === 'Ready') {
-      message = `Hello ${customerName}! \n\n✅ Your clothes (Order #${orderRef}) are cleaned and ready for pickup at our ${branchName}! \n\nPlease visit us during business hours. \n\nThank you for choosing Green Wash Co! 👕✨`;
+      message = `Hello *${customerName}*! \u2705\n\nYour laundry order *#${orderRef}* is cleaned and ready for pickup at our *${branchName}*!\n\n*Total Bill:* ₹${totalAmount}\n*Paid:* ₹${paidAmount}\n*Balance:* ₹${balanceAmount}\n\nPlease visit us during business hours. Thank you! \u2728`;
     } else {
-      message = `Hello ${customerName}! \n\n📋 *Green Wash Co. Order Update* \n\n*Order ID:* #${orderRef} \n*Status:* ${order.order_status} \n*Due Date:* ${formattedDueDate} \n*Payment:* ${order.payment_status.toUpperCase()} \n\nThank you! ✨`;
+      message = `Hello *${customerName}*! \uD83D\uDCCB\n\n*Green Wash Co. Order Update*\n\n*Order ID:* #${orderRef}\n*Status:* ${order.order_status}\n*Due Date:* ${formattedDueDate}\n\n*Total Bill:* ₹${totalAmount}\n*Paid:* ₹${paidAmount}\n*Remaining:* ₹${balanceAmount}\n\nThank you! \u2728`;
     }
 
     const cleanedMobile = mobile.replace(/\D/g, '');

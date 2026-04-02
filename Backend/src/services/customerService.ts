@@ -4,32 +4,48 @@ export const customerService = {
   /**
    * Fetch all customers with their branch name
    */
-  async getAllCustomers() {
-    const { data, error } = await supabase
-      .from('customers')
-      .select(`
-        *,
-        branch:branches(name),
-        orders:orders(total_amount, balance_amount, payment_status)
-      `)
-      .order('name');
-    
-    if (error) throw error;
-    
-    // Process data to calculate totals
-    const processedData = (data || []).map(customer => {
-      const orders = customer.orders || [];
-      const total_orders = orders.length;
-      const pending_amount = orders.reduce((sum: number, o: any) => sum + Number(o.balance_amount || 0), 0);
+  async getAllCustomers(withDetails = true) {
+    try {
+      console.log("customerService.getAllCustomers started, withDetails:", withDetails);
       
-      return {
-        ...customer,
-        total_orders,
-        pending_amount
-      };
-    });
+      const selectStr = withDetails ? `
+          *,
+          branch:branches(name),
+          orders:orders(total_amount, balance_amount, payment_status)
+        ` : '*';
 
-    return processedData;
+      const { data, error } = await supabase
+        .from('customers')
+        .select(selectStr)
+        .order('name');
+      
+      if (error) {
+        console.error("customerService.getAllCustomers error:", error);
+        throw error;
+      }
+      
+      console.log("customerService.getAllCustomers fetched count:", data?.length);
+
+      if (!withDetails) return data || [];
+
+      // Process data to calculate totals
+      const processedData = (data || []).map(customer => {
+        const orders = (customer as any).orders || [];
+        const total_orders = orders.length;
+        const pending_amount = orders.reduce((sum: number, o: any) => sum + Number(o.balance_amount || 0), 0);
+        
+        return {
+          ...(customer as any),
+          total_orders,
+          pending_amount
+        };
+      });
+
+      return processedData;
+    } catch (err) {
+      console.error("customerService.getAllCustomers fatal err:", err);
+      throw err;
+    }
   },
 
   /**

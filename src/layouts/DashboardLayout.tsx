@@ -7,6 +7,7 @@ import {
   Shirt, 
   Receipt, 
   LayoutDashboard, 
+  LayoutGrid,
   LogOut, 
   Menu 
 } from 'lucide-react';
@@ -21,7 +22,7 @@ const navItems = [
   { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { path: '/branches', label: 'Branches', icon: MapPin },
   { path: '/customers', label: 'Customers', icon: Users },
-  { path: '/cloth-types', label: 'Cloth Types', icon: Shirt },
+  { path: '/categories', label: 'Categories', icon: LayoutGrid },
   { path: '/orders', label: 'Orders', icon: Receipt },
 ];
 

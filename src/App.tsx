@@ -9,9 +9,9 @@ import Home from './pages/Home';
 import Dashboard from './pages/Dashboard';
 import Branches from './pages/Branches';
 import Customers from './pages/Customers';
-import ClothTypes from './pages/ClothTypes';
 import Orders from './pages/Orders';
 import SaleOrder from './pages/SaleOrder';
+import Categories from './pages/Categories';
 
 const App: React.FC = () => {
   return (
@@ -53,11 +53,11 @@ const App: React.FC = () => {
             }
           />
           <Route
-            path="/cloth-types"
+            path="/categories"
             element={
               <ProtectedRoute>
                 <DashboardLayout>
-                  <ClothTypes />
+                  <Categories />
                 </DashboardLayout>
               </ProtectedRoute>
             }
