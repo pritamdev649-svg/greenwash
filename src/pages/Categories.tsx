@@ -3,7 +3,6 @@ import {
   LayoutGrid, 
   Trash2, 
   Plus, 
-  Check, 
   ChevronRight, 
   Shirt, 
   Edit2,
@@ -32,7 +31,6 @@ const Categories: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [items, setItems] = useState<Item[]>([]);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
   
   // Forms State
   const [newCategoryName, setNewCategoryName] = useState('');
@@ -48,7 +46,6 @@ const Categories: React.FC = () => {
   // Fetch Data
   const fetchData = async () => {
     try {
-      setLoading(true);
       const [catData, itemData] = await Promise.all([
         orderService.getAllCategories(),
         orderService.getAllClothTypes()
@@ -62,8 +59,6 @@ const Categories: React.FC = () => {
       }
     } catch (err) {
       console.error(err);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -306,7 +301,7 @@ const Categories: React.FC = () => {
                 <button 
                   onClick={() => {
                     setEditingItemId(null);
-                    setItemForm({ name: '', wash_price: 0, iron_price: 0, dry_clean_price: 0 });
+                    setItemForm({ name: '', price: 0 });
                     setIsItemFormOpen(true);
                   }}
                   className="btn-primary h-11 px-6 rounded-xl flex items-center gap-2 text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary-600/20 active:scale-95 transition-all"
