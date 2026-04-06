@@ -1,5 +1,6 @@
 import React from 'react';
 import toWords from 'number-to-words';
+import { QRCodeSVG } from 'qrcode.react';
 
 export interface PrintReceiptProps {
   orderData: {
@@ -121,8 +122,11 @@ export const PrintReceipt: React.FC<PrintReceiptProps> = ({ orderData }) => {
           </div>
           <div className="mt-2 text-center w-24">
             {/* Simple QR representation or fallback */}
-            <div className="w-20 h-20 border border-gray-400 p-1 rounded inline-block bg-white relative">
-              <img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=upi://pay?pa=greenwashco@upi&pn=GreenWashCo&am=" alt="QR Code" className="w-full h-full object-cover opacity-80" />
+            <div className="w-20 h-20 border border-gray-400 p-1 rounded inline-block bg-white relative flex items-center justify-center">
+              <QRCodeSVG 
+                value={`upi://pay?pa=greenwashco@upi&pn=GreenWashCo&am=${orderData.balance}&tn=Order_${orderData.orderNo}&cu=INR`}
+                size={70}
+              />
             </div>
             <div className="bg-[#2FA84B] text-white text-[9px] py-1 mt-1 rounded font-bold w-full mx-auto">SCAN TO PAY</div>
           </div>
