@@ -56,9 +56,12 @@ const Home: React.FC = () => {
       {/* Navbar */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-lg border-b border-emerald-50">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3 cursor-pointer" onClick={() => window.scrollTo(0,0)}>
-            <img src="/assets/logo.png" alt="Logo" className="w-10 h-10 rounded-xl shadow-lg border border-emerald-100 p-1 bg-white" />
-            <span className="text-xl font-black text-slate-900 tracking-tight">Green Wash Co</span>
+          <div className="flex items-center cursor-pointer transition-transform active:scale-95 translate-y-2" onClick={() => window.scrollTo(0,0)}>
+            <img 
+               src="/assets/logo.png" 
+               alt="Green Wash Co Logo" 
+               className="h-20 w-auto object-contain" 
+            />
           </div>
 
           {/* Desktop Nav */}
@@ -288,9 +291,12 @@ const Home: React.FC = () => {
       <footer className="bg-slate-50 border-t border-emerald-50 pt-16 pb-8 px-6">
         <div className="max-w-7xl mx-auto grid md:grid-cols-4 gap-12">
           <div className="col-span-2 md:col-span-1">
-             <div className="flex items-center gap-3 mb-6">
-                <img src="/assets/logo.png" alt="Logo" className="w-10 h-10 rounded-xl shadow-lg border border-emerald-100 p-1 bg-white" />
-                <span className="text-xl font-black text-slate-900 tracking-tight">Green Wash Co</span>
+             <div className="flex items-center mb-6 -ml-4">
+                <img 
+                   src="/assets/logo.png" 
+                   alt="Green Wash Co Logo" 
+                   className="h-28 w-auto object-contain" 
+                />
              </div>
              <p className="text-slate-400 text-sm leading-relaxed mb-8 font-medium">
                Modernizing laundry management for businesses and individuals. Eco-friendly, fast, and professional.

@@ -51,13 +51,17 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
         isSidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
       )}>
         <div className="flex flex-col h-full">
-          <div className="p-6">
-            <h1 className="text-xl font-bold text-emerald-600 flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl overflow-hidden bg-white shadow-sm border border-slate-100 p-1 flex items-center justify-center">
-                <img src="/assets/logo.png" alt="Logo" className="w-full h-full object-contain" />
-              </div>
-              <span className="tracking-tight text-lg">Green Wash Co</span>
-            </h1>
+          <div className="p-4">
+            <div 
+              className="cursor-pointer transition-transform active:scale-95" 
+              onClick={() => navigate('/dashboard')}
+            >
+              <img 
+                src="/assets/logo.png" 
+                alt="Green Wash Co Logo" 
+                className="w-full h-auto max-h-24 object-contain" 
+              />
+            </div>
           </div>
 
           <nav className="flex-1 px-4 space-y-1 overflow-y-auto pt-2">
