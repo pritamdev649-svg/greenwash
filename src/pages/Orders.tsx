@@ -75,12 +75,12 @@ export default function Orders() {
           try {
             const customerName = order.customers?.name || 'Customer';
             const branchName = order.branches?.name || 'our branch';
-            const orderRef = order.id.slice(0, 8).toUpperCase();
+            const orderRef = 'GWC' + order.id.slice(0, 4).toUpperCase();
             const totalAmount = Number(order.total_amount).toLocaleString();
             const paidAmount = (order.advance_amount || 0).toLocaleString();
             const balanceAmount = (order.balance_amount || 0).toLocaleString();
 
-            const readyMsg = `Hello *${customerName}*! \u2705\n\nYour laundry order *#${orderRef}* is cleaned and ready for pickup at our *${branchName}*!\n\n*Total Bill:* ₹${totalAmount}\n*Paid:* ₹${paidAmount}\n*Balance:* ₹${balanceAmount}\n\nPlease visit us during business hours. Thank you! \u2728`;
+            const readyMsg = `Hello *${customerName}*! \u2705\n\nYour laundry order *${orderRef}* is cleaned and ready for pickup at our *${branchName}*!\n\n*Total Bill:* ₹${totalAmount}\n*Paid:* ₹${paidAmount}\n*Balance:* ₹${balanceAmount}\n\nPlease visit us during business hours. Thank you! \u2728`;
             
             await notificationService.sendAutomatedWhatsApp(order.customers?.mobile || '', readyMsg);
           } catch (waErr) {
@@ -102,7 +102,7 @@ export default function Orders() {
   const handleWhatsAppShare = (order: any) => {
     const customerName = order.customers?.name || 'Customer';
     const branchName = order.branches?.name || 'our branch';
-    const orderRef = order.id.slice(0, 8).toUpperCase();
+    const orderRef = 'GWC' + order.id.slice(0, 4).toUpperCase();
     const mobile = order.customers?.mobile;
     const formattedDueDate = order.due_date ? new Date(order.due_date).toLocaleDateString('en-GB') : 'TBD';
     const totalAmount = Number(order.total_amount).toLocaleString();
@@ -114,9 +114,9 @@ export default function Orders() {
     let message = "";
     
     if (order.order_status === 'Ready') {
-      message = `Hello *${customerName}*! \u2705\n\nYour laundry order *#${orderRef}* is cleaned and ready for pickup at our *${branchName}*!\n\n*Total Bill:* ₹${totalAmount}\n*Paid:* ₹${paidAmount}\n*Balance:* ₹${balanceAmount}\n\nPlease visit us during business hours. Thank you! \u2728`;
+      message = `Hello *${customerName}*! \u2705\n\nYour laundry order *${orderRef}* is cleaned and ready for pickup at our *${branchName}*!\n\n*Total Bill:* ₹${totalAmount}\n*Paid:* ₹${paidAmount}\n*Balance:* ₹${balanceAmount}\n\nPlease visit us during business hours. Thank you! \u2728`;
     } else {
-      message = `Hello *${customerName}*! \uD83D\uDCCB\n\n*Green Wash Co. Order Update*\n\n*Order ID:* #${orderRef}\n*Status:* ${order.order_status}\n*Due Date:* ${formattedDueDate}\n\n*Total Bill:* ₹${totalAmount}\n*Paid:* ₹${paidAmount}\n*Remaining:* ₹${balanceAmount}\n\nThank you! \u2728`;
+      message = `Hello *${customerName}*! \uD83D\uDCCB\n\n*Green Wash Co. Order Update*\n\n*Order ID:* ${orderRef}\n*Status:* ${order.order_status}\n*Due Date:* ${formattedDueDate}\n\n*Total Bill:* ₹${totalAmount}\n*Paid:* ₹${paidAmount}\n*Remaining:* ₹${balanceAmount}\n\nThank you! \u2728`;
     }
 
     const cleanedMobile = mobile.replace(/\D/g, '');
@@ -160,7 +160,7 @@ export default function Orders() {
       const detailedOrder = await orderService.getOrderById(orderId);
       
       const pData: PrintReceiptProps['orderData'] = {
-        orderNo: detailedOrder.id.slice(0, 6).toUpperCase(),
+        orderNo: 'GWC' + detailedOrder.id.slice(0, 4).toUpperCase(),
         date: new Date(detailedOrder.created_at).toLocaleDateString('en-GB'),
         dueDate: detailedOrder.due_date 
           ? detailedOrder.due_date.split('-').reverse().join('/') 
@@ -281,7 +281,7 @@ export default function Orders() {
                     <tr><td colSpan={9} className="p-32 text-center text-slate-400 font-medium tracking-tight">System holds no records for your current filters.</td></tr>
                  ) : filteredOrders.map((order) => (
                     <tr key={order.id} className="table-row group hover:bg-slate-50/10">
-                       <td className="table-cell px-6 text-xs font-bold text-slate-400 font-mono">#{order.id.slice(0,6).toUpperCase()}</td>
+                       <td className="table-cell px-6 text-xs font-bold text-slate-400 font-mono">GWC{order.id.slice(0,4).toUpperCase()}</td>
                        <td className="table-cell px-6">
                           <div className="flex flex-col">
                              <span className="text-sm font-bold text-slate-900">{new Date(order.created_at).toLocaleDateString('en-GB')}</span>

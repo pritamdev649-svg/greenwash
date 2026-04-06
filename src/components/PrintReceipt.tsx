@@ -83,7 +83,6 @@ export const PrintReceipt: React.FC<PrintReceiptProps> = ({ orderData }) => {
           <tr className="bg-gray-500 text-white">
             <th className="py-1 px-2 text-[11px] font-bold w-12 border border-gray-500">Sl.No.</th>
             <th className="py-1 px-2 text-[11px] font-bold border border-gray-500">Item name</th>
-            <th className="py-1 px-2 text-[11px] font-bold border border-gray-500">Service</th>
             <th className="py-1 px-2 text-[11px] font-bold text-center w-20 border border-gray-500">Quantity</th>
             <th className="py-1 px-2 text-[11px] font-bold text-right w-24 border border-gray-500">Price/ Unit</th>
             <th className="py-1 px-2 text-[11px] font-bold text-right w-24 border border-gray-500">Amount</th>
@@ -94,7 +93,6 @@ export const PrintReceipt: React.FC<PrintReceiptProps> = ({ orderData }) => {
             <tr key={idx} className="border-b border-gray-300">
               <td className="py-1.5 px-2 text-[11px]">{idx + 1}</td>
               <td className="py-1.5 px-2 text-[11px]">{item.name}</td>
-              <td className="py-1.5 px-2 text-[11px]">{item.category}</td>
               <td className="py-1.5 px-2 text-[11px] text-center">{item.qty}</td>
               <td className="py-1.5 px-2 text-[11px] text-right">₹ {item.price.toFixed(1)}</td>
               <td className="py-1.5 px-2 text-[11px] text-right">₹ {item.amount.toFixed(1)}</td>
@@ -102,7 +100,7 @@ export const PrintReceipt: React.FC<PrintReceiptProps> = ({ orderData }) => {
           ))}
           {/* Total Row */}
           <tr className="border-b-2 border-slate-600 font-bold">
-            <td colSpan={5} className="py-1.5 px-8 text-xs text-center">Total</td>
+            <td colSpan={4} className="py-1.5 px-8 text-xs text-center">Total</td>
             <td className="py-1.5 px-2 text-[11px] text-right">₹ {orderData.items.reduce((s, i) => s + i.amount, 0).toFixed(1)}</td>
           </tr>
         </tbody>

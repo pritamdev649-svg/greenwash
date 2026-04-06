@@ -171,11 +171,11 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
 
       // --- NEW: AUTOMATED WHATSAPP SEND ---
       try {
-        const orderRef = order.id.slice(0, 8).toUpperCase();
+        const orderRef = 'GWC' + order.id.slice(0, 4).toUpperCase();
         const msg = `*Green Wash Co. - Order Receipt* \uD83E\uDDFA\n\n` +
                    `Hello *${selectedCustomer?.name || 'Customer'}*,\n` +
                    `Your laundry order has been recorded successfully!\n\n` +
-                   `*Order No:* #${orderRef}\n` +
+                   `*Order No:* ${orderRef}\n` +
                    `*Date:* ${new Date().toLocaleDateString('en-GB')}\n` +
                    `*Due Date:* ${dueDate ? new Date(dueDate).toLocaleDateString('en-GB') : 'To be confirmed'}\n` +
                    `*Total Amount:* ₹${grandTotal.toLocaleString()}\n\n` +
@@ -196,7 +196,7 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
   };
 
   const handleWhatsAppShare = () => {
-    const orderRef = createdOrderId.slice(0, 8).toUpperCase();
+    const orderRef = 'GWC' + createdOrderId.slice(0, 4).toUpperCase();
     const total = grandTotal.toLocaleString();
     const date = new Date().toLocaleDateString('en-GB');
     const formattedDueDate = dueDate ? new Date(dueDate).toLocaleDateString('en-GB') : 'To be confirmed';
@@ -204,7 +204,7 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
     const message = `*Green Wash Co. - Order Receipt* \uD83E\uDDFA\n\n` +
       `Hello *${selectedCustomer?.name || 'Customer'}*,\n` +
       `Your laundry order has been recorded successfully!\n\n` +
-      `*Order No:* #${orderRef}\n` +
+      `*Order No:* ${orderRef}\n` +
       `*Date:* ${date}\n` +
       `*Due Date:* ${formattedDueDate}\n` +
       `*Total Amount:* ₹${total}\n\n` +
@@ -306,7 +306,7 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
                  <div className="bg-slate-50/50 p-6 rounded-3xl border border-slate-100 space-y-4">
                     <div className="flex justify-between items-center text-xs font-bold">
                        <span className="text-slate-400 uppercase tracking-tight">Invoice No</span>
-                       <span className="text-slate-900 font-black"># {orderNo}</span>
+                       <span className="text-slate-900 font-black">GWC{orderNo}</span>
                     </div>
                     <div className="flex justify-between items-center text-xs font-bold">
                        <span className="text-slate-400 uppercase tracking-tight">Entry Date</span>
