@@ -381,18 +381,20 @@ const Categories: React.FC = () => {
                               </div>
                            </div>
                         </div>
-                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all translate-x-2 group-hover:translate-x-0">
+                        <div className="flex items-center gap-1 transition-all">
                            <button 
                             onClick={() => startEditItem(item)}
-                            className="p-2 rounded-lg text-primary-600 hover:bg-primary-50 transition-colors"
+                            className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white transition-all flex items-center justify-center shadow-sm"
+                            title="Edit Product"
                            >
-                            <Edit2 size={14} />
+                            <Edit2 size={12} />
                            </button>
                            <button 
                             onClick={() => deleteItem(item.id)}
-                            className="p-2 rounded-lg text-rose-500 hover:bg-rose-50 transition-colors"
+                            className="w-8 h-8 rounded-lg bg-rose-50 text-rose-500 hover:bg-rose-600 hover:text-white transition-all flex items-center justify-center shadow-sm"
+                            title="Delete Product"
                            >
-                            <Trash2 size={14} />
+                            <Trash2 size={12} />
                            </button>
                         </div>
                       </div>
