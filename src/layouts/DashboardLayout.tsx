@@ -57,7 +57,7 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
               onClick={() => navigate('/dashboard')}
             >
               <img 
-                src="/assets/logo.png" 
+                src="/assets/greenwashlogo.jpeg" 
                 alt="Green Wash Co Logo" 
                 className="w-full h-auto max-h-24 object-contain" 
               />

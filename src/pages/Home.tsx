@@ -58,7 +58,7 @@ const Home: React.FC = () => {
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center cursor-pointer transition-transform active:scale-95 translate-y-2" onClick={() => window.scrollTo(0,0)}>
             <img 
-               src="/assets/logo.png" 
+               src="/assets/greenwashlogo.jpeg" 
                alt="Green Wash Co Logo" 
                className="h-20 w-auto object-contain" 
             />
@@ -293,7 +293,7 @@ const Home: React.FC = () => {
           <div className="col-span-2 md:col-span-1">
              <div className="flex items-center mb-6 -ml-4">
                 <img 
-                   src="/assets/logo.png" 
+                   src="/assets/greenwashlogo.jpeg" 
                    alt="Green Wash Co Logo" 
                    className="h-28 w-auto object-contain" 
                 />
