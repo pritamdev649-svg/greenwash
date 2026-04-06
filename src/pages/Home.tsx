@@ -54,13 +54,13 @@ const Home: React.FC = () => {
   return (
     <div className="min-h-screen bg-white font-sans text-slate-900 scroll-smooth">
       {/* Navbar */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-lg border-b border-emerald-50">
-        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center cursor-pointer transition-transform active:scale-95 translate-y-2" onClick={() => window.scrollTo(0,0)}>
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-xl border-b border-emerald-50 py-2">
+        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+          <div className="flex items-center cursor-pointer transition-transform active:scale-95 translate-y-1" onClick={() => window.scrollTo(0,0)}>
             <img 
                src="/assets/greenwashlogo.jpeg" 
                alt="Green Wash Co Logo" 
-               className="h-20 w-auto object-contain" 
+               className="h-24 w-auto object-contain" 
             />
           </div>
 
@@ -103,7 +103,7 @@ const Home: React.FC = () => {
       </nav>
 
       {/* Hero Section */}
-      <section id="home" className="relative pt-24 pb-12 lg:pt-32 lg:pb-20 overflow-hidden bg-emerald-50/20">
+      <section id="home" className="relative pt-32 pb-12 lg:pt-40 lg:pb-20 overflow-hidden bg-emerald-50/20">
         {/* Wave Background */}
         <div className="absolute top-0 right-0 w-[60%] h-full bg-emerald-200/20 blur-[120px] rounded-full translate-x-1/2 -translate-y-1/2 -z-10" />
         
