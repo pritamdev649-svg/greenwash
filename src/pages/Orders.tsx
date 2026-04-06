@@ -12,6 +12,7 @@ import {
   CreditCard
 } from 'lucide-react';
 import { orderService } from '@backend/services/orderService';
+import { notificationService } from '@backend/services/notificationService';
 import { OrderEntryForm } from '../components/OrderEntryForm';
 import { PrintReceipt } from '../components/PrintReceipt';
 import type { PrintReceiptProps } from '../components/PrintReceipt';
@@ -68,6 +69,26 @@ export default function Orders() {
       try {
         setLoading(true);
         await orderService.updateOrderStatus(order.id, nextPhase);
+        
+        // --- NEW: AUTOMATED 'READY' NOTIFICATION ---
+        if (nextPhase === 'Ready') {
+          try {
+            const customerName = order.customers?.name || 'Customer';
+            const branchName = order.branches?.name || 'our branch';
+            const orderRef = order.id.slice(0, 8).toUpperCase();
+            const totalAmount = Number(order.total_amount).toLocaleString();
+            const paidAmount = (order.advance_amount || 0).toLocaleString();
+            const balanceAmount = (order.balance_amount || 0).toLocaleString();
+
+            const readyMsg = `Hello *${customerName}*! \u2705\n\nYour laundry order *#${orderRef}* is cleaned and ready for pickup at our *${branchName}*!\n\n*Total Bill:* ₹${totalAmount}\n*Paid:* ₹${paidAmount}\n*Balance:* ₹${balanceAmount}\n\nPlease visit us during business hours. Thank you! \u2728`;
+            
+            await notificationService.sendAutomatedWhatsApp(order.customers?.mobile || '', readyMsg);
+          } catch (waErr) {
+            console.error("Automated 'Ready' message failed.", waErr);
+          }
+        }
+        // ------------------------------------------
+
         fetchData();
       } catch (err) {
         console.error(err);

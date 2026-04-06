@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { customerService } from '@backend/services/customerService';
 import { orderService } from '@backend/services/orderService';
+import { notificationService } from '@backend/services/notificationService';
 
 interface SaleRow {
   id: string;
@@ -167,6 +168,25 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
       
       setCreatedOrderId(order.id);
       setIsSuccess(true);
+
+      // --- NEW: AUTOMATED WHATSAPP SEND ---
+      try {
+        const orderRef = order.id.slice(0, 8).toUpperCase();
+        const msg = `*Green Wash Co. - Order Receipt* \uD83E\uDDFA\n\n` +
+                   `Hello *${selectedCustomer?.name || 'Customer'}*,\n` +
+                   `Your laundry order has been recorded successfully!\n\n` +
+                   `*Order No:* #${orderRef}\n` +
+                   `*Date:* ${new Date().toLocaleDateString('en-GB')}\n` +
+                   `*Due Date:* ${dueDate ? new Date(dueDate).toLocaleDateString('en-GB') : 'To be confirmed'}\n` +
+                   `*Total Amount:* ₹${grandTotal.toLocaleString()}\n\n` +
+                   `Thank you for choosing *Green Wash Co!* ✨`;
+
+        await notificationService.sendAutomatedWhatsApp(selectedCustomer?.mobile || '', msg);
+      } catch (waErr) {
+        console.error("Automated WhatsApp failed, but order was saved.", waErr);
+      }
+      // ------------------------------------
+      
     } catch (err) {
       console.error(err);
       alert("Failed to save order.");

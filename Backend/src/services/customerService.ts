@@ -80,5 +80,32 @@ export const customerService = {
     
     if (error) throw error;
     return data || [];
+  },
+
+  /**
+   * Update an existing customer
+   */
+  async updateCustomer(id: string, updates: Partial<{ name: string; mobile: string; email: string; address: string; branch_id: string }>) {
+    const { data, error } = await supabase
+      .from('customers')
+      .update(updates)
+      .eq('id', id)
+      .select();
+    
+    if (error) throw error;
+    return data[0];
+  },
+
+  /**
+   * Delete a customer (Will fail if they have orders due to FK constraints)
+   */
+  async deleteCustomer(id: string) {
+    const { error } = await supabase
+      .from('customers')
+      .delete()
+      .eq('id', id);
+    
+    if (error) throw error;
+    return true;
   }
 };

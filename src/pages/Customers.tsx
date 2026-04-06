@@ -12,7 +12,9 @@ import {
   ArrowRight,
   TrendingUp,
   AlertCircle,
-  Receipt
+  Receipt,
+  Edit2,
+  Trash2
 } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -55,8 +57,10 @@ const Customers: React.FC = () => {
   
   // Modals
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+  const [customerToEdit, setCustomerToEdit] = useState<Customer | null>(null);
   const [customerOrders, setCustomerOrders] = useState<Order[]>([]);
   const [ordersLoading, setOrdersLoading] = useState(false);
   const [printingOrderData, setPrintingOrderData] = useState<PrintReceiptProps['orderData'] | null>(null);
@@ -96,6 +100,46 @@ const Customers: React.FC = () => {
       fetchData();
     } catch (err) {
       alert("Failed to add customer");
+    }
+  };
+
+  const handleEditClick = (customer: Customer) => {
+    setCustomerToEdit(customer);
+    setFormData({
+      name: customer.name,
+      mobile: customer.mobile,
+      email: (customer as any).email || '',
+      address: customer.address || '',
+      branch_id: customer.branch_id
+    });
+    setIsEditModalOpen(true);
+  };
+
+  const handleUpdateCustomer = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!customerToEdit) return;
+    try {
+      await customerService.updateCustomer(customerToEdit.id, formData);
+      setIsEditModalOpen(false);
+      setCustomerToEdit(null);
+      setFormData({ name: '', mobile: '', email: '', address: '', branch_id: '' });
+      fetchData();
+    } catch (err) {
+      alert("Failed to update customer");
+    }
+  };
+
+  const handleDeleteCustomer = async (id: string) => {
+    if (!window.confirm("ARE YOU SURE? This will permanently delete the customer profile. If they have existing orders, deletion might be blocked to protect financial records.")) return;
+    try {
+      setLoading(true);
+      await customerService.deleteCustomer(id);
+      fetchData();
+    } catch (err) {
+      console.error(err);
+      alert("FAILED: Cannot delete customer with active order history.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -163,6 +207,26 @@ const Customers: React.FC = () => {
     const matchesBranch = selectedBranch === 'all' || c.branch_id === selectedBranch;
     return matchesSearch && matchesBranch;
   });
+
+  const handleSendDirectMessage = async (customer: Customer) => {
+    const msg = window.prompt(`Send WhatsApp to ${customer.name}:`, "");
+    if (!msg || msg.trim() === "") return;
+
+    try {
+      setLoading(true);
+      const res = await notificationService.sendAutomatedWhatsApp(customer.mobile, msg);
+      if (res.success) {
+        alert("Message dispatched successfully via Automated System.");
+      } else {
+        alert("Failed to send message automatically. Please check your API credentials.");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("System error while sending message.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <>
@@ -248,17 +312,16 @@ const Customers: React.FC = () => {
                   </td>
                   <td className="table-cell">
                     <div className="space-y-1">
-                      <a 
-                        href={`https://wa.me/${customer.mobile}`} 
-                        target="_blank" 
-                        rel="noreferrer"
-                        className="text-sm font-bold text-slate-700 hover:text-emerald-600 flex items-center gap-1.5 transition-colors"
+                      <button 
+                        onClick={() => handleSendDirectMessage(customer)}
+                        className="text-sm font-bold text-slate-700 hover:text-emerald-600 flex items-center gap-1.5 transition-colors group/msg"
+                        title="Send automated message to this customer"
                       >
-                         <Phone size={14} className="text-slate-400" />
+                         <Phone size={14} className="text-slate-400 group-hover/msg:text-emerald-500" />
                          {customer.mobile}
-                         <MessageCircle size={14} className="text-emerald-500 opacity-0 group-hover:opacity-100 transition-opacity" />
-                      </a>
-      <div className="inline-flex items-center px-1.5 py-0.5 rounded bg-primary-50 text-[10px] font-bold text-primary-600 border border-primary-100 uppercase tracking-tighter">
+                         <MessageCircle size={14} className="text-emerald-500 opacity-0 group-hover/msg:opacity-100 transition-opacity" />
+                      </button>
+                      <div className="inline-flex items-center px-1.5 py-0.5 rounded bg-primary-50 text-[10px] font-bold text-primary-600 border border-primary-100 uppercase tracking-tighter">
                          {customer.branch?.name || 'Main Office'}
                       </div>
                     </div>
@@ -280,14 +343,29 @@ const Customers: React.FC = () => {
                     </div>
                   </td>
                   <td className="table-cell text-right">
-                    <button 
-                      onClick={() => fetchCustomerHistory(customer)}
-                      className="inline-flex items-center justify-center gap-2 h-9 px-4 rounded-lg bg-slate-50 text-slate-600 text-xs font-bold hover:bg-primary-600 hover:text-white transition-all shadow-sm active:scale-95"
-                    >
-                      <History size={14} />
-                      <span>History</span>
-                      <ArrowRight size={12} />
-                    </button>
+                    <div className="flex justify-end items-center gap-2">
+                       <button 
+                         onClick={() => fetchCustomerHistory(customer)}
+                         className="inline-flex items-center justify-center h-9 w-9 rounded-lg bg-slate-50 text-slate-500 hover:bg-primary-600 hover:text-white transition-all shadow-sm active:scale-95"
+                         title="View History"
+                       >
+                         <History size={16} />
+                       </button>
+                       <button 
+                         onClick={() => handleEditClick(customer)}
+                         className="inline-flex items-center justify-center h-9 w-9 rounded-lg bg-slate-50 text-slate-500 hover:bg-indigo-600 hover:text-white transition-all shadow-sm active:scale-95"
+                         title="Edit Profile"
+                       >
+                         <Edit2 size={16} />
+                       </button>
+                       <button 
+                         onClick={() => handleDeleteCustomer(customer.id)}
+                         className="inline-flex items-center justify-center h-9 w-9 rounded-lg bg-slate-50 text-rose-400 hover:bg-rose-600 hover:text-white transition-all shadow-sm active:scale-95"
+                         title="Delete Customer"
+                       >
+                         <Trash2 size={16} />
+                       </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -334,6 +412,50 @@ const Customers: React.FC = () => {
                 <div className="col-span-2 pt-2 flex gap-3">
                    <button type="button" onClick={() => setIsAddModalOpen(false)} className="flex-1 h-12 rounded-xl text-sm font-bold text-slate-500 hover:bg-slate-50 transition-colors">Dismiss</button>
                    <button type="submit" className="flex-[2] btn-primary h-12 rounded-xl text-sm font-bold shadow-lg shadow-primary-600/20 active:scale-95 transition-all">Submit Entry</button>
+                </div>
+              </form>
+           </div>
+        </div>
+      )}
+
+      {/* Edit Customer Modal */}
+      {isEditModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+           <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setIsEditModalOpen(false)} />
+           <div className="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl p-8 animate-slide-up">
+              <div className="flex justify-between items-center mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center">
+                    <Edit2 size={20} />
+                  </div>
+                  <h3 className="text-xl font-bold text-slate-900 tracking-tight">Edit Customer Profile</h3>
+                </div>
+                <button onClick={() => setIsEditModalOpen(false)} className="text-slate-400 hover:text-slate-600"><X size={24} /></button>
+              </div>
+
+              <form onSubmit={handleUpdateCustomer} className="grid grid-cols-2 gap-5">
+                <div className="col-span-2 space-y-1.5">
+                   <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Full Name</label>
+                   <input required className="input h-11 bg-slate-50 focus:bg-white" placeholder="John Doe" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} />
+                </div>
+                <div className="space-y-1.5">
+                   <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Mobile Number</label>
+                   <input required className="input h-11 bg-slate-50 focus:bg-white" placeholder="+91 0000 0000" value={formData.mobile} onChange={(e) => setFormData({...formData, mobile: e.target.value})} />
+                </div>
+                <div className="space-y-1.5">
+                   <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Branch Assignment</label>
+                   <select required className="input h-11 bg-slate-50 focus:bg-white cursor-pointer" value={formData.branch_id} onChange={(e) => setFormData({...formData, branch_id: e.target.value})}>
+                      <option value="">Select branch</option>
+                      {branches.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
+                   </select>
+                </div>
+                <div className="col-span-2 space-y-1.5">
+                   <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Service Address</label>
+                   <textarea className="input min-h-[80px] py-3 resize-none bg-slate-50 focus:bg-white" placeholder="Apt, Street, Landmark..." value={formData.address} onChange={(e) => setFormData({...formData, address: e.target.value})} />
+                </div>
+                <div className="col-span-2 pt-2 flex gap-3">
+                   <button type="button" onClick={() => setIsEditModalOpen(false)} className="flex-1 h-12 rounded-xl text-sm font-bold text-slate-500 hover:bg-slate-50 transition-colors">Discard</button>
+                   <button type="submit" className="flex-[2] h-12 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-bold shadow-lg shadow-indigo-600/20 active:scale-95 transition-all">Save Changes</button>
                 </div>
               </form>
            </div>
