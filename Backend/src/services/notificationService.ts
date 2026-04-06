@@ -18,9 +18,9 @@ export const notificationService = {
    * Requirement: WHATSAPP_ACCESS_TOKEN and WHATSAPP_PHONE_NUMBER_ID in env.
    */
   async sendAutomatedWhatsApp(mobile: string, message: string) {
-    // 1. Get credentials from env
-    const accessToken = import.meta.env?.VITE_WHATSAPP_TOKEN || process.env.WHATSAPP_ACCESS_TOKEN;
-    const phoneNumberId = import.meta.env?.VITE_WHATSAPP_PHONE_ID || process.env.WHATSAPP_PHONE_ID;
+    // 1. Get credentials from Vite env
+    const accessToken = import.meta.env?.VITE_WHATSAPP_TOKEN;
+    const phoneNumberId = import.meta.env?.VITE_WHATSAPP_PHONE_ID;
     
     // Default backup number if needed for identification
     const sourceNumber = "9451034909"; 
