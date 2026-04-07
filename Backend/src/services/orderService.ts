@@ -89,6 +89,7 @@ export const orderService = {
       .from('orders')
       .select(`
         *,
+        order_number,
         customers(name, mobile),
         branches(name),
         order_items(count)
@@ -108,6 +109,7 @@ export const orderService = {
       .from('orders')
       .select(`
         *,
+        order_number,
         customers (name, mobile, address),
         order_items (
           id, quantity, wash_price, iron_price, subtotal,
@@ -206,7 +208,7 @@ export const orderService = {
     if (status === 'Ready' && order?.customers?.mobile) {
       const customerName = order.customers.name || 'Customer';
       const branchName = order.branches?.name || 'our branch';
-      const orderRef = 'GWC' + order.id.slice(0, 4).toUpperCase();
+      const orderRef = order.order_number ? `GWC${order.order_number}` : 'GWC' + order.id.slice(0, 4).toUpperCase();
       const mobile = order.customers.mobile;
       
       const message = `Hello ${customerName}! \n\n✅ Your clothes (Order ${orderRef}) are cleaned and ready for pickup at our ${branchName}! \n\nPlease visit us during business hours. \n\nThank you for choosing Green Wash Co! 👕✨`;
@@ -263,6 +265,7 @@ export const orderService = {
         .from('orders')
         .select(`
           id,
+          order_number,
           created_at,
           total_amount,
           customers (name)

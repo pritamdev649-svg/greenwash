@@ -46,6 +46,7 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
   const [orderNo] = useState(() => Math.floor(1000 + Math.random() * 9000).toString());
   const [isSuccess, setIsSuccess] = useState(false);
   const [createdOrderId, setCreatedOrderId] = useState('');
+  const [createdOrder, setCreatedOrder] = useState<any>(null);
   const [advanceAmount, setAdvanceAmount] = useState(0);
   
   const [rows, setRows] = useState<SaleRow[]>([
@@ -167,11 +168,12 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
       );
       
       setCreatedOrderId(order.id);
+      setCreatedOrder(order);
       setIsSuccess(true);
 
       // --- NEW: AUTOMATED WHATSAPP SEND ---
       try {
-        const orderRef = 'GWC' + order.id.slice(0, 4).toUpperCase();
+        const orderRef = order.order_number ? `GWC${order.order_number}` : 'GWC' + order.id.slice(0, 4).toUpperCase();
         const msg = `*Green Wash Co. - Order Receipt* \uD83E\uDDFA\n\n` +
                    `Hello *${selectedCustomer?.name || 'Customer'}*,\n` +
                    `Your laundry order has been recorded successfully!\n\n` +
@@ -196,7 +198,10 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
   };
 
   const handleWhatsAppShare = () => {
-    const orderRef = 'GWC' + createdOrderId.slice(0, 4).toUpperCase();
+    // Use the stored order object if we had it, but here we only have createdOrderId.
+    // However, we can improve this by storing the whole order in state if needed.
+    // For now, let's keep the logic consistent.
+    const orderRef = createdOrder?.order_number ? `GWC${createdOrder.order_number}` : 'GWC' + createdOrderId.slice(0, 4).toUpperCase();
     const total = grandTotal.toLocaleString();
     const date = new Date().toLocaleDateString('en-GB');
     const formattedDueDate = dueDate ? new Date(dueDate).toLocaleDateString('en-GB') : 'To be confirmed';
@@ -306,7 +311,7 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
                  <div className="bg-slate-50/50 p-6 rounded-3xl border border-slate-100 space-y-4">
                     <div className="flex justify-between items-center text-xs font-bold">
                        <span className="text-slate-400 uppercase tracking-tight">Invoice No</span>
-                       <span className="text-slate-900 font-black">GWC{orderNo}</span>
+                       <span className="text-slate-900 font-black">GWC {orderNo}</span>
                     </div>
                     <div className="flex justify-between items-center text-xs font-bold">
                        <span className="text-slate-400 uppercase tracking-tight">Entry Date</span>

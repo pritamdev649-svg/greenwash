@@ -6,9 +6,9 @@ export const authService = {
    */
   async signIn(email: string, password: string) {
     // 🧪 LOCAL BYPASS for Admin Development
-    if (email === 'admin@ironwala.com' && password === 'admin123') {
+    if (email === 'admin@greenwashco.com' && password === 'ironwala$99') {
       localStorage.setItem('sb-demo-session', 'true');
-      const user = { email: 'admin@ironwala.com', id: 'local-admin', user_metadata: {} };
+      const user = { email: 'admin@greenwashco.com', id: 'local-admin', user_metadata: {} };
       return { 
         data: { 
           user, 

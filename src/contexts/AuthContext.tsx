@@ -28,8 +28,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // 🧪 Check for Local Bypass Session (handled via service logic check if needed, but we check flag here)
     const demoSession = localStorage.getItem('sb-demo-session');
     if (demoSession === 'true') {
-      setUser({ email: 'admin@ironwala.com', id: 'local-admin', user_metadata: {} } as any);
-      setSession({ user: { email: 'admin@ironwala.com' } } as any);
+      setUser({ email: 'admin@greenwashco.com', id: 'local-admin', user_metadata: {} } as any);
+      setSession({ user: { email: 'admin@greenwashco.com' } } as any);
       setLoading(false);
       return;
     }

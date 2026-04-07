@@ -375,7 +375,7 @@ const Home: React.FC = () => {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       className="w-full h-14 pl-12 pr-4 bg-slate-50 border border-slate-100 rounded-2xl text-slate-900 text-sm focus:outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500/50 transition-all font-medium"
-                      placeholder="admin@ironwala.com"
+                      placeholder="admin@greenwashco.com"
                     />
                   </div>
                 </div>
