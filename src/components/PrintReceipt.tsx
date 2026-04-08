@@ -124,7 +124,7 @@ export const PrintReceipt: React.FC<PrintReceiptProps> = ({ orderData }) => {
             {/* Simple QR representation or fallback */}
             <div className="w-20 h-20 border border-gray-400 p-1 rounded inline-block bg-white relative flex items-center justify-center">
               <QRCodeSVG 
-                value={`upi://pay?pa=greenwashco@upi&pn=GreenWashCo&am=${orderData.balance}&tn=Order_${orderData.orderNo}&cu=INR`}
+                value={`upi://pay?pa=9628562024@kotak811&pn=SUMIT%20KUMAR&am=${orderData.balance}&tn=Order_${orderData.orderNo}&cu=INR`}
                 size={70}
               />
             </div>
