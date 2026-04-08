@@ -73,14 +73,19 @@ export default function Orders() {
         // --- NEW: AUTOMATED 'READY' NOTIFICATION ---
         if (nextPhase === 'Ready') {
           try {
-            const customerName = order.customers?.name || 'Customer';
             const branchName = order.branches?.name || 'our branch';
             const orderRef = order.order_number ? `GWC${order.order_number}` : 'GWC' + order.id.slice(0, 4).toUpperCase();
             const totalAmount = Number(order.total_amount).toLocaleString();
-            const paidAmount = (order.advance_amount || 0).toLocaleString();
             const balanceAmount = (order.balance_amount || 0).toLocaleString();
+            // const receiptUrl = `${window.location.origin}/receipt/${order.id}`;
 
-            const readyMsg = `Hello *${customerName}*! \u2705\n\nYour laundry order *${orderRef}* is cleaned and ready for pickup at our *${branchName}*!\n\n*Total Bill:* ₹${totalAmount}\n*Paid:* ₹${paidAmount}\n*Balance:* ₹${balanceAmount}\n\nPlease visit us during business hours. Thank you! \u2728`;
+            const readyMsg = `Greetings from Green Wash Co.\n` +
+              `We are pleased to have you as a valuable customer. Your laundry order ${orderRef} is cleaned and ready for pickup at our ${branchName}!\n\n` +
+              `Invoice No:-${orderRef}\n` +
+              `Total Amount: ₹${totalAmount}\n` +
+              `Balance: ₹${balanceAmount}\n\n` +
+              // `View Receipt: ${receiptUrl}\n\n` +
+              `Please visit us during business hours. Thank you! ✨`;
             
             await notificationService.sendAutomatedWhatsApp(order.customers?.mobile || '', readyMsg);
           } catch (waErr) {
@@ -100,24 +105,24 @@ export default function Orders() {
   };
 
   const handleWhatsAppShare = (order: any) => {
-    const customerName = order.customers?.name || 'Customer';
-    const branchName = order.branches?.name || 'our branch';
     const orderRef = order.order_number ? `GWC${order.order_number}` : 'GWC' + order.id.slice(0, 4).toUpperCase();
     const mobile = order.customers?.mobile;
-    const formattedDueDate = order.due_date ? new Date(order.due_date).toLocaleDateString('en-GB') : 'TBD';
     const totalAmount = Number(order.total_amount).toLocaleString();
-    const paidAmount = (order.advance_amount || 0).toLocaleString();
     const balanceAmount = (order.balance_amount || 0).toLocaleString();
+    // const receiptUrl = `${window.location.origin}/receipt/${order.id}`;
 
     if (!mobile) return alert("System Error: Customer mobile contact not found.");
 
-    let message = "";
-    
-    if (order.order_status === 'Ready') {
-      message = `Hello *${customerName}*! \u2705\n\nYour laundry order *${orderRef}* is cleaned and ready for pickup at our *${branchName}*!\n\n*Total Bill:* ₹${totalAmount}\n*Paid:* ₹${paidAmount}\n*Balance:* ₹${balanceAmount}\n\nPlease visit us during business hours. Thank you! \u2728`;
-    } else {
-      message = `Hello *${customerName}*! \uD83D\uDCCB\n\n*Green Wash Co. Order Update*\n\n*Order ID:* ${orderRef}\n*Status:* ${order.order_status}\n*Due Date:* ${formattedDueDate}\n\n*Total Bill:* ₹${totalAmount}\n*Paid:* ₹${paidAmount}\n*Remaining:* ₹${balanceAmount}\n\nThank you! \u2728`;
-    }
+    const message = `Greetings from Green Wash Co.\n` +
+      `We are pleased to have you as a valuable customer. Please find the details of your transaction.\n` +
+      `Invoice No:-${orderRef}\n\n` +
+      `Sale Order :\n` +
+      `Invoice Amount: ₹${totalAmount}\n` +
+      `Balance: ₹${balanceAmount}\n\n` +
+      // `View / Download Receipt: ${receiptUrl}\n\n` +
+      `Thanks for doing business with us.\n` +
+      `Regards,\n` +
+      `Green Wash Co.`;
 
     const cleanedMobile = mobile.replace(/\D/g, '');
     const phone = cleanedMobile.startsWith('91') ? cleanedMobile : '91' + cleanedMobile;

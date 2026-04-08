@@ -12,6 +12,7 @@ import Customers from './pages/Customers';
 import Orders from './pages/Orders';
 import SaleOrder from './pages/SaleOrder';
 import Categories from './pages/Categories';
+import PublicReceipt from './pages/PublicReceipt';
 
 const App: React.FC = () => {
   return (
@@ -72,6 +73,11 @@ const App: React.FC = () => {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/receipt/:id"
+            element={<PublicReceipt />}
+          />
+
           <Route
             path="/sale-order"
             element={

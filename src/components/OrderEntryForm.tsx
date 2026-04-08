@@ -174,14 +174,18 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
       // --- NEW: AUTOMATED WHATSAPP SEND ---
       try {
         const orderRef = order.order_number ? `GWC${order.order_number}` : 'GWC' + order.id.slice(0, 4).toUpperCase();
-        const msg = `*Green Wash Co. - Order Receipt* \uD83E\uDDFA\n\n` +
-                   `Hello *${selectedCustomer?.name || 'Customer'}*,\n` +
-                   `Your laundry order has been recorded successfully!\n\n` +
-                   `*Order No:* ${orderRef}\n` +
-                   `*Date:* ${new Date().toLocaleDateString('en-GB')}\n` +
-                   `*Due Date:* ${dueDate ? new Date(dueDate).toLocaleDateString('en-GB') : 'To be confirmed'}\n` +
-                   `*Total Amount:* ₹${grandTotal.toLocaleString()}\n\n` +
-                   `Thank you for choosing *Green Wash Co!* ✨`;
+        const balance = (grandTotal - advanceAmount).toLocaleString();
+        // const receiptUrl = `${window.location.origin}/receipt/${order.id}`;
+        const msg = `Greetings from Green Wash Co.\n` +
+                   `We are pleased to have you as a valuable customer. Please find the details of your transaction.\n` +
+                   `Invoice No:-${orderRef}\n\n` +
+                   `Sale Order :\n` +
+                   `Invoice Amount: ₹${grandTotal.toLocaleString()}\n` +
+                   `Balance: ₹${balance}\n\n` +
+                   // `View / Download Receipt: ${receiptUrl}\n\n` +
+                   `Thanks for doing business with us.\n` +
+                   `Regards,\n` +
+                   `Green Wash Co.`;
 
         await notificationService.sendAutomatedWhatsApp(selectedCustomer?.mobile || '', msg);
       } catch (waErr) {
@@ -203,17 +207,19 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
     // For now, let's keep the logic consistent.
     const orderRef = createdOrder?.order_number ? `GWC${createdOrder.order_number}` : 'GWC' + createdOrderId.slice(0, 4).toUpperCase();
     const total = grandTotal.toLocaleString();
-    const date = new Date().toLocaleDateString('en-GB');
-    const formattedDueDate = dueDate ? new Date(dueDate).toLocaleDateString('en-GB') : 'To be confirmed';
+    const balance = (grandTotal - advanceAmount).toLocaleString();
+    // const receiptUrl = `${window.location.origin}/receipt/${createdOrderId}`;
     
-    const message = `*Green Wash Co. - Order Receipt* \uD83E\uDDFA\n\n` +
-      `Hello *${selectedCustomer?.name || 'Customer'}*,\n` +
-      `Your laundry order has been recorded successfully!\n\n` +
-      `*Order No:* ${orderRef}\n` +
-      `*Date:* ${date}\n` +
-      `*Due Date:* ${formattedDueDate}\n` +
-      `*Total Amount:* ₹${total}\n\n` +
-      `Thank you for choosing *Green Wash Co!* ✨`;
+    const message = `Greetings from Green Wash Co.\n` +
+      `We are pleased to have you as a valuable customer. Please find the details of your transaction.\n` +
+      `Invoice No:-${orderRef}\n\n` +
+      `Sale Order :\n` +
+      `Invoice Amount: ₹${total}\n` +
+      `Balance: ₹${balance}\n\n` +
+      // `View / Download Receipt: ${receiptUrl}\n\n` +
+      `Thanks for doing business with us.\n` +
+      `Regards,\n` +
+      `Green Wash Co.`;
 
     const phone = selectedCustomer?.mobile?.replace(/\D/g, '');
     if (!phone) return alert("Mobile number not found!");

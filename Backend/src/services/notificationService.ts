@@ -17,38 +17,50 @@ export const notificationService = {
    * Automated Message Sender via Meta WhatsApp Cloud API
    * Requirement: WHATSAPP_ACCESS_TOKEN and WHATSAPP_PHONE_NUMBER_ID in env.
    */
-  async sendAutomatedWhatsApp(mobile: string, message: string) {
-    // 1. Get credentials from Vite env
+  async sendAutomatedWhatsApp(mobile: string, message: string, mediaUrl?: string) {
     const accessToken = import.meta.env?.VITE_WHATSAPP_TOKEN;
     const phoneNumberId = import.meta.env?.VITE_WHATSAPP_PHONE_ID;
     
-    // Default backup number if needed for identification
-    const sourceNumber = "9451034909"; 
-
-    console.log(`[Notification Service] Attempting automated WhatsApp via ${sourceNumber} to ${mobile}`);
-
-    if (!accessToken || !phoneNumberId) {
+    // Fallback: Clean phone number
+    const cleanedMobile = mobile.replace(/\D/g, '');
+    const to = cleanedMobile.startsWith('91') ? cleanedMobile : '91' + cleanedMobile;
+    
+    // For local development or missing keys, log only
+    if (!accessToken || accessToken === 'PASTE_ACCESS_TOKEN_HERE') {
       console.warn("WhatsApp API Credentials NOT FOUND in .env. Falling back to simulation mode.");
-      console.log(`Simulated Message: "${message}"`);
-      return { success: false, error: 'Credentials Missing', status: 'simulated' };
+      console.log(`[SIMULATED WhatsApp to ${to}]: ${message} ${mediaUrl ? `(Media: ${mediaUrl})` : ''}`);
+      return { success: true, simulated: true };
     }
 
     try {
-      const cleanedMobile = mobile.replace(/\D/g, '');
-      const fullMobile = cleanedMobile.startsWith('91') ? cleanedMobile : '91' + cleanedMobile;
+      const url = `https://graph.facebook.com/v17.0/${phoneNumberId}/messages`;
+      
+      let data: any = {
+        messaging_product: 'whatsapp',
+        to: to,
+      };
 
-      const response = await fetch(`https://graph.facebook.com/v18.0/${phoneNumberId}/messages`, {
+      if (mediaUrl) {
+        // Send as document with text as caption
+        data.type = 'document';
+        data.document = {
+          link: mediaUrl,
+          caption: message,
+          filename: 'Receipt.pdf'
+        };
+      } else {
+        // Plain text message
+        data.type = 'text';
+        data.text = { body: message };
+      }
+
+      const response = await fetch(url, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-          messaging_product: 'whatsapp',
-          to: fullMobile,
-          type: 'text',
-          text: { body: message }
-        })
+        body: JSON.stringify(data)
       });
 
       const result = await response.json();

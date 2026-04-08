@@ -206,12 +206,16 @@ export const orderService = {
 
     // 2. Automate Notification if status is 'Ready'
     if (status === 'Ready' && order?.customers?.mobile) {
-      const customerName = order.customers.name || 'Customer';
       const branchName = order.branches?.name || 'our branch';
       const orderRef = order.order_number ? `GWC${order.order_number}` : 'GWC' + order.id.slice(0, 4).toUpperCase();
       const mobile = order.customers.mobile;
       
-      const message = `Hello ${customerName}! \n\n✅ Your clothes (Order ${orderRef}) are cleaned and ready for pickup at our ${branchName}! \n\nPlease visit us during business hours. \n\nThank you for choosing Green Wash Co! 👕✨`;
+      const message = `Greetings from Green Wash Co.\n` +
+        `We are pleased to have you as a valuable customer. Your laundry order ${orderRef} is cleaned and ready for pickup at our ${branchName}!\n\n` +
+        `Invoice No:-${orderRef}\n` +
+        `Total Amount: ₹${Number(order.total_amount).toLocaleString()}\n` +
+        `Balance: ₹${Number(order.balance_amount || 0).toLocaleString()}\n\n` +
+        `Please visit us during business hours. Thank you! 👕✨`;
       
       // Automated send (Simulated placeholder for now)
       await notificationService.sendAutomatedWhatsApp(mobile, message);
