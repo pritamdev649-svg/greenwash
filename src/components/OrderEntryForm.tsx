@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Plus, 
   Trash2, 
@@ -41,6 +41,32 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
   // Form State
   const [selectedCustomerId, setSelectedCustomerId] = useState('');
   const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
+  const [customerSearch, setCustomerSearch] = useState('');
+  const [isCustomerDropdownOpen, setIsCustomerDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown on click outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsCustomerDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const filteredCustomers = customers.filter(c => 
+    c.name?.toLowerCase().includes(customerSearch.toLowerCase()) || 
+    c.mobile?.includes(customerSearch)
+  );
+
+  const handleSelectCustomer = (c: any) => {
+    setSelectedCustomerId(c.id);
+    setSelectedCustomer(c);
+    setCustomerSearch(c.name);
+    setIsCustomerDropdownOpen(false);
+  };
   const [orderDate, setOrderDate] = useState(new Date().toISOString().split('T')[0]);
   const [dueDate, setDueDate] = useState(new Date(Date.now() + 86400000 * 2).toISOString().split('T')[0]);
   const [orderNo] = useState(() => Math.floor(1000 + Math.random() * 9000).toString());
@@ -289,21 +315,62 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
                  <div className="space-y-4">
                     <div className="space-y-1.5">
                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Assign Party (Customer)</label>
-                       <div className="relative group">
+                       <div className="relative group" ref={dropdownRef}>
                           <User size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary-500" />
-                          <select 
-                             className="w-full h-11 pl-11 pr-4 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm font-bold appearance-none focus:bg-white focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500"
-                             value={selectedCustomerId}
-                             onChange={(e) => {
-                               const c = customers.find(x => x.id === e.target.value);
-                               setSelectedCustomerId(e.target.value);
-                               setSelectedCustomer(c);
-                             }}
-                          >
-                             <option value="">Select Customer...</option>
-                             {customers.map(c => <option key={c.id} value={c.id}>{c.name} ({c.mobile})</option>)}
-                          </select>
-                          <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                          <input 
+                            type="text"
+                            className="w-full h-11 pl-11 pr-10 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm font-bold appearance-none focus:bg-white focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 outline-none transition-all uppercase"
+                            placeholder="Search Customer by Name or Mobile..."
+                            value={customerSearch}
+                            onFocus={() => setIsCustomerDropdownOpen(true)}
+                            onChange={(e) => {
+                              setCustomerSearch(e.target.value);
+                              setIsCustomerDropdownOpen(true);
+                              if (selectedCustomerId && e.target.value !== selectedCustomer?.name) {
+                                setSelectedCustomerId('');
+                                setSelectedCustomer(null);
+                              }
+                            }}
+                          />
+                          {selectedCustomerId ? (
+                            <button 
+                              onClick={() => {
+                                setSelectedCustomerId('');
+                                setSelectedCustomer(null);
+                                setCustomerSearch('');
+                                setIsCustomerDropdownOpen(true);
+                              }}
+                              className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-rose-500 transition-colors"
+                            >
+                              <X size={14} />
+                            </button>
+                          ) : (
+                            <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                          )}
+
+                          {isCustomerDropdownOpen && (
+                            <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-slate-100 rounded-2xl shadow-2xl z-[120] max-h-64 overflow-y-auto overflow-x-hidden scrollbar-hide animate-in fade-in slide-in-from-top-2 duration-200">
+                               {filteredCustomers.length > 0 ? (
+                                  filteredCustomers.map(c => (
+                                     <div 
+                                        key={c.id} 
+                                        onClick={() => handleSelectCustomer(c)}
+                                        className="p-3 hover:bg-slate-50 cursor-pointer flex items-center justify-between border-b border-slate-50 last:border-0 transition-colors"
+                                     >
+                                        <div className="flex flex-col">
+                                           <span className="text-xs font-black text-slate-900">{c.name}</span>
+                                           <span className="text-[10px] font-bold text-slate-400">+{c.mobile}</span>
+                                        </div>
+                                        <div className="text-[9px] font-black text-primary-600 bg-primary-50 px-2 py-0.5 rounded-full uppercase tracking-tighter">SELECT</div>
+                                     </div>
+                                  ))
+                               ) : (
+                                  <div className="p-5 text-center">
+                                     <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">No matching party found</p>
+                                  </div>
+                               )}
+                            </div>
+                          )}
                        </div>
                     </div>
                     <div>
