@@ -210,9 +210,14 @@ export const orderService = {
       const orderRef = order.order_number ? `GWC${order.order_number}` : 'GWC' + order.id.slice(0, 4).toUpperCase();
       const mobile = order.customers.mobile;
       
+      const orderDate = new Date(order.created_at).toLocaleDateString('en-GB');
+      const dueDate = order.due_date ? order.due_date.split('-').reverse().join('/') : orderDate;
+      
       const message = `Greetings from Green Wash Co.\n` +
         `We are pleased to have you as a valuable customer. Your laundry order ${orderRef} is cleaned and ready for pickup at our ${branchName}!\n\n` +
         `Invoice No:-${orderRef}\n` +
+        `Order Date: ${orderDate}\n` +
+        `Due Date: ${dueDate}\n\n` +
         `Total Amount: ₹${Number(order.total_amount).toLocaleString()}\n` +
         `Balance: ₹${Number(order.balance_amount || 0).toLocaleString()}\n\n` +
         `Please visit us during business hours. Thank you! 👕✨`;

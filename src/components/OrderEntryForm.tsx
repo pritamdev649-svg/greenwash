@@ -206,9 +206,10 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
                    `We are pleased to have you as a valuable customer. Please find the details of your transaction.\n` +
                    `Invoice No:-${orderRef}\n\n` +
                    `Sale Order :\n` +
+                   `Order Date: ${orderDate.split('-').reverse().join('/')}\n` +
+                   `Due Date: ${dueDate.split('-').reverse().join('/')}\n\n` +
                    `Invoice Amount: ₹${grandTotal.toLocaleString()}\n` +
                    `Balance: ₹${balance}\n\n` +
-                   // `View / Download Receipt: ${receiptUrl}\n\n` +
                    `Thanks for doing business with us.\n` +
                    `Regards,\n` +
                    `Green Wash Co.`;
@@ -240,9 +241,10 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
       `We are pleased to have you as a valuable customer. Please find the details of your transaction.\n` +
       `Invoice No:-${orderRef}\n\n` +
       `Sale Order :\n` +
+      `Order Date: ${orderDate.split('-').reverse().join('/')}\n` +
+      `Due Date: ${dueDate.split('-').reverse().join('/')}\n\n` +
       `Invoice Amount: ₹${total}\n` +
       `Balance: ₹${balance}\n\n` +
-      // `View / Download Receipt: ${receiptUrl}\n\n` +
       `Thanks for doing business with us.\n` +
       `Regards,\n` +
       `Green Wash Co.`;

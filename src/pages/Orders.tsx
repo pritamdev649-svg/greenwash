@@ -79,9 +79,14 @@ export default function Orders() {
             const balanceAmount = (order.balance_amount || 0).toLocaleString();
             // const receiptUrl = `${window.location.origin}/receipt/${order.id}`;
 
+            const orderDate = new Date(order.created_at).toLocaleDateString('en-GB');
+            const dueDate = order.due_date ? order.due_date.split('-').reverse().join('/') : orderDate;
+
             const readyMsg = `Greetings from Green Wash Co.\n` +
               `We are pleased to have you as a valuable customer. Your laundry order ${orderRef} is cleaned and ready for pickup at our ${branchName}!\n\n` +
               `Invoice No:-${orderRef}\n` +
+              `Order Date: ${orderDate}\n` +
+              `Due Date: ${dueDate}\n\n` +
               `Total Amount: ₹${totalAmount}\n` +
               `Balance: ₹${balanceAmount}\n\n` +
               // `View Receipt: ${receiptUrl}\n\n` +
@@ -113,13 +118,17 @@ export default function Orders() {
 
     if (!mobile) return alert("System Error: Customer mobile contact not found.");
 
+    const orderDate = new Date(order.created_at).toLocaleDateString('en-GB');
+    const dueDate = order.due_date ? order.due_date.split('-').reverse().join('/') : orderDate;
+
     const message = `Greetings from Green Wash Co.\n` +
       `We are pleased to have you as a valuable customer. Please find the details of your transaction.\n` +
       `Invoice No:-${orderRef}\n\n` +
       `Sale Order :\n` +
+      `Order Date: ${orderDate}\n` +
+      `Due Date: ${dueDate}\n\n` +
       `Invoice Amount: ₹${totalAmount}\n` +
       `Balance: ₹${balanceAmount}\n\n` +
-      // `View / Download Receipt: ${receiptUrl}\n\n` +
       `Thanks for doing business with us.\n` +
       `Regards,\n` +
       `Green Wash Co.`;
