@@ -38,7 +38,7 @@ export const receiptService = {
 
       // 3. Upload to Supabase Storage
       const fileName = `receipt_${orderNumber}_${Date.now()}.pdf`;
-      const { data, error } = await supabase.storage
+      const { error } = await supabase.storage
         .from('receipts')
         .upload(fileName, pdfBlob, {
           contentType: 'application/pdf',

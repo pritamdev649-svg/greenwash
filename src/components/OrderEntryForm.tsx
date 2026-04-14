@@ -79,7 +79,6 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
   const [createdOrder, setCreatedOrder] = useState<any>(null);
   const [advanceAmount, setAdvanceAmount] = useState(0);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
-  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   
   const [rows, setRows] = useState<SaleRow[]>([
     { id: '1', category: '', item_id: '', item_name: '', description: '', qty: 1, unit: 'NONE', price: 0, amount: 0 }
@@ -205,7 +204,6 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
 
       // --- NEW: PDF GENERATION & AUTOMATED WHATSAPP SEND ---
       try {
-        setIsGeneratingPdf(true);
         // We need to wait a tiny bit for the hidden receipt component to render in the DOM
         setTimeout(async () => {
           const orderRef = order.order_number ? `GWC${order.order_number}` : 'GWC' + order.id.slice(0, 4).toUpperCase();
@@ -213,7 +211,6 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
           // Generate and Upload PDF
           const url = await receiptService.generateAndUploadReceipt('hidden-receipt-capture', orderRef);
           setPdfUrl(url);
-          setIsGeneratingPdf(false);
 
           const balance = (grandTotal - advanceAmount).toLocaleString();
           const msg = `Greetings from Green Wash Co.\n` +
@@ -233,7 +230,6 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
         }, 800);
       } catch (waErr) {
         console.error("PDF/WhatsApp generation failed, but order was saved.", waErr);
-        setIsGeneratingPdf(false);
       }
       // ------------------------------------
       
