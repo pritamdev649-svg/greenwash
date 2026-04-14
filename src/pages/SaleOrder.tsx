@@ -75,6 +75,7 @@ const SaleOrder: React.FC = () => {
   ]);
 
   const [discount, setDiscount] = useState(0);
+  const [discountType, setDiscountType] = useState<'amount' | 'percentage'>('amount');
   const [isRounding, setIsRounding] = useState(true);
 
   useEffect(() => {
@@ -128,7 +129,8 @@ const SaleOrder: React.FC = () => {
   };
 
   const subtotal = rows.reduce((sum, row) => sum + row.amount, 0);
-  const grandTotal = subtotal - discount;
+  const discountAmount = discountType === 'amount' ? discount : (subtotal * discount) / 100;
+  const grandTotal = isRounding ? Math.round(subtotal - discountAmount) : (subtotal - discountAmount);
 
   const handleSave = async () => {
     if (!selectedCustomerId) {
@@ -166,7 +168,9 @@ const SaleOrder: React.FC = () => {
         selectedCustomerId, 
         selectedCustomer?.branch_id || null, 
         grandTotal, 
-        items
+        items,
+        0, // advance
+        discountAmount
       );
       
       alert("Order Generated Successfully!");
@@ -542,12 +546,19 @@ const SaleOrder: React.FC = () => {
               <div className="p-10 space-y-4">
                  <div className="flex justify-between items-center">
                     <span className="text-sm font-bold text-slate-500 uppercase tracking-tight">Discount</span>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2">
+                       <select 
+                          className="h-10 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold px-2 focus:ring-0 outline-none cursor-pointer"
+                          value={discountType}
+                          onChange={(e) => setDiscountType(e.target.value as any)}
+                       >
+                          <option value="amount">₹ (Fixed)</option>
+                          <option value="percentage">% (Ratio)</option>
+                       </select>
                        <div className="relative">
-                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold">₹</span>
                           <input 
                             type="number" 
-                            className="w-32 h-10 pl-8 pr-4 bg-slate-50 border border-slate-200 rounded-xl text-right text-xs font-bold"
+                            className="w-32 h-10 px-4 bg-slate-50 border border-slate-200 rounded-xl text-right text-xs font-bold focus:ring-2 focus:ring-emerald-500/20 outline-none"
                             value={discount}
                             onChange={(e) => setDiscount(parseFloat(e.target.value) || 0)}
                           />

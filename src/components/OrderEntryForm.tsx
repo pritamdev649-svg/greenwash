@@ -85,6 +85,7 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
   ]);
 
   const [discount, setDiscount] = useState(0);
+  const [discountType, setDiscountType] = useState<'amount' | 'percentage'>('amount');
 
   useEffect(() => {
     const fetchData = async () => {
@@ -163,7 +164,8 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
   };
 
   const subtotal = rows.reduce((sum, row) => sum + row.amount, 0);
-  const grandTotal = subtotal - discount;
+  const discountAmount = discountType === 'amount' ? discount : (subtotal * discount) / 100;
+  const grandTotal = Math.round(subtotal - discountAmount);
 
   const handleSave = async () => {
     if (!selectedCustomerId) {
@@ -194,7 +196,7 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
         grandTotal, 
         items,
         advanceAmount,
-        discount,
+        discountAmount,
         dueDate
       );
       
@@ -516,7 +518,22 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
                        </div>
                        <div className="flex justify-between items-center text-xs font-bold text-slate-500">
                           <span>Adjust / Discount</span>
-                          <input type="number" className="w-20 h-8 text-right bg-slate-50 border border-slate-100 rounded-lg text-[10px] font-black p-2 uppercase" value={discount} onChange={(e) => setDiscount(parseFloat(e.target.value) || 0)} />
+                          <div className="flex items-center gap-1">
+                             <select 
+                                className="h-8 bg-slate-50 border border-slate-100 rounded-lg text-[10px] font-black px-1 uppercase focus:ring-0 outline-none cursor-pointer"
+                                value={discountType}
+                                onChange={(e) => setDiscountType(e.target.value as any)}
+                             >
+                                <option value="amount">₹</option>
+                                <option value="percentage">%</option>
+                             </select>
+                             <input 
+                                type="number" 
+                                className="w-20 h-8 text-right bg-slate-50 border border-slate-100 rounded-lg text-[10px] font-black p-2 uppercase focus:ring-2 focus:ring-primary-500/20 outline-none" 
+                                value={discount} 
+                                onChange={(e) => setDiscount(parseFloat(e.target.value) || 0)} 
+                             />
+                          </div>
                        </div>
                        <div className="flex justify-between items-center text-xs font-bold text-emerald-600 bg-emerald-50 p-2 rounded-xl border border-emerald-100">
                           <span>Advance Received</span>
@@ -569,7 +586,7 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
                   amount: r.amount
                 })),
                 subTotal: subtotal,
-                discount: discount,
+                discount: discountAmount,
                 total: grandTotal,
                 advance: advanceAmount,
                 balance: (grandTotal - advanceAmount)
