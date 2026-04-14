@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { 
   Plus, 
   Printer, 
@@ -19,6 +20,7 @@ import type { PrintReceiptProps } from '../components/PrintReceipt';
 import { cn } from '../lib/utils';
 
 export default function Orders() {
+  const location = useLocation();
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -28,7 +30,13 @@ export default function Orders() {
 
   useEffect(() => {
     fetchData();
-  }, []);
+    const params = new URLSearchParams(location.search);
+    if (params.get('openEntry') === 'true') {
+      setIsModalOpen(true);
+      // Clean up URL without triggering navigation
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  }, [location.search]);
 
   const fetchData = async () => {
     try {

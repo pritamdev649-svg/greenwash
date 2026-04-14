@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   Plus, 
   Trash2, 
@@ -13,6 +14,8 @@ import {
 import { customerService } from '@backend/services/customerService';
 import { orderService } from '@backend/services/orderService';
 import { notificationService } from '@backend/services/notificationService';
+import { PrintReceipt } from './PrintReceipt';
+import { receiptService } from '../lib/receiptService';
 
 interface SaleRow {
   id: string;
@@ -33,6 +36,7 @@ interface OrderEntryFormProps {
 }
 
 export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSuccess, onPrintSuccess }) => {
+  const navigate = useNavigate();
   const [customers, setCustomers] = useState<any[]>([]);
   const [clothTypes, setClothTypes] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
@@ -74,6 +78,8 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
   const [createdOrderId, setCreatedOrderId] = useState('');
   const [createdOrder, setCreatedOrder] = useState<any>(null);
   const [advanceAmount, setAdvanceAmount] = useState(0);
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   
   const [rows, setRows] = useState<SaleRow[]>([
     { id: '1', category: '', item_id: '', item_name: '', description: '', qty: 1, unit: 'NONE', price: 0, amount: 0 }
@@ -197,26 +203,37 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
       setCreatedOrder(order);
       setIsSuccess(true);
 
-      // --- NEW: AUTOMATED WHATSAPP SEND ---
+      // --- NEW: PDF GENERATION & AUTOMATED WHATSAPP SEND ---
       try {
-        const orderRef = order.order_number ? `GWC${order.order_number}` : 'GWC' + order.id.slice(0, 4).toUpperCase();
-        const balance = (grandTotal - advanceAmount).toLocaleString();
-        // const receiptUrl = `${window.location.origin}/receipt/${order.id}`;
-        const msg = `Greetings from Green Wash Co.\n` +
-                   `We are pleased to have you as a valuable customer. Please find the details of your transaction.\n` +
-                   `Invoice No:-${orderRef}\n\n` +
-                   `Sale Order :\n` +
-                   `Order Date: ${orderDate.split('-').reverse().join('/')}\n` +
-                   `Due Date: ${dueDate.split('-').reverse().join('/')}\n\n` +
-                   `Invoice Amount: ₹${grandTotal.toLocaleString()}\n` +
-                   `Balance: ₹${balance}\n\n` +
-                   `Thanks for doing business with us.\n` +
-                   `Regards,\n` +
-                   `Green Wash Co.`;
+        setIsGeneratingPdf(true);
+        // We need to wait a tiny bit for the hidden receipt component to render in the DOM
+        setTimeout(async () => {
+          const orderRef = order.order_number ? `GWC${order.order_number}` : 'GWC' + order.id.slice(0, 4).toUpperCase();
+          
+          // Generate and Upload PDF
+          const url = await receiptService.generateAndUploadReceipt('hidden-receipt-capture', orderRef);
+          setPdfUrl(url);
+          setIsGeneratingPdf(false);
 
-        await notificationService.sendAutomatedWhatsApp(selectedCustomer?.mobile || '', msg);
+          const balance = (grandTotal - advanceAmount).toLocaleString();
+          const msg = `Greetings from Green Wash Co.\n` +
+                     `We are pleased to have you as a valuable customer. Please find the details of your transaction.\n` +
+                     `Invoice No:-${orderRef}\n\n` +
+                     `Sale Order :\n` +
+                     `Order Date: ${orderDate.split('-').reverse().join('/')}\n` +
+                     `Due Date: ${dueDate.split('-').reverse().join('/')}\n\n` +
+                     `Invoice Amount: ₹${grandTotal.toLocaleString()}\n` +
+                     `Balance: ₹${balance}\n\n` +
+                     (url ? `Download Digital Receipt (PDF): ${url}\n\n` : '') +
+                     `Thanks for doing business with us.\n` +
+                     `Regards,\n` +
+                     `Green Wash Co.`;
+
+          await notificationService.sendAutomatedWhatsApp(selectedCustomer?.mobile || '', msg);
+        }, 800);
       } catch (waErr) {
-        console.error("Automated WhatsApp failed, but order was saved.", waErr);
+        console.error("PDF/WhatsApp generation failed, but order was saved.", waErr);
+        setIsGeneratingPdf(false);
       }
       // ------------------------------------
       
@@ -229,13 +246,9 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
   };
 
   const handleWhatsAppShare = () => {
-    // Use the stored order object if we had it, but here we only have createdOrderId.
-    // However, we can improve this by storing the whole order in state if needed.
-    // For now, let's keep the logic consistent.
     const orderRef = createdOrder?.order_number ? `GWC${createdOrder.order_number}` : 'GWC' + createdOrderId.slice(0, 4).toUpperCase();
     const total = grandTotal.toLocaleString();
     const balance = (grandTotal - advanceAmount).toLocaleString();
-    // const receiptUrl = `${window.location.origin}/receipt/${createdOrderId}`;
     
     const message = `Greetings from Green Wash Co.\n` +
       `We are pleased to have you as a valuable customer. Please find the details of your transaction.\n` +
@@ -245,6 +258,7 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
       `Due Date: ${dueDate.split('-').reverse().join('/')}\n\n` +
       `Invoice Amount: ₹${total}\n` +
       `Balance: ₹${balance}\n\n` +
+      (pdfUrl ? `Download Digital Receipt (PDF): ${pdfUrl}\n\n` : '') +
       `Thanks for doing business with us.\n` +
       `Regards,\n` +
       `Green Wash Co.`;
@@ -316,7 +330,16 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
               <div className="grid sm:grid-cols-2 gap-6">
                  <div className="space-y-4">
                     <div className="space-y-1.5">
-                       <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Assign Party (Customer)</label>
+                       <div className="flex justify-between items-center ml-1">
+                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Assign Party (Customer)</label>
+                          <button 
+                            type="button"
+                            onClick={() => navigate('/customers?add=true&returnTo=/orders?openEntry=true')}
+                            className="text-[10px] font-bold text-primary-600 hover:text-primary-700 uppercase tracking-widest flex items-center gap-1 active:scale-95 transition-all"
+                          >
+                            <Plus size={10} strokeWidth={3} /> Add Customer
+                          </button>
+                       </div>
                        <div className="relative group" ref={dropdownRef}>
                           <User size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary-500" />
                           <input 
@@ -529,6 +552,35 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
               </div>
            </div>
         </div>
+
+        {/* HIDDEN CAPTURE AREA FOR PDF GENERATION */}
+        {isSuccess && (
+          <div style={{ position: 'absolute', left: '-9999px', top: 0, width: '800px' }}>
+            <div id="hidden-receipt-capture" style={{ background: 'white', padding: '20px' }}>
+              <PrintReceipt orderData={{
+                orderNo: createdOrder?.order_number ? `GWC${createdOrder.order_number}` : 'GWC' + createdOrderId.slice(0, 4).toUpperCase(),
+                date: new Date(createdOrder?.created_at || Date.now()).toLocaleDateString('en-GB'),
+                dueDate: dueDate.split('-').reverse().join('/'),
+                customerName: selectedCustomer?.name || 'Customer',
+                customerAddress: selectedCustomer?.address || '',
+                customerPhone: selectedCustomer?.mobile || '',
+                items: rows.filter(r => r.item_name.trim() !== '').map((r, idx) => ({
+                  id: idx.toString(),
+                  name: r.item_name,
+                  category: r.category,
+                  qty: r.qty,
+                  price: r.price,
+                  amount: r.amount
+                })),
+                subTotal: subtotal,
+                discount: discount,
+                total: grandTotal,
+                advance: advanceAmount,
+                balance: (grandTotal - advanceAmount)
+              }} />
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { 
   Search, 
   Filter, 
@@ -50,6 +50,7 @@ interface Order {
 
 const Customers: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [branches, setBranches] = useState<{ id: string, name: string }[]>([]);
   const [loading, setLoading] = useState(true);
@@ -90,7 +91,11 @@ const Customers: React.FC = () => {
 
   useEffect(() => {
     fetchData();
-  }, []);
+    const params = new URLSearchParams(location.search);
+    if (params.get('add') === 'true') {
+      setIsAddModalOpen(true);
+    }
+  }, [location.search]);
 
   const handleAddCustomer = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -98,7 +103,13 @@ const Customers: React.FC = () => {
       await customerService.addCustomer(formData);
       setIsAddModalOpen(false);
       setFormData({ name: '', mobile: '', email: '', address: '', branch_id: '' });
-      fetchData();
+      await fetchData();
+      
+      const params = new URLSearchParams(location.search);
+      const returnTo = params.get('returnTo');
+      if (returnTo) {
+        navigate(returnTo);
+      }
     } catch (err) {
       alert("Failed to add customer");
     }
