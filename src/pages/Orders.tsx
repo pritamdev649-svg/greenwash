@@ -18,9 +18,11 @@ import { OrderEntryForm } from '../components/OrderEntryForm';
 import { PrintReceipt } from '../components/PrintReceipt';
 import type { PrintReceiptProps } from '../components/PrintReceipt';
 import { cn } from '../lib/utils';
+import { useLanguage } from '../contexts/LanguageContext';
 
 export default function Orders() {
   const location = useLocation();
+  const { t, language } = useLanguage();
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -130,7 +132,7 @@ export default function Orders() {
 
 
   const handleDeleteOrder = async (orderId: string) => {
-    if (!window.confirm("ARE YOU ABSOLUTELY SURE? THIS RECORD WILL BE PERMANENTLY DELETED FROM LEDGER.")) return;
+    if (!window.confirm(t('delete_confirm'))) return;
     try {
       setLoading(true);
       await orderService.deleteOrder(orderId);
@@ -144,7 +146,7 @@ export default function Orders() {
   };
 
   const handleCollectBalance = async (orderId: string) => {
-    if (!window.confirm("CONFIRM FINAL BALANCE COLLECTION? This will mark the order as 'Paid' and reset the remaining balance to zero.")) return;
+    if (!window.confirm(t('confirm_balance'))) return;
     try {
       setLoading(true);
       await orderService.collectBalance(orderId);
@@ -245,9 +247,9 @@ export default function Orders() {
   today.setHours(0, 0, 0, 0);
 
   const stats = [
-    { label: 'Active Orders', value: orders.filter(o => o.order_status !== 'Delivered').length, icon: Package, color: 'text-primary-600', bg: 'bg-primary-50' },
-    { label: "Today's Sales", value: `₹${orders.filter(o => new Date(o.created_at) >= today).reduce((sum, o) => sum + Number(o.total_amount), 0).toLocaleString()}`, icon: TrendingUp, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-    { label: 'Total Outstanding', value: `₹${orders.reduce((sum, o) => sum + Number(o.balance_amount || 0), 0).toLocaleString()}`, icon: AlertCircle, color: 'text-rose-600', bg: 'bg-rose-50' }
+    { label: t('active_orders'), value: orders.filter(o => o.order_status !== 'Delivered').length, icon: Package, color: 'text-primary-600', bg: 'bg-primary-50' },
+    { label: t('todays_sales'), value: `₹${orders.filter(o => new Date(o.created_at) >= today).reduce((sum, o) => sum + Number(o.total_amount), 0).toLocaleString()}`, icon: TrendingUp, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+    { label: t('total_outstanding'), value: `₹${orders.reduce((sum, o) => sum + Number(o.balance_amount || 0), 0).toLocaleString()}`, icon: AlertCircle, color: 'text-rose-600', bg: 'bg-rose-50' }
   ];
 
   return (
@@ -263,17 +265,17 @@ export default function Orders() {
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 print:hidden">
         <div>
           <h1 className="text-4xl font-black text-slate-900 tracking-tight flex items-center gap-3">
-            Order Ledger
-            <span className="text-xs bg-primary-100 text-primary-700 px-3 py-1 rounded-full uppercase tracking-widest font-extrabold">Live</span>
+            {t('order_ledger')}
+            <span className="text-xs bg-primary-100 text-primary-700 px-3 py-1 rounded-full uppercase tracking-widest font-extrabold">{language === 'hi' ? 'लाइव' : 'Live'}</span>
           </h1>
-          <p className="text-slate-500 font-medium mt-1">Manage, Track, and Fulfill laundry transactions.</p>
+          <p className="text-slate-500 font-medium mt-1">{t('manage_track')}</p>
         </div>
         <button
           onClick={() => setIsModalOpen(true)}
           className="h-14 px-8 bg-primary-600 hover:bg-primary-700 text-white rounded-2xl font-black flex items-center justify-center gap-3 shadow-xl shadow-primary-600/20 active:scale-95 transition-all text-sm uppercase tracking-widest"
         >
           <Plus size={20} className="stroke-[3]" />
-          New Entry
+          {t('new_entry')}
         </button>
       </div>
 
@@ -298,15 +300,15 @@ export default function Orders() {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-slate-50 border-b border-slate-100 uppercase tracking-widest text-[10px] font-black text-slate-400">
-                <th className="table-header w-20 px-6 py-4">ID</th>
-                <th className="table-header px-6">Timestamp</th>
-                <th className="table-header px-6">Customer Profile</th>
-                <th className="table-header px-6">Total Bill</th>
-                <th className="table-header px-6 text-emerald-600 font-black">Advance</th>
-                <th className="table-header px-6 text-rose-500 font-black">Remaining</th>
-                <th className="table-header px-6">Payment</th>
-                <th className="table-header px-6">Status</th>
-                <th className="table-header px-6 text-right">Actions</th>
+                <th className="table-header w-20 px-6 py-4">{t('id')}</th>
+                <th className="table-header px-6">{t('timestamp')}</th>
+                <th className="table-header px-6">{t('customer_profile')}</th>
+                <th className="table-header px-6">{t('total_bill')}</th>
+                <th className="table-header px-6 text-emerald-600 font-black">{t('advance')}</th>
+                <th className="table-header px-6 text-rose-500 font-black">{t('remaining')}</th>
+                <th className="table-header px-6">{t('payment')}</th>
+                <th className="table-header px-6">{t('status')}</th>
+                <th className="table-header px-6 text-right">{t('actions')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50">

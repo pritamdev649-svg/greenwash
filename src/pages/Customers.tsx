@@ -24,6 +24,7 @@ import { orderService } from '@backend/services/orderService';
 import { notificationService } from '@backend/services/notificationService';
 import { PrintReceipt } from '../components/PrintReceipt';
 import type { PrintReceiptProps } from '../components/PrintReceipt';
+import { useLanguage } from '../contexts/LanguageContext';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -51,6 +52,7 @@ interface Order {
 const Customers: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { t } = useLanguage();
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [branches, setBranches] = useState<{ id: string, name: string }[]>([]);
   const [loading, setLoading] = useState(true);
@@ -246,15 +248,15 @@ const Customers: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Customer Relationship Management</h2>
-          <p className="text-sm text-slate-500 font-medium">Analyze and manage your client database efficiently.</p>
+          <h2 className="text-2xl font-bold text-slate-900 tracking-tight">{t('customer_directory')}</h2>
+          <p className="text-sm text-slate-500 font-medium">{t('manage_customer_base')}</p>
         </div>
         <button 
           onClick={() => setIsAddModalOpen(true)}
           className="btn-primary flex items-center gap-2 h-11 px-5 rounded-xl shadow-lg shadow-primary-600/20 active:scale-95 transition-all text-sm font-bold"
         >
           <UserPlus size={18} />
-          <span>New Customer</span>
+          <span>{t('add_customer_btn')}</span>
         </button>
       </div>
 
@@ -266,7 +268,7 @@ const Customers: React.FC = () => {
           </div>
           <input
             type="text"
-            placeholder="Search by name or mobile number..."
+            placeholder={t('search_customers')}
             className="w-full h-11 pl-10 pr-4 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -281,7 +283,7 @@ const Customers: React.FC = () => {
             value={selectedBranch}
             onChange={(e) => setSelectedBranch(e.target.value)}
           >
-            <option value="all">All Branches</option>
+            <option value="all">{t('branches')}</option>
             {branches.map(b => (
               <option key={b.id} value={b.id}>{b.name}</option>
             ))}
@@ -294,11 +296,11 @@ const Customers: React.FC = () => {
           <table className="w-full min-w-[800px] text-left border-collapse">
             <thead>
               <tr className="bg-slate-50">
-                <th className="table-header">Customer Profile</th>
-                <th className="table-header">Contact & Branch</th>
-                <th className="table-header text-center">Orders</th>
-                <th className="table-header">Balance</th>
-                <th className="table-header text-right">Records</th>
+                <th className="table-header">{t('customer_profile')}</th>
+                <th className="table-header">{t('contact_detail')}</th>
+                <th className="table-header text-center">{t('orders')}</th>
+                <th className="table-header">{t('remaining')}</th>
+                <th className="table-header text-right">{t('actions')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">

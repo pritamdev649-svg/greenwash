@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Plus, Edit2, Trash2, MapPin, Phone, Building2, Search, X } from 'lucide-react';
 import { branchService } from '@backend/services/branchService';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface Branch {
   id: string;
@@ -10,6 +11,7 @@ interface Branch {
 }
 
 const Branches: React.FC = () => {
+  const { t } = useLanguage();
   const [branches, setBranches] = useState<Branch[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -70,15 +72,15 @@ const Branches: React.FC = () => {
     <div className="space-y-6 animate-fade-in">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Business Locations</h2>
-          <p className="text-sm text-slate-500 font-medium">Manage and monitor all active service branches.</p>
+          <h2 className="text-2xl font-bold text-slate-900 tracking-tight">{t('branch_network')}</h2>
+          <p className="text-sm text-slate-500 font-medium">{t('manage_branches')}</p>
         </div>
         <button 
           onClick={() => { setIsModalOpen(true); setEditingBranch(null); setFormData({ name: '', address: '', phone: '' }); }}
           className="btn-primary flex h-11 px-5 items-center gap-2 rounded-xl shadow-lg shadow-primary-600/20 active:scale-95 transition-all text-sm font-bold"
         >
           <Plus size={18} />
-          <span>Add New Branch</span>
+          <span>{t('add_branch_btn')}</span>
         </button>
       </div>
 
@@ -96,7 +98,7 @@ const Branches: React.FC = () => {
           />
         </div>
         <div className="flex items-center gap-2 px-3 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-500 whitespace-nowrap px-4 select-none">
-          {filteredBranches.length} TOTAL BRANCHES
+          {filteredBranches.length} {t('branches').toUpperCase()}
         </div>
       </div>
 
@@ -106,9 +108,9 @@ const Branches: React.FC = () => {
             <thead>
               <tr className="bg-slate-50/50">
                 <th className="table-header w-[40px]">#</th>
-                <th className="table-header">Branch Profile</th>
-                <th className="table-header">Address</th>
-                <th className="table-header text-right">Actions</th>
+                <th className="table-header">{t('customer_profile')}</th>
+                <th className="table-header">{t('address')}</th>
+                <th className="table-header text-right">{t('actions')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50">

@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { orderService } from '@backend/services/orderService';
 import { cn } from '../lib/utils';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface Category {
   id: string;
@@ -27,6 +28,7 @@ interface Item {
 }
 
 const Categories: React.FC = () => {
+  const { t } = useLanguage();
   // State
   const [categories, setCategories] = useState<Category[]>([]);
   const [items, setItems] = useState<Item[]>([]);
@@ -186,8 +188,8 @@ const Categories: React.FC = () => {
             <LayoutGrid size={24} />
           </div>
           <div>
-            <h2 className="text-2xl font-black text-slate-900 tracking-tight uppercase">Service Catalog</h2>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">Manage categories and products</p>
+            <h2 className="text-2xl font-black text-slate-900 tracking-tight uppercase">{t('service_categories')}</h2>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">{t('manage_services')}</p>
           </div>
         </div>
         
@@ -199,7 +201,7 @@ const Categories: React.FC = () => {
           )}
         >
           {isAddingCategory ? <X size={18} /> : <Plus size={18} />}
-          <span>{isAddingCategory ? 'Close' : 'Add Category'}</span>
+          <span>{isAddingCategory ? t('cancel') : t('add_category_btn')}</span>
         </button>
       </div>
 
@@ -228,7 +230,7 @@ const Categories: React.FC = () => {
             {categories.length === 0 ? (
               <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-slate-50/50 border-2 border-dashed border-slate-200 rounded-3xl opacity-60">
                 <AlertCircle size={32} className="text-slate-300 mb-3" />
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-relaxed"> No categories existing.<br/>Add your service categories first. </p>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-relaxed"> {t('service_categories')} </p>
                 <div className="mt-6 flex flex-wrap justify-center gap-1.5">
                    {suggestedDefaults.filter(s => !categories.find(c => c.name.toLowerCase() === s.toLowerCase())).slice(0, 6).map(s => (
                      <button key={s} onClick={() => handleAddSuggested(s)} className="px-2 py-1 bg-white border border-slate-200 rounded text-[9px] font-black text-slate-500 uppercase hover:bg-primary-50 hover:text-primary-600 transition-colors">
@@ -261,7 +263,7 @@ const Categories: React.FC = () => {
                       selectedCategoryId === cat.id ? "text-slate-900" : "text-slate-600 group-hover:text-primary-700"
                     )}>{cat.name}</p>
                     <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">
-                      {items.filter(i => i.category_id === cat.id).length} Products
+                      {items.filter(i => i.category_id === cat.id).length} {t('billing_items')}
                     </p>
                   </div>
                 </div>
@@ -292,7 +294,7 @@ const Categories: React.FC = () => {
                   <div className="flex items-center gap-3 mb-1">
                     <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">{selectedCategory.name}</h3>
                     <span className="bg-primary-50 text-[10px] font-black text-primary-600 px-2 py-0.5 rounded uppercase tracking-widest">
-                       Category
+                       {t('service')}
                     </span>
                   </div>
                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Listing items and pricing for this service section</p>

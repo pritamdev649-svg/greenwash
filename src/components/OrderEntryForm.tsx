@@ -16,6 +16,7 @@ import { orderService } from '@backend/services/orderService';
 import { notificationService } from '@backend/services/notificationService';
 import { PrintReceipt } from './PrintReceipt';
 import { receiptService } from '../lib/receiptService';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface SaleRow {
   id: string;
@@ -37,6 +38,7 @@ interface OrderEntryFormProps {
 
 export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSuccess, onPrintSuccess }) => {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [customers, setCustomers] = useState<any[]>([]);
   const [clothTypes, setClothTypes] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
@@ -288,21 +290,21 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
                 <div className="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mb-6">
                    <Check size={40} className="stroke-[3]" />
                 </div>
-                <h3 className="text-3xl font-black text-slate-900 mb-2">Order Saved!</h3>
+                <h3 className="text-3xl font-black text-slate-900 mb-2">{t('order_saved')}</h3>
                 <p className="text-slate-500 font-medium mb-12 max-w-sm">
-                   Transaction recorded in ledger for <b>{selectedCustomer?.name}</b>. 
-                   What would you like to do next?
+                   {t('transaction_recorded')} <b>{selectedCustomer?.name}</b>. 
+                   {t('next_action')}
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4 w-full max-w-md">
                    <button onClick={handlePrintRequest} className="flex-1 h-14 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-2xl font-bold flex items-center justify-center gap-2 transition-all">
-                      <Printer size={18} /> Print Receipt
+                      <Printer size={18} /> {t('print_receipt')}
                    </button>
                    <button onClick={handleWhatsAppShare} className="flex-1 h-14 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-bold flex items-center justify-center gap-2 shadow-lg shadow-emerald-200/50 transition-all">
-                      <MessageCircle size={18} /> WhatsApp
+                      <MessageCircle size={18} /> {t('whatsapp')}
                    </button>
                 </div>
                 <button onClick={onSuccess} className="w-full max-w-md h-14 bg-primary-600 hover:bg-primary-700 text-white rounded-2xl font-bold transition-all mt-4">
-                   Done & Go Back
+                   {t('done_back')}
                 </button>
              </div>
            </div>
@@ -314,7 +316,7 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
                  <Plus size={24} />
               </div>
               <div>
-                 <h3 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight uppercase">New Sale Entry</h3>
+                 <h3 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight uppercase">{t('new_sale_entry')}</h3>
                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mt-0.5">Green Wash Co Ledger System</p>
               </div>
            </div>
@@ -329,13 +331,13 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
                  <div className="space-y-4">
                     <div className="space-y-1.5">
                        <div className="flex justify-between items-center ml-1">
-                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Assign Party (Customer)</label>
+                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('assign_party')}</label>
                           <button 
                             type="button"
                             onClick={() => navigate('/customers?add=true&returnTo=/orders?openEntry=true')}
                             className="text-[10px] font-bold text-primary-600 hover:text-primary-700 uppercase tracking-widest flex items-center gap-1 active:scale-95 transition-all"
                           >
-                            <Plus size={10} strokeWidth={3} /> Add Customer
+                            <Plus size={10} strokeWidth={3} /> {t('add_customer')}
                           </button>
                        </div>
                        <div className="relative group" ref={dropdownRef}>
