@@ -27,6 +27,16 @@ const PublicReceipt: React.FC = () => {
     fetchOrder();
   }, [id]);
 
+  // --- AUTO-TRIGGER PDF/PRINT FOR PROFESSIONAL EXPERIENCE ---
+  useEffect(() => {
+    if (order && !loading) {
+      const timer = setTimeout(() => {
+        window.print();
+      }, 1500); // 1.5s delay to ensure high-quality rendering
+      return () => clearTimeout(timer);
+    }
+  }, [order, loading]);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">

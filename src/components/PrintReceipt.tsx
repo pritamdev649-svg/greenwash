@@ -40,7 +40,12 @@ export const PrintReceipt: React.FC<PrintReceiptProps> = ({ orderData }) => {
   const amountInWords = `${capitalizedWords} Rupees only`;
 
   return (
-    <div className="hidden print:block font-sans text-black p-8 w-full bg-white relative printable-area" style={{ fontFamily: 'Arial, sans-serif', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' } as React.CSSProperties}>
+    <div 
+      id="receipt-print-content"
+      // Use absolute positioning off-screen instead of hidden so html2canvas can capture it
+      className="absolute -left-[9999px] top-0 print:static print:left-0 font-sans text-black p-8 w-full bg-white printable-area" 
+      style={{ fontFamily: 'Arial, sans-serif', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' } as React.CSSProperties}
+    >
       {/* Header */}
       <div className="flex justify-between items-start border-b-2 border-slate-400 pb-2 mb-4">
         <div>

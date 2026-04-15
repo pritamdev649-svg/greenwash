@@ -46,16 +46,24 @@ export const receiptService = {
           upsert: false
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Supabase Storage Upload Error:", error);
+        throw error;
+      }
 
       // 4. Get Public URL
       const { data: { publicUrl } } = supabase.storage
         .from('receipts')
         .getPublicUrl(fileName);
 
+      console.log("PDF generated and uploaded successfully:", publicUrl);
       return publicUrl;
     } catch (err) {
-      console.error("Error in generateAndUploadReceipt:", err);
+      console.error("Critical error in generateAndUploadReceipt:", err);
+      // Log specific parts of the error if they exist
+      if (err instanceof Error) {
+        console.error("Message:", err.message);
+      }
       return null;
     }
   }
