@@ -6,17 +6,14 @@ import {
   Trash2,
   Clock,
   CheckCircle,
-  MessageCircle,
   TrendingUp,
   Package,
   AlertCircle,
   CreditCard,
-  Download,
   Share2
 } from 'lucide-react';
 import { orderService } from '@backend/services/orderService';
 import { notificationService } from '@backend/services/notificationService';
-import { receiptService } from '../lib/receiptService';
 import { OrderEntryForm } from '../components/OrderEntryForm';
 import { PrintReceipt } from '../components/PrintReceipt';
 import type { PrintReceiptProps } from '../components/PrintReceipt';
