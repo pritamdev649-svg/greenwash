@@ -8,8 +8,10 @@ import {
   LayoutDashboard, 
   LayoutGrid,
   LogOut, 
-  Menu 
+  Menu,
+  Settings
 } from 'lucide-react';
+import { useLanguage } from '../contexts/LanguageContext';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -18,17 +20,20 @@ function cn(...inputs: ClassValue[]) {
 }
 
 const navItems = [
-  { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { path: '/branches', label: 'Branches', icon: MapPin },
-  { path: '/customers', label: 'Customers', icon: Users },
-  { path: '/categories', label: 'Categories', icon: LayoutGrid },
-  { path: '/orders', label: 'Orders', icon: Receipt },
+  { path: '/dashboard', label: 'dashboard', icon: LayoutDashboard },
+  { path: '/branches', label: 'branches', icon: MapPin },
+  { path: '/customers', label: 'customers', icon: Users },
+  { path: '/categories', label: 'categories', icon: LayoutGrid },
+  { path: '/orders', label: 'orders', icon: Receipt },
+  { path: '/settings', label: 'settings', icon: Settings },
 ];
 
 export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { signOut, user } = useAuth();
+  const { t, language } = useLanguage();
   const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
 
   const handleSignOut = async () => {
     await signOut();
@@ -79,7 +84,7 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
                 )}
               >
                 <item.icon size={18} />
-                <span>{item.label}</span>
+                <span>{t(item.label)}</span>
               </NavLink>
             ))}
           </nav>
@@ -94,7 +99,7 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
               className="flex w-full items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
             >
               <LogOut size={18} />
-              <span>Log out</span>
+              <span>{language === 'hi' ? 'लॉग आउट' : 'Log out'}</span>
             </button>
           </div>
         </div>

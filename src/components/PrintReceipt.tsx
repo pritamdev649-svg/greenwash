@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import toWords from 'number-to-words';
 import { QRCodeSVG } from 'qrcode.react';
 
@@ -38,6 +38,26 @@ export const PrintReceipt: React.FC<PrintReceiptProps> = ({ orderData }) => {
     .join(' ');
   
   const amountInWords = `${capitalizedWords} Rupees only`;
+
+  // Get dynamic terms from localStorage
+  const [terms, setTerms] = useState<string[]>([]);
+  useEffect(() => {
+    const saved = localStorage.getItem('app_terms_conditions');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        setTerms(Array.isArray(parsed) ? parsed : [parsed]);
+      } catch (e) {
+        setTerms([saved]);
+      }
+    } else {
+      setTerms([
+        "कपड़ों की धुलाई व रंगाई वैज्ञानिक तरीके से पूरी सावधानी से की जाती है लेकिन कपड़ों की अवस्था की वजह से कपड़े ग्राहक की जिम्मेदारी पर स्वीकार किये जाते हैं।",
+        "कपड़ा उसी समय कटा या फटा देख पाना सम्भव नहीं है यदि धुलाई एवं रंगाई के समय वह दिखाई पड़ जाता है तो वर्कशाप इंचार्ज का कथन ही अंतिम व कानूनी तौर पर ग्राहक मान्य होगा।",
+        "सभी दाग, धब्बे छुड़ाने की गारन्टी नहीं है फिर भी उसे छुड़ाने का पूरा प्रयास किया जाता है।"
+      ]);
+    }
+  }, []);
 
   return (
     <div 
@@ -119,11 +139,13 @@ export const PrintReceipt: React.FC<PrintReceiptProps> = ({ orderData }) => {
             <p className="font-bold text-[11px] mb-1">Order Amount In Words</p>
             <p className="text-[11px] mb-4 text-gray-800">{amountInWords}</p>
 
-            <p className="font-bold text-[11px] mb-1 mt-4">Terms and Conditions</p>
-            <p className="text-[10px] text-gray-800 leading-tight mb-0.5 max-w-sm">कपड़ों की धुलाई व रंगाई वैज्ञानिक तरीके से पूरी सावधानी से की जाती है लेकिन कपड़ों की अवस्था की वजह से कपड़े ग्राहक की जिम्मेदारी पर स्वीकार किये जाते हैं।</p>
-            <p className="text-[10px] text-gray-800 leading-tight mb-0.5 max-w-sm">कपड़ा उसी समय कटा या फटा देख पाना सम्भव नहीं है यदि धुलाई एवं रंगाई के समय वह दिखाई पड़ जाता है तो वर्कशाप इंचार्ज का कथन ही अंतिम व कानूनी तौर पर ग्राहक मान्य होगा।</p>
-            <p className="text-[10px] text-gray-800 leading-tight mb-1 max-w-sm">सभी दाग, धब्बे छुड़ाने की गारन्टी नहीं है फिर भी उसे छुड़ाने का पूरा प्रयास किया जाता है।</p>
-            <p className="text-[10px] text-gray-800 mb-4">Thanks for doing business with us!</p>
+            <p className="font-bold text-[11px] mb-1 mt-4 text-[#2FA84B]">Terms and Conditions</p>
+            <div className="space-y-0.5">
+              {terms.map((term, i) => (
+                <p key={i} className="text-[10px] text-gray-800 leading-tight max-w-sm">• {term}</p>
+              ))}
+            </div>
+            <p className="text-[10px] text-gray-800 mt-3 italic font-medium">Thanks for doing business with us!</p>
           </div>
           <div className="mt-2 text-center w-24">
             {/* Simple QR representation or fallback */}

@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
+import { LanguageProvider } from './contexts/LanguageContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { DashboardLayout } from './layouts/DashboardLayout';
 
@@ -13,10 +14,12 @@ import Orders from './pages/Orders';
 import SaleOrder from './pages/SaleOrder';
 import Categories from './pages/Categories';
 import PublicReceipt from './pages/PublicReceipt';
+import Settings from './pages/Settings';
 
 const App: React.FC = () => {
   return (
-    <AuthProvider>
+    <LanguageProvider>
+      <AuthProvider>
       <Router>
         <Routes>
           {/* Public Route */}
@@ -77,6 +80,16 @@ const App: React.FC = () => {
             path="/receipt/:id"
             element={<PublicReceipt />}
           />
+          <Route
+            path="/settings"
+            element={
+              <ProtectedRoute>
+                <DashboardLayout>
+                  <Settings />
+                </DashboardLayout>
+              </ProtectedRoute>
+            }
+          />
 
           <Route
             path="/sale-order"
@@ -93,7 +106,8 @@ const App: React.FC = () => {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Router>
-    </AuthProvider>
+      </AuthProvider>
+    </LanguageProvider>
   );
 };
 

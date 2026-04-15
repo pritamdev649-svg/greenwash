@@ -12,6 +12,7 @@ import {
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { orderService } from '@backend/services/orderService';
+import { useLanguage } from '../contexts/LanguageContext';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -40,6 +41,7 @@ interface Stats {
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
+  const { t, language } = useLanguage();
   const [stats, setStats] = useState<Stats>({
     totalCustomers: 0,
     totalOrders: 0,
@@ -70,7 +72,7 @@ const Dashboard: React.FC = () => {
 
   const statCards = [
     { 
-      label: 'Total Customers', 
+      label: t('customers'), 
       value: stats.totalCustomers, 
       icon: Users, 
       color: 'bg-primary-50 text-primary-600',
@@ -79,7 +81,7 @@ const Dashboard: React.FC = () => {
       path: '/customers'
     },
     { 
-      label: 'Today Orders', 
+      label: t('active_orders'), 
       value: stats.todayOrders, 
       icon: Receipt, 
       color: 'bg-emerald-50 text-emerald-600',
@@ -88,7 +90,7 @@ const Dashboard: React.FC = () => {
       path: '/orders'
     },
     { 
-      label: 'Today Sales', 
+      label: t('todays_sales'), 
       value: `₹${stats.todaySales.toLocaleString()}`, 
       icon: TrendingUp, 
       color: 'bg-amber-50 text-amber-600',
@@ -97,7 +99,7 @@ const Dashboard: React.FC = () => {
       path: '/orders'
     },
     { 
-      label: 'Pending Payments', 
+      label: t('total_outstanding'), 
       value: `₹${stats.pendingPayments.toLocaleString()}`, 
       icon: Clock, 
       color: 'bg-rose-50 text-rose-600',
@@ -172,7 +174,7 @@ const Dashboard: React.FC = () => {
          <div className="lg:col-span-2 card p-8 group relative overflow-hidden">
             <div className="flex items-center justify-between mb-8">
               <div>
-                <h3 className="font-black text-slate-900 text-xl tracking-tight">Sales Analysis</h3>
+                <h3 className="font-black text-slate-900 text-xl tracking-tight">{language === 'hi' ? 'बिक्री विश्लेषण' : 'Sales Analysis'}</h3>
                 <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mt-1">Order Volume Trends</p>
               </div>
               <div className="bg-slate-50 p-1.5 rounded-xl border border-slate-100">
@@ -196,8 +198,8 @@ const Dashboard: React.FC = () => {
          {/* Branch Performance */}
          <div className="card h-full flex flex-col overflow-hidden">
             <div className="p-8 border-b border-slate-50">
-              <h3 className="font-black text-slate-900 text-xl tracking-tight uppercase">Branches</h3>
-              <p className="text-xs text-slate-400 font-bold tracking-widest uppercase mt-1">Live Efficiency Metrics</p>
+              <h3 className="font-black text-slate-900 text-xl tracking-tight uppercase">{t('branches')}</h3>
+              <p className="text-xs text-slate-400 font-bold tracking-widest uppercase mt-1">{t('live_efficiency_metrics')}</p>
             </div>
             <div className="flex-1 p-5 space-y-3 overflow-y-auto max-h-[400px] scrollbar-hide">
                {stats.branchPerformance.length === 0 ? (
