@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { orderService } from '@backend/services/orderService';
 import { PrintReceipt } from '../components/PrintReceipt';
-import { ChevronLeft, Printer } from 'lucide-react';
+import { ChevronLeft } from 'lucide-react';
 
 const PublicReceipt: React.FC = () => {
   const { id } = useParams<{ id: string }>();
