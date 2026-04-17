@@ -10,8 +10,7 @@ import {
   ChevronDown,
   Printer,
   Share2,
-  X,
-  Check
+  X
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { customerService } from '@backend/services/customerService';
