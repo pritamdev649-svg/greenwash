@@ -10,7 +10,8 @@ import {
   ChevronDown,
   Printer,
   Share2,
-  X
+  X,
+  Check
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { customerService } from '@backend/services/customerService';
@@ -78,6 +79,42 @@ const SaleOrder: React.FC = () => {
   const [discountType, setDiscountType] = useState<'amount' | 'percentage'>('amount');
   const [isRounding, setIsRounding] = useState(true);
 
+  // Additional Charges State
+  const [additionalCharges, setAdditionalCharges] = useState<{label: string, amount: number}[]>([]);
+  const [showCustomCharge, setShowCustomCharge] = useState(false);
+  const [customChargeLabel, setCustomChargeLabel] = useState('');
+  const [customChargeAmount, setCustomChargeAmount] = useState(0);
+
+  const togglePredefinedCharge = (label: string, amount: number) => {
+    setAdditionalCharges(prev => {
+      const exists = prev.find(c => c.label === label);
+      if (exists) {
+        return prev.filter(c => c.label !== label);
+      } else {
+        return [...prev, { label, amount }];
+      }
+    });
+  };
+
+  const addCustomCharge = () => {
+    if (customChargeLabel && customChargeAmount > 0) {
+      setAdditionalCharges(prev => [...prev, { label: customChargeLabel, amount: customChargeAmount }]);
+      setCustomChargeLabel('');
+      setCustomChargeAmount(0);
+      setShowCustomCharge(false);
+    }
+  };
+
+  const removeCharge = (label: string) => {
+    setAdditionalCharges(prev => prev.filter(c => c.label !== label));
+  };
+
+  const updateChargeAmount = (label: string, newAmount: number) => {
+    setAdditionalCharges(prev => prev.map(c => 
+      c.label === label ? { ...c, amount: newAmount } : c
+    ));
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -129,8 +166,9 @@ const SaleOrder: React.FC = () => {
   };
 
   const subtotal = rows.reduce((sum, row) => sum + row.amount, 0);
+  const chargesTotal = additionalCharges.reduce((sum, c) => sum + c.amount, 0);
   const discountAmount = discountType === 'amount' ? discount : (subtotal * discount) / 100;
-  const grandTotal = isRounding ? Math.round(subtotal - discountAmount) : (subtotal - discountAmount);
+  const grandTotal = isRounding ? Math.round(subtotal - discountAmount + chargesTotal) : (subtotal - discountAmount + chargesTotal);
 
   const handleSave = async () => {
     if (!selectedCustomerId) {
@@ -154,6 +192,7 @@ const SaleOrder: React.FC = () => {
         
         return {
           cloth_type_id: (!r.item_id || r.item_id === 'custom') ? null : r.item_id,
+          custom_item_name: r.item_name,
           quantity: r.qty,
           wash_price: (isWash && !isIron) ? r.price : 0,
           iron_price: (isIron && !isWash) ? r.price : 0,
@@ -164,13 +203,27 @@ const SaleOrder: React.FC = () => {
         };
       });
 
+      // Merge additional charges as special items
+      const finalItems = [
+        ...items,
+        ...additionalCharges.map(charge => ({
+          cloth_type_id: null,
+          custom_item_name: `[CHARGE] ${charge.label}`,
+          quantity: 1,
+          wash_price: charge.amount,
+          iron_price: 0,
+          subtotal: charge.amount
+        }))
+      ];
+
       await orderService.createOrder(
         selectedCustomerId, 
         selectedCustomer?.branch_id || null, 
         grandTotal, 
-        items,
+        finalItems,
         0, // advance
-        discountAmount
+        discountAmount,
+        dueDate
       );
       
       alert("Order Generated Successfully!");
@@ -528,10 +581,121 @@ const SaleOrder: React.FC = () => {
               </div>
            </div>
 
-           {/* Footer Section (Discounts, etc) */}
+           {/* Footer Section (Discounts & Additional Charges) */}
            <div className="grid lg:grid-cols-2 border-t border-slate-100">
               <div className="p-10 border-r border-slate-100 space-y-6">
-                 <div className="flex items-center gap-3">
+                 {/* Additional Charges Section */}
+                 <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                       <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                             <Plus size={16} />
+                          </div>
+                          <span className="text-xs font-black text-slate-600 uppercase tracking-widest">Additional Charges</span>
+                       </div>
+                       <button 
+                         onClick={() => setShowCustomCharge(!showCustomCharge)}
+                         className="text-[10px] font-black text-emerald-600 hover:text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-lg uppercase tracking-widest transition-all"
+                       >
+                         {showCustomCharge ? 'Cancel' : 'Add Custom'}
+                       </button>
+                    </div>
+
+                    {showCustomCharge && (
+                      <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
+                         <input 
+                           type="text" 
+                           placeholder="Charge Label (e.g. Special Box)"
+                           className="flex-1 h-10 px-4 bg-white border border-slate-200 rounded-xl text-xs font-bold outline-none"
+                           value={customChargeLabel}
+                           onChange={(e) => setCustomChargeLabel(e.target.value)}
+                         />
+                         <input 
+                           type="number" 
+                           placeholder="Price"
+                           className="w-24 h-10 px-4 bg-white border border-slate-200 rounded-xl text-xs font-bold outline-none"
+                           value={customChargeAmount || ''}
+                           onChange={(e) => setCustomChargeAmount(parseFloat(e.target.value) || 0)}
+                         />
+                         <button 
+                           onClick={addCustomCharge}
+                           className="w-10 h-10 bg-emerald-600 text-white rounded-xl flex items-center justify-center hover:bg-emerald-700 shadow-lg shadow-emerald-500/20 transition-all font-bold"
+                         >
+                           <Plus size={18} />
+                         </button>
+                      </div>
+                    )}
+
+                    <div className="grid grid-cols-2 gap-3">
+                       {[
+                         { label: 'Carrybag', amount: 10 },
+                         { label: 'Delivery Charge', amount: 30 },
+                         { label: 'Fast Service', amount: 50 }
+                       ].map(charge => {
+                         const currentCharge = additionalCharges.find(c => c.label === charge.label);
+                         const isActive = !!currentCharge;
+                         return (
+                           <div 
+                             key={charge.label}
+                             className={`flex items-center justify-between p-3 rounded-xl border transition-all text-left ${
+                               isActive 
+                               ? 'bg-emerald-600 border-emerald-600 text-white shadow-lg shadow-emerald-500/30' 
+                               : 'bg-white border-slate-100 text-slate-600 hover:border-emerald-200 cursor-pointer'
+                             }`}
+                             onClick={() => !isActive && togglePredefinedCharge(charge.label, charge.amount)}
+                           >
+                              <div className="flex flex-col" onClick={() => isActive && togglePredefinedCharge(charge.label, charge.amount)}>
+                                 <span className="text-[10px] font-black uppercase tracking-tight">{charge.label}</span>
+                                 <div className="flex items-center gap-1 mt-1 bg-white/10 px-1.5 py-0.5 rounded-lg">
+                                    <span className={`text-xs font-bold ${isActive ? 'text-white' : 'text-slate-400'}`}>₹</span>
+                                    <input 
+                                      type="number"
+                                      className={`w-12 bg-transparent border-none p-0 text-xs font-bold focus:ring-0 ${isActive ? 'text-white' : 'text-slate-400'}`}
+                                      value={isActive ? currentCharge.amount : charge.amount}
+                                      onClick={(e) => e.stopPropagation()}
+                                      onChange={(e) => {
+                                        const val = parseFloat(e.target.value) || 0;
+                                        if (isActive) {
+                                           updateChargeAmount(charge.label, val);
+                                        } else {
+                                           setAdditionalCharges(prev => [...prev, { label: charge.label, amount: val }]);
+                                        }
+                                      }}
+                                    />
+                                 </div>
+                              </div>
+                              {isActive && (
+                                 <button 
+                                    onClick={(e) => { e.stopPropagation(); togglePredefinedCharge(charge.label, charge.amount); }}
+                                    className="p-1 hover:bg-white/10 rounded-md"
+                                 >
+                                    <X size={14} />
+                                 </button>
+                              )}
+                           </div>
+                         );
+                       })}
+                    </div>
+
+                    {/* Dynamic List of Added Charges */}
+                    {additionalCharges.filter(c => !['Carrybag', 'Delivery Charge', 'Fast Service'].includes(c.label)).length > 0 && (
+                      <div className="space-y-2 pt-2">
+                         {additionalCharges.filter(c => !['Carrybag', 'Delivery Charge', 'Fast Service'].includes(c.label)).map(c => (
+                           <div key={c.label} className="flex items-center justify-between p-3 bg-indigo-50/50 border border-indigo-100 rounded-xl">
+                              <div className="flex flex-col">
+                                 <span className="text-[10px] font-black text-indigo-900 uppercase tracking-tight">{c.label}</span>
+                                 <span className="text-xs font-bold text-indigo-400">₹{c.amount}</span>
+                              </div>
+                              <button onClick={() => removeCharge(c.label)} className="p-2 text-indigo-300 hover:text-rose-500 transition-colors">
+                                 <X size={14} />
+                              </button>
+                           </div>
+                         ))}
+                      </div>
+                    )}
+                 </div>
+
+                 <div className="flex items-center gap-3 pt-6 border-t border-slate-100">
                     <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
                        <Info size={16} />
                     </div>
@@ -543,12 +707,12 @@ const SaleOrder: React.FC = () => {
                  />
               </div>
 
-              <div className="p-10 space-y-4">
+              <div className="p-10 space-y-4 bg-slate-50/20">
                  <div className="flex justify-between items-center">
                     <span className="text-sm font-bold text-slate-500 uppercase tracking-tight">Discount</span>
                     <div className="flex items-center gap-2">
                        <select 
-                          className="h-10 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold px-2 focus:ring-0 outline-none cursor-pointer"
+                          className="h-10 bg-white border border-slate-200 rounded-xl text-xs font-bold px-2 focus:ring-0 outline-none cursor-pointer"
                           value={discountType}
                           onChange={(e) => setDiscountType(e.target.value as any)}
                        >
@@ -558,7 +722,7 @@ const SaleOrder: React.FC = () => {
                        <div className="relative">
                           <input 
                             type="number" 
-                            className="w-32 h-10 px-4 bg-slate-50 border border-slate-200 rounded-xl text-right text-xs font-bold focus:ring-2 focus:ring-emerald-500/20 outline-none"
+                            className="w-32 h-10 px-4 bg-white border border-slate-200 rounded-xl text-right text-xs font-bold focus:ring-2 focus:ring-emerald-500/20 outline-none"
                             value={discount}
                             onChange={(e) => setDiscount(parseFloat(e.target.value) || 0)}
                           />
@@ -566,7 +730,14 @@ const SaleOrder: React.FC = () => {
                     </div>
                  </div>
 
-                 <div className="flex justify-between items-center py-4 border-t border-dashed border-slate-200">
+                 {additionalCharges.length > 0 && (
+                   <div className="flex justify-between items-center py-2 text-slate-500">
+                      <span className="text-xs font-bold uppercase tracking-tight">Additional Charges</span>
+                      <span className="text-sm font-black text-slate-900">+ ₹{chargesTotal.toLocaleString()}</span>
+                   </div>
+                 )}
+
+                 <div className="flex justify-between items-center py-6 border-t border-dashed border-slate-200">
                     <div className="flex items-center gap-2">
                        <input 
                          type="checkbox" 
@@ -577,7 +748,7 @@ const SaleOrder: React.FC = () => {
                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Round Off</span>
                     </div>
                     <div className="flex flex-col items-end">
-                       <span className="text-4xl font-black text-slate-900 tracking-tighter">₹{grandTotal.toLocaleString()}</span>
+                       <span className="text-5xl font-black text-slate-900 tracking-tighter">₹{grandTotal.toLocaleString()}</span>
                        <span className="text-[10px] font-black text-emerald-500 uppercase tracking-[0.2em] mt-1">Payable Amount</span>
                     </div>
                  </div>
@@ -612,6 +783,7 @@ const SaleOrder: React.FC = () => {
           price: r.price,
           amount: r.amount
         })),
+        additionalCharges,
         subTotal: subtotal,
         discount,
         total: grandTotal,

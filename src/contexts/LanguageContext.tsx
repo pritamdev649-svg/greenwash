@@ -118,7 +118,14 @@ const translations = {
     save_settings: 'Save Settings',
     terms_conditions: 'Terms & Conditions',
     hindi: 'Hindi',
-    english: 'English'
+    english: 'English',
+    additional_charges: 'Additional Charges',
+    carrybag: 'Carrybag',
+    delivery_charge: 'Delivery Charge',
+    fast_service: 'Fast Service',
+    custom: 'Custom',
+    label_text: 'Label',
+    amount_text: 'Amount'
   },
   hi: {
     // Nav & General
@@ -229,7 +236,14 @@ const translations = {
     save_settings: 'सेटिंग्स सहेजें',
     terms_conditions: 'शर्तें और नियम',
     hindi: 'हिंदी',
-    english: 'अंग्रेजी'
+    english: 'अंग्रेजी',
+    additional_charges: 'अतिरिक्त शुल्क',
+    carrybag: 'कैरीबैग',
+    delivery_charge: 'डिलीवरी शुल्क',
+    fast_service: 'फास्ट सर्विस',
+    custom: 'कस्टम',
+    label_text: 'लेबल',
+    amount_text: 'राशि'
   }
 };
 

@@ -18,6 +18,7 @@ export interface PrintReceiptProps {
       price: number;
       amount: number;
     }>;
+    additionalCharges?: Array<{ label: string, amount: number }>;
     subTotal: number;
     discount: number;
     total: number;
@@ -126,7 +127,7 @@ export const PrintReceipt: React.FC<PrintReceiptProps> = ({ orderData }) => {
           ))}
           {/* Total Row */}
           <tr className="border-b-2 border-slate-600 font-bold">
-            <td colSpan={4} className="py-1.5 px-8 text-xs text-center">Total</td>
+            <td colSpan={4} className="py-1.5 px-8 text-xs text-center">Items Total</td>
             <td className="py-1.5 px-2 text-[11px] text-right">₹ {orderData.items.reduce((s, i) => s + i.amount, 0).toFixed(1)}</td>
           </tr>
         </tbody>
@@ -163,15 +164,23 @@ export const PrintReceipt: React.FC<PrintReceiptProps> = ({ orderData }) => {
           <table className="w-full text-[11px] mt-2 border-collapse">
             <tbody>
               <tr>
-                <td className="py-1 text-gray-700">Sub Total</td>
+                <td className="py-1 text-gray-700 font-bold">Sub Total</td>
                 <td className="py-1 text-right">₹ {(orderData.subTotal || 0).toFixed(1)}</td>
               </tr>
-              <tr>
-                <td className="py-1 text-gray-700">Discount ({orderData.discount > 0 ? (((orderData.discount || 0) / (orderData.subTotal || 1)) * 100).toFixed(1) : 0}%)</td>
-                <td className="py-1 text-right">₹ {(orderData.discount || 0).toFixed(1)}</td>
-              </tr>
+              {orderData.discount > 0 && (
+                <tr>
+                  <td className="py-1 text-gray-700 font-bold">Discount ({(((orderData.discount || 0) / (orderData.subTotal || 1)) * 100).toFixed(1)}%)</td>
+                  <td className="py-1 text-right">₹ {(orderData.discount || 0).toFixed(1)}</td>
+                </tr>
+              )}
+              {orderData.additionalCharges?.map((charge, idx) => (
+                <tr key={idx}>
+                  <td className="py-1 text-gray-700 font-bold">{charge.label}</td>
+                  <td className="py-1 text-right">+ ₹ {charge.amount.toFixed(1)}</td>
+                </tr>
+              ))}
               <tr className="bg-gray-500 text-white font-bold">
-                <td className="py-1.5 pl-2">Total</td>
+                <td className="py-1.5 pl-2">Grand Total</td>
                 <td className="py-1.5 pr-2 text-right">₹ {(orderData.total || 0).toFixed(1)}</td>
               </tr>
               <tr className="font-bold">

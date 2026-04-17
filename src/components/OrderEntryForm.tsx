@@ -89,6 +89,42 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
   const [discount, setDiscount] = useState(0);
   const [discountType, setDiscountType] = useState<'amount' | 'percentage'>('amount');
 
+  // Additional Charges State
+  const [additionalCharges, setAdditionalCharges] = useState<{label: string, amount: number}[]>([]);
+  const [showCustomCharge, setShowCustomCharge] = useState(false);
+  const [customChargeLabel, setCustomChargeLabel] = useState('');
+  const [customChargeAmount, setCustomChargeAmount] = useState(0);
+
+  const togglePredefinedCharge = (label: string, amount: number) => {
+    setAdditionalCharges(prev => {
+      const exists = prev.find(c => c.label === label);
+      if (exists) {
+        return prev.filter(c => c.label !== label);
+      } else {
+        return [...prev, { label, amount }];
+      }
+    });
+  };
+
+  const addCustomCharge = () => {
+    if (customChargeLabel && customChargeAmount > 0) {
+      setAdditionalCharges(prev => [...prev, { label: customChargeLabel, amount: customChargeAmount }]);
+      setCustomChargeLabel('');
+      setCustomChargeAmount(0);
+      setShowCustomCharge(false);
+    }
+  };
+
+  const removeCharge = (label: string) => {
+    setAdditionalCharges(prev => prev.filter(c => c.label !== label));
+  };
+
+  const updateChargeAmount = (label: string, newAmount: number) => {
+    setAdditionalCharges(prev => prev.map(c => 
+      c.label === label ? { ...c, amount: newAmount } : c
+    ));
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
@@ -166,8 +202,9 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
   };
 
   const subtotal = rows.reduce((sum, row) => sum + row.amount, 0);
+  const chargesTotal = additionalCharges.reduce((sum, c) => sum + c.amount, 0);
   const discountAmount = discountType === 'amount' ? discount : (subtotal * discount) / 100;
-  const grandTotal = Math.round(subtotal - discountAmount);
+  const grandTotal = Math.round(subtotal - discountAmount + chargesTotal);
 
   const handleSave = async () => {
     if (!selectedCustomerId) {
@@ -192,11 +229,24 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
         };
       });
 
+      // Merge additional charges as special items
+      const finalItems = [
+        ...items,
+        ...additionalCharges.map(charge => ({
+          cloth_type_id: null,
+          custom_item_name: `[CHARGE] ${charge.label}`,
+          quantity: 1,
+          wash_price: charge.amount,
+          iron_price: 0,
+          subtotal: charge.amount
+        }))
+      ];
+
       const order = await orderService.createOrder(
         selectedCustomerId, 
         selectedCustomer?.branch_id || null, 
         grandTotal, 
-        items,
+        finalItems,
         advanceAmount,
         discountAmount,
         dueDate
@@ -519,24 +569,130 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
                           <span>Subtotal</span> <span className="text-slate-900">₹ {subtotal.toLocaleString()}</span>
                        </div>
                        <div className="flex justify-between items-center text-xs font-bold text-slate-500">
-                          <span>Adjust / Discount</span>
-                          <div className="flex items-center gap-1">
-                             <select 
-                                className="h-8 bg-slate-50 border border-slate-100 rounded-lg text-[10px] font-black px-1 uppercase focus:ring-0 outline-none cursor-pointer"
-                                value={discountType}
-                                onChange={(e) => setDiscountType(e.target.value as any)}
-                             >
-                                <option value="amount">₹</option>
-                                <option value="percentage">%</option>
-                             </select>
-                             <input 
-                                type="number" 
-                                className="w-20 h-8 text-right bg-slate-50 border border-slate-100 rounded-lg text-[10px] font-black p-2 uppercase focus:ring-2 focus:ring-primary-500/20 outline-none" 
-                                value={discount} 
-                                onChange={(e) => setDiscount(parseFloat(e.target.value) || 0)} 
-                             />
-                          </div>
-                       </div>
+                           <span>Adjust / Discount</span>
+                           <div className="flex items-center gap-1">
+                              <select 
+                                 className="h-8 bg-slate-50 border border-slate-100 rounded-lg text-[10px] font-black px-1 uppercase focus:ring-0 outline-none cursor-pointer"
+                                 value={discountType}
+                                 onChange={(e) => setDiscountType(e.target.value as any)}
+                              >
+                                 <option value="amount">₹</option>
+                                 <option value="percentage">%</option>
+                              </select>
+                              <input 
+                                 type="number" 
+                                 className="w-20 h-8 text-right bg-slate-50 border border-slate-100 rounded-lg text-[10px] font-black p-2 uppercase focus:ring-2 focus:ring-primary-500/20 outline-none" 
+                                 value={discount} 
+                                 onChange={(e) => setDiscount(parseFloat(e.target.value) || 0)} 
+                              />
+                           </div>
+                        </div>
+
+                        {/* Additional Charges Section */}
+                        <div className="pt-4 border-t border-slate-100 space-y-3">
+                           <div className="flex items-center justify-between">
+                              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('additional_charges')}</span>
+                              <button 
+                                onClick={() => setShowCustomCharge(!showCustomCharge)}
+                                className="text-[9px] font-black text-primary-600 uppercase"
+                              >
+                                {showCustomCharge ? t('cancel') : `+ ${t('custom')}`}
+                              </button>
+                           </div>
+
+                           {showCustomCharge && (
+                             <div className="space-y-2 animate-in fade-in slide-in-from-top-1">
+                                <input 
+                                  type="text" 
+                                  placeholder={t('label_text')}
+                                  className="w-full h-8 px-3 bg-slate-50 border border-slate-100 rounded-lg text-[10px] font-bold outline-none uppercase"
+                                  value={customChargeLabel}
+                                  onChange={(e) => setCustomChargeLabel(e.target.value)}
+                                />
+                                <div className="flex gap-2">
+                                   <input 
+                                     type="number" 
+                                     placeholder={t('amount_text')}
+                                     className="flex-1 h-8 px-3 bg-slate-50 border border-slate-100 rounded-lg text-[10px] font-bold outline-none"
+                                     value={customChargeAmount || ''}
+                                     onChange={(e) => setCustomChargeAmount(parseFloat(e.target.value) || 0)}
+                                   />
+                                   <button 
+                                     onClick={addCustomCharge}
+                                     className="h-8 px-3 bg-primary-600 text-white rounded-lg text-[10px] font-bold"
+                                   >
+                                     Add
+                                   </button>
+                                </div>
+                             </div>
+                           )}
+
+                           <div className="grid grid-cols-1 gap-2">
+                              {[
+                                { label: 'Carrybag', amount: 10 },
+                                { label: 'Delivery Charge', amount: 30 },
+                                { label: 'Fast Service', amount: 50 }
+                              ].map(charge => {
+                                const currentCharge = additionalCharges.find(c => c.label === charge.label);
+                                const isActive = !!currentCharge;
+                                return (
+                                  <div 
+                                    key={charge.label}
+                                    className={`flex items-center justify-between px-3 py-2 rounded-xl border transition-all ${
+                                      isActive 
+                                      ? 'bg-primary-600 border-primary-600 text-white shadow-md shadow-primary-500/20' 
+                                      : 'bg-slate-50 border-slate-100 text-slate-600 hover:border-primary-200 cursor-pointer'
+                                    }`}
+                                    onClick={() => !isActive && togglePredefinedCharge(charge.label, charge.amount)}
+                                  >
+                                     <span className="text-[9px] font-black uppercase tracking-tight" onClick={() => isActive && togglePredefinedCharge(charge.label, charge.amount)}>
+                                        {t(charge.label.toLowerCase().replace(' ', '_')) || charge.label}
+                                     </span>
+                                     <div className="flex items-center gap-2">
+                                        <div className="flex items-center gap-1 bg-white/10 px-1.5 py-0.5 rounded-lg">
+                                           <span className={`text-[10px] font-black ${isActive ? 'text-white' : 'text-slate-400'}`}>₹</span>
+                                           <input 
+                                             type="number"
+                                             className={`w-10 bg-transparent border-none p-0 text-[10px] font-black focus:ring-0 ${isActive ? 'text-white' : 'text-slate-400'}`}
+                                             value={isActive ? currentCharge.amount : charge.amount}
+                                             onClick={(e) => e.stopPropagation()}
+                                             onChange={(e) => {
+                                               const val = parseFloat(e.target.value) || 0;
+                                               if (isActive) {
+                                                  updateChargeAmount(charge.label, val);
+                                               } else {
+                                                  // Optional: Allow editing even before toggle, but for now just toggle on edit
+                                                  setAdditionalCharges(prev => [...prev, { label: charge.label, amount: val }]);
+                                               }
+                                             }}
+                                           />
+                                        </div>
+                                        {isActive && (
+                                           <button 
+                                              onClick={(e) => { e.stopPropagation(); togglePredefinedCharge(charge.label, charge.amount); }}
+                                              className="p-1 hover:bg-white/10 rounded-md"
+                                           >
+                                              <X size={10} />
+                                           </button>
+                                        )}
+                                     </div>
+                                  </div>
+                                );
+                              })}
+                           </div>
+
+                           {additionalCharges.filter(c => !['Carrybag', 'Delivery Charge', 'Fast Service'].includes(c.label)).map(c => (
+                              <div key={c.label} className="flex items-center justify-between px-3 py-2 bg-primary-50 border border-primary-100 rounded-xl">
+                                 <span className="text-[9px] font-black text-primary-900 uppercase">{c.label}</span>
+                                 <div className="flex items-center gap-2">
+                                    <span className="text-[10px] font-black text-primary-600">₹{c.amount}</span>
+                                    <button onClick={() => removeCharge(c.label)} className="text-primary-300 hover:text-rose-500">
+                                       <X size={10} />
+                                    </button>
+                                 </div>
+                              </div>
+                           ))}
+                        </div>
                        <div className="flex justify-between items-center text-xs font-bold text-emerald-600 bg-emerald-50 p-2 rounded-xl border border-emerald-100">
                           <span>Advance Received</span>
                           <input type="number" className="w-20 h-8 text-right bg-white border border-emerald-200 rounded-lg text-[10px] font-black p-2 uppercase focus:ring-2 focus:ring-emerald-500/20" value={advanceAmount} onChange={(e) => setAdvanceAmount(parseFloat(e.target.value) || 0)} />
@@ -587,6 +743,7 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
                   price: r.price,
                   amount: r.amount
                 })),
+                additionalCharges,
                 subTotal: subtotal,
                 discount: discountAmount,
                 total: grandTotal,
