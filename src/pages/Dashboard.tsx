@@ -156,13 +156,28 @@ const SalesTrendChart: React.FC<{ data: Stats['salesTrend'], timeframe: '7d' | '
               
               {/* Tooltip */}
               <g className="opacity-0 group-hover/point:opacity-100 transition-all duration-300 pointer-events-none">
-                <rect x={p.x - 50} y={p.y - 55} width="100" height="40" rx="12" fill="#1e293b" className="shadow-2xl" />
-                <text x={p.x} y={p.y - 37} textAnchor="middle" fill="#fff" className="text-[10px] font-black uppercase tracking-tight">
-                   ₹{p.sales.toLocaleString()}
-                </text>
-                <text x={p.x} y={p.y - 27} textAnchor="middle" fill="#94a3b8" className="text-[8px] font-bold uppercase tracking-widest">
-                   {new Date(p.date).toLocaleDateString([], { day: 'numeric', month: 'short' })}
-                </text>
+                {/* Dynamic Y position for tooltip: Show below point if near top edge (p.y < 60) */}
+                {p.y < 60 ? (
+                  <>
+                    <rect x={p.x - 50} y={p.y + 15} width="100" height="40" rx="12" fill="#1e293b" className="shadow-2xl" />
+                    <text x={p.x} y={p.y + 33} textAnchor="middle" fill="#fff" className="text-[10px] font-black uppercase tracking-tight">
+                       ₹{p.sales.toLocaleString()}
+                    </text>
+                    <text x={p.x} y={p.y + 43} textAnchor="middle" fill="#94a3b8" className="text-[8px] font-bold uppercase tracking-widest">
+                       {new Date(p.date).toLocaleDateString([], { day: 'numeric', month: 'short' })}
+                    </text>
+                  </>
+                ) : (
+                  <>
+                    <rect x={p.x - 50} y={p.y - 55} width="100" height="40" rx="12" fill="#1e293b" className="shadow-2xl" />
+                    <text x={p.x} y={p.y - 37} textAnchor="middle" fill="#fff" className="text-[10px] font-black uppercase tracking-tight">
+                       ₹{p.sales.toLocaleString()}
+                    </text>
+                    <text x={p.x} y={p.y - 27} textAnchor="middle" fill="#94a3b8" className="text-[8px] font-bold uppercase tracking-widest">
+                       {new Date(p.date).toLocaleDateString([], { day: 'numeric', month: 'short' })}
+                    </text>
+                  </>
+                )}
               </g>
             </g>
           ))}
@@ -314,7 +329,7 @@ const Dashboard: React.FC = () => {
       </div>
 
       <div className="grid lg:grid-cols-3 gap-8">
-         <div className="lg:col-span-2 card p-8 group relative overflow-hidden flex flex-col">
+         <div className="lg:col-span-2 card p-8 group relative flex flex-col">
             <div className="flex items-center justify-between mb-2">
               <div>
                 <h3 className="font-extrabold text-slate-500 text-xs tracking-widest uppercase">{language === 'hi' ? 'बिक्री विश्लेषण' : 'Total Sale'}</h3>
