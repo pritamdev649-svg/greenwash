@@ -112,7 +112,7 @@ export const orderService = {
         order_number,
         customers (name, mobile, address),
         order_items (
-          id, quantity, wash_price, iron_price, subtotal,
+          id, quantity, wash_price, iron_price, subtotal, custom_item_name,
           cloth_types (name)
         )
       `)

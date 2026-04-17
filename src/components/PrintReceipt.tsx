@@ -30,7 +30,7 @@ export interface PrintReceiptProps {
 export const PrintReceipt: React.FC<PrintReceiptProps> = ({ orderData }) => {
   // Convert number to words, handle decimal roughly or just round
   const roundedTotal = Math.round(orderData.total);
-  const words = toWords.toWords(roundedTotal);
+  const words = orderData.total > 0 ? toWords.toWords(roundedTotal) : 'Zero';
   // Capitalize each word
   const capitalizedWords = words
     .replace(/-/g, ' ')
@@ -39,6 +39,23 @@ export const PrintReceipt: React.FC<PrintReceiptProps> = ({ orderData }) => {
     .join(' ');
   
   const amountInWords = `${capitalizedWords} Rupees only`;
+  
+  // Logic to separate standard items and [CHARGE] items
+  // This ensures that even for saved orders where charges are merged into items,
+  // we still display them professionally in the summary section.
+  const displayItems = orderData.items.filter(item => !item.name.startsWith('[CHARGE]'));
+  const derivedCharges = orderData.items
+    .filter(item => item.name.startsWith('[CHARGE]'))
+    .map(item => ({
+      label: item.name.replace('[CHARGE] ', '').replace('[CHARGE]', ''),
+      amount: item.amount
+    }));
+
+  // Combine provided additionalCharges with derived ones
+  const finalAdditionalCharges = [
+    ...(orderData.additionalCharges || []),
+    ...derivedCharges
+  ];
 
   // Get dynamic terms from localStorage
   const [terms, setTerms] = useState<string[]>([]);
@@ -116,10 +133,10 @@ export const PrintReceipt: React.FC<PrintReceiptProps> = ({ orderData }) => {
           </tr>
         </thead>
         <tbody>
-          {orderData.items.map((item, idx) => (
+          {displayItems.map((item, idx) => (
             <tr key={idx} className="border-b border-gray-300">
               <td className="py-1.5 px-2 text-[11px]">{idx + 1}</td>
-              <td className="py-1.5 px-2 text-[11px]">{item.name}</td>
+              <td className="py-1.5 px-2 text-[11px] font-bold">{item.name}</td>
               <td className="py-1.5 px-2 text-[11px] text-center">{item.qty}</td>
               <td className="py-1.5 px-2 text-[11px] text-right">₹ {item.price.toFixed(1)}</td>
               <td className="py-1.5 px-2 text-[11px] text-right">₹ {item.amount.toFixed(1)}</td>
@@ -128,7 +145,7 @@ export const PrintReceipt: React.FC<PrintReceiptProps> = ({ orderData }) => {
           {/* Total Row */}
           <tr className="border-b-2 border-slate-600 font-bold">
             <td colSpan={4} className="py-1.5 px-8 text-xs text-center">Items Total</td>
-            <td className="py-1.5 px-2 text-[11px] text-right">₹ {orderData.items.reduce((s, i) => s + i.amount, 0).toFixed(1)}</td>
+            <td className="py-1.5 px-2 text-[11px] text-right">₹ {displayItems.reduce((s, i) => s + i.amount, 0).toFixed(1)}</td>
           </tr>
         </tbody>
       </table>
@@ -173,7 +190,7 @@ export const PrintReceipt: React.FC<PrintReceiptProps> = ({ orderData }) => {
                   <td className="py-1 text-right">₹ {(orderData.discount || 0).toFixed(1)}</td>
                 </tr>
               )}
-              {orderData.additionalCharges?.map((charge, idx) => (
+              {finalAdditionalCharges.map((charge, idx) => (
                 <tr key={idx}>
                   <td className="py-1 text-gray-700 font-bold">{charge.label}</td>
                   <td className="py-1 text-right">+ ₹ {charge.amount.toFixed(1)}</td>
