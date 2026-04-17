@@ -250,6 +250,36 @@ export const orderService = {
       `)
     ]);
 
+    // Calculate sales trend for the last 30 days
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    thirtyDaysAgo.setHours(0, 0, 0, 0);
+
+    const trendMap = new Map();
+    // Pre-fill last 30 days with 0s
+    for (let i = 29; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const dateStr = d.toISOString().split('T')[0];
+      trendMap.set(dateStr, { orders: 0, sales: 0 });
+    }
+
+    orders?.forEach(o => {
+      const dateStr = new Date(o.created_at).toISOString().split('T')[0];
+      if (trendMap.has(dateStr)) {
+        const current = trendMap.get(dateStr);
+        trendMap.set(dateStr, {
+          orders: current.orders + 1,
+          sales: current.sales + Number(o.total_amount)
+        });
+      }
+    });
+
+    const salesTrend = Array.from(trendMap.entries()).map(([date, data]) => ({
+      date,
+      ...data
+    }));
+
     const stats = {
       totalCustomers: customerCount || 0,
       totalOrders: orders?.length || 0,
@@ -260,6 +290,7 @@ export const orderService = {
       todaySales: orders?.filter(o => new Date(o.created_at) >= today)
         .reduce((sum, o) => sum + Number(o.total_amount), 0) || 0,
       todayOrders: orders?.filter(o => new Date(o.created_at) >= today).length || 0,
+      salesTrend,
       branchPerformance: (branchStats || []).map(b => {
         const branchOrders = (b as any).orders || [];
         const todayBranchOrders = branchOrders.filter((o: any) => new Date(o.created_at) >= today);
