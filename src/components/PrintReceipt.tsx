@@ -144,7 +144,9 @@ export const PrintReceipt: React.FC<PrintReceiptProps> = ({ orderData }) => {
           ))}
           {/* Total Row */}
           <tr className="border-b-2 border-slate-600 font-bold">
-            <td colSpan={4} className="py-1.5 px-8 text-xs text-center">Items Total</td>
+            <td colSpan={2} className="py-1.5 px-8 text-xs text-center uppercase tracking-widest">Total</td>
+            <td className="py-1.5 px-2 text-[11px] text-center">{displayItems.reduce((s, i) => s + i.qty, 0)}</td>
+            <td className="py-1.5 px-2 text-[11px] text-right"></td>
             <td className="py-1.5 px-2 text-[11px] text-right">₹ {displayItems.reduce((s, i) => s + i.amount, 0).toFixed(1)}</td>
           </tr>
         </tbody>
