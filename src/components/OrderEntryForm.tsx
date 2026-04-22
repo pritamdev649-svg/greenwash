@@ -9,8 +9,7 @@ import {
   AlertCircle,
   MessageCircle,
   Printer,
-  Check,
-  Edit
+  Check
 } from 'lucide-react';
 import { customerService } from '@backend/services/customerService';
 import { orderService } from '@backend/services/orderService';
@@ -306,12 +305,13 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
           dueDate
       };
 
+      let savedOrder: any = null;
       if (editOrderId) {
         await orderService.updateOrder(editOrderId, finalOrderData, finalItems);
-        // For Edit, we can just trigger success or show success screen
+        savedOrder = { id: editOrderId, order_number: orderNo };
         setIsSuccess(true);
         setCreatedOrderId(editOrderId);
-        // We might need to refresh local state if needed
+        setCreatedOrder(savedOrder);
       } else {
         const order = await orderService.createOrder(
           selectedCustomerId, 
@@ -322,6 +322,7 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
           discountAmount,
           dueDate
         );
+        savedOrder = order;
         setCreatedOrderId(order.id);
         setCreatedOrder(order);
         setIsSuccess(true);
@@ -331,7 +332,9 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
       try {
         // We need to wait a tiny bit for the hidden receipt component to render in the DOM
         setTimeout(async () => {
-          const orderRef = order.order_number ? `GWC${order.order_number}` : 'GWC' + order.id.slice(0, 4).toUpperCase();
+          const currentOrderId = savedOrder?.id || editOrderId;
+          const currentOrderNo = savedOrder?.order_number || orderNo;
+          const orderRef = currentOrderNo ? `GWC${currentOrderNo}` : 'GWC' + currentOrderId.slice(0, 4).toUpperCase();
           
           // Generate and Upload PDF
           const url = await receiptService.generateAndUploadReceipt('hidden-receipt-capture', orderRef);
