@@ -97,7 +97,7 @@ const ClothTypes: React.FC = () => {
       <div className="grid lg:grid-cols-5 gap-12">
         {/* Form Column */}
         <div className="lg:col-span-2">
-           <div className="card p-8 border-primary-100 shadow-xl shadow-primary-600/5 bg-slate-50/20">
+           <div className="card p-8 border-primary-100 bg-slate-50/20">
               <div className="flex items-center gap-3 mb-8 pb-4 border-b border-slate-100">
                  <div className="w-1.5 h-6 bg-primary-500 rounded-full" />
                  <h3 className="font-bold text-slate-900 uppercase tracking-widest text-xs">{editingId ? 'Modify Rate Card' : 'Define New Service'}</h3>
@@ -188,7 +188,7 @@ const ClothTypes: React.FC = () => {
                       Discard
                     </button>
                   )}
-                  <button type="submit" className="flex-[2] btn-primary h-12 rounded-xl shadow-lg border-2 border-primary-600 shadow-primary-600/20 active:scale-[0.98] transition-all text-xs font-bold uppercase tracking-tight flex items-center justify-center gap-2">
+                  <button type="submit" className="flex-[2] btn-primary h-12 rounded-xl border-2 border-primary-600 active:scale-[0.98] transition-all text-xs font-bold uppercase tracking-tight flex items-center justify-center gap-2">
                     {editingId ? <Check size={16} /> : <Plus size={16} />}
                     <span>{editingId ? 'Commit' : 'Add to Catalog'}</span>
                   </button>
@@ -231,7 +231,7 @@ const ClothTypes: React.FC = () => {
                    <p className="text-slate-400 font-medium">No items found in this section.</p>
                 </div>
               ) : items.filter(i => selectedCategoryId === 'all' || i.category_id === selectedCategoryId).map((item) => (
-                <div key={item.id} className="group card p-5 flex items-center justify-between hover:border-primary-100 hover:shadow-lg transition-all duration-300">
+                <div key={item.id} className="group card p-5 flex items-center justify-between hover:border-primary-100 transition-all duration-300">
                     <div className="flex items-center gap-4">
                        <div className="w-12 h-12 rounded-2xl bg-slate-50 text-slate-400 flex items-center justify-center font-extrabold group-hover:bg-primary-50 group-hover:text-primary-600 transition-colors duration-300">
                           {item.name[0].toUpperCase()}

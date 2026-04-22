@@ -91,19 +91,19 @@ export default function Orders() {
           const branchName = order.branches?.name || 'Green Wash Co.';
           const totalAmount = Number(order.total_amount).toLocaleString();
           const balanceAmount = (order.balance_amount || 0).toLocaleString();
-          
+
           let alertMsg = '';
 
           if (nextPhase === 'Processing') {
             alertMsg = `Hello ${customerName}, your order *${orderRef}* is now under Processing at Green Wash Co. We'll alert you once it's clean and ready! 🧺`;
           } else if (nextPhase === 'Ready') {
             alertMsg = `Good news ${customerName}! ✨\n\nYour clothes for order *${orderRef}* are Cleaned, Ironed, and **READY** for pickup at ${branchName}.\n\n` +
-                       `Invoice Total: ₹${totalAmount}\n` +
-                       `Remaining Balance: ₹${balanceAmount}\n\n` +
-                       `See you soon! 🙏`;
+              `Invoice Total: ₹${totalAmount}\n` +
+              `Remaining Balance: ₹${balanceAmount}\n\n` +
+              `See you soon! 🙏`;
           } else if (nextPhase === 'Delivered') {
             alertMsg = `Hi ${customerName}, your order *${orderRef}* has been successfully delivered. ✅\n\n` +
-                       `Thank you for choosing Green Wash Co.! We look forward to serving you again soon. ✨`;
+              `Thank you for choosing Green Wash Co.! We look forward to serving you again soon. ✨`;
           }
 
           if (alertMsg && mobile) {
@@ -112,7 +112,7 @@ export default function Orders() {
             const cleanedMobile = mobile.replace(/\D/g, '');
             const phone = cleanedMobile.startsWith('91') ? cleanedMobile : '91' + cleanedMobile;
             const waLink = `https://wa.me/${phone}?text=${encodeURIComponent(alertMsg)}`;
-            
+
             // Open in new tab after a brief moment to allow UI to update
             setTimeout(() => {
               window.open(waLink, '_blank');
@@ -169,24 +169,24 @@ export default function Orders() {
     const dueDate = order.due_date ? order.due_date.split('-').reverse().join('/') : orderDate;
     const totalAmount = Number(order.total_amount).toLocaleString();
     const balanceAmount = (order.balance_amount || 0).toLocaleString();
-    
+
     // Exact format requested by user
     const baseUrl = window.location.origin;
     const publicUrl = `${baseUrl}/receipt/${order.id}`;
-    
+
     const message = `Greetings from Green Wash Co.\n` +
-                    `We are pleased to have you as a valuable customer. Please find the details of your transaction.\n` +
-                    `Invoice No:-${orderRef}\n\n` +
-                    `Sale Order :\n` +
-                    `Order Date: ${orderDate}\n` +
-                    `Due Date: ${dueDate}\n\n` +
-                    `Invoice Amount: ₹${totalAmount}\n` +
-                    `Balance: ₹${balanceAmount}\n` +
-                    `  View Invoice: ${publicUrl}\n` +
-                    `Thanks for doing business with us.\n` +
-                    `Regards,\n` +
-                    `Green Wash Co.`;
-    
+      `We are pleased to have you as a valuable customer. Please find the details of your transaction.\n` +
+      `Invoice No:-${orderRef}\n\n` +
+      `Sale Order :\n` +
+      `Order Date: ${orderDate}\n` +
+      `Due Date: ${dueDate}\n\n` +
+      `Invoice Amount: ₹${totalAmount}\n` +
+      `Balance: ₹${balanceAmount}\n` +
+      `  View Invoice: ${publicUrl}\n` +
+      `Thanks for doing business with us.\n` +
+      `Regards,\n` +
+      `Green Wash Co.`;
+
     const waLink = notificationService.getWhatsAppLink(order.customers?.mobile || '', message);
     window.open(waLink, '_blank');
   };
@@ -275,7 +275,7 @@ export default function Orders() {
         </div>
         <button
           onClick={() => setIsModalOpen(true)}
-          className="h-14 px-8 bg-primary-600 hover:bg-primary-700 text-white rounded-2xl font-black flex items-center justify-center gap-3 shadow-xl shadow-primary-600/20 active:scale-95 transition-all text-sm uppercase tracking-widest"
+          className="h-14 px-8 bg-primary-600 hover:bg-primary-700 text-white rounded-2xl font-black flex items-center justify-center gap-3 active:scale-95 transition-all text-sm uppercase tracking-widest"
         >
           <Plus size={20} className="stroke-[3]" />
           {t('new_entry')}
@@ -383,21 +383,21 @@ export default function Orders() {
                           setEditingOrderId(order.id);
                           setIsModalOpen(true);
                         }}
-                        className="w-9 h-9 flex items-center justify-center bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl shadow-lg shadow-indigo-500/10 transition-all active:scale-90"
+                        className="w-9 h-9 flex items-center justify-center bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl transition-all active:scale-90"
                         title="Edit Order"
                       >
                         <Edit2 size={16} strokeWidth={2.5} />
                       </button>
                       <button
                         onClick={() => handlePrintOrder(order.id)}
-                        className="w-9 h-9 flex items-center justify-center bg-slate-800 hover:bg-slate-900 text-white rounded-xl shadow-lg shadow-slate-900/10 transition-all active:scale-90"
+                        className="w-9 h-9 flex items-center justify-center bg-slate-800 hover:bg-slate-900 text-white rounded-xl transition-all active:scale-90"
                         title="Print / Save PDF"
                       >
                         <Printer size={16} strokeWidth={2.5} />
                       </button>
                       <button
                         onClick={() => handleShareLink(order)}
-                        className="w-9 h-9 flex items-center justify-center bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-lg shadow-emerald-600/10 transition-all active:scale-90"
+                        className="w-9 h-9 flex items-center justify-center bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl transition-all active:scale-90"
                         title="Share Digital Receipt"
                       >
                         <Share2 size={16} strokeWidth={2.5} />
@@ -405,7 +405,7 @@ export default function Orders() {
                       {(order.balance_amount || 0) > 0 && (
                         <button
                           onClick={() => handleCollectBalance(order.id)}
-                          className="w-9 h-9 flex items-center justify-center bg-amber-500 hover:bg-amber-600 text-white rounded-xl shadow-lg shadow-amber-500/10 transition-all active:scale-90"
+                          className="w-9 h-9 flex items-center justify-center bg-amber-500 hover:bg-amber-600 text-white rounded-xl transition-all active:scale-90"
                           title="Collect Balance"
                         >
                           <CreditCard size={16} strokeWidth={2.5} />
@@ -413,7 +413,7 @@ export default function Orders() {
                       )}
                       <button
                         onClick={() => handleDeleteOrder(order.id)}
-                        className="w-9 h-9 flex items-center justify-center bg-rose-600 hover:bg-rose-700 text-white rounded-xl shadow-lg shadow-rose-600/10 transition-all active:scale-90"
+                        className="w-9 h-9 flex items-center justify-center bg-rose-600 hover:bg-rose-700 text-white rounded-xl transition-all active:scale-90"
                         title="Delete Permanently"
                       >
                         <Trash2 size={16} strokeWidth={2.5} />

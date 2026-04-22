@@ -184,7 +184,7 @@ const Categories: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center px-4">
         <div className="flex items-center gap-4">
-          <div className="p-3 bg-primary-600 text-white rounded-2xl shadow-lg shadow-primary-600/20">
+          <div className="p-3 bg-primary-600 text-white rounded-2xl">
             <LayoutGrid size={24} />
           </div>
           <div>
@@ -196,8 +196,8 @@ const Categories: React.FC = () => {
         <button 
           onClick={() => setIsAddingCategory(!isAddingCategory)}
           className={cn(
-            "btn h-11 px-6 rounded-xl flex items-center gap-2 text-xs font-bold uppercase transition-all shadow-lg",
-            isAddingCategory ? "bg-rose-50 text-rose-600 border border-rose-100" : "bg-primary-600 text-white shadow-primary-600/20 active:scale-95"
+            "btn h-11 px-6 rounded-xl flex items-center gap-2 text-xs font-bold uppercase transition-all",
+            isAddingCategory ? "bg-rose-50 text-rose-600 border border-rose-100" : "bg-primary-600 text-white active:scale-95"
           )}
         >
           {isAddingCategory ? <X size={18} /> : <Plus size={18} />}
@@ -246,13 +246,13 @@ const Categories: React.FC = () => {
                 className={cn(
                   "group flex items-center justify-between p-4 rounded-2xl transition-all duration-300 border",
                   selectedCategoryId === cat.id 
-                    ? "bg-white border-primary-100 shadow-xl shadow-primary-600/5 ring-1 ring-primary-500/20" 
+                    ? "bg-white border-primary-100 ring-1 ring-primary-500/20" 
                     : "bg-slate-50/30 border-transparent hover:bg-slate-50 hover:border-slate-100"
                 )}
               >
                 <div className="flex items-center gap-3">
                   <div className={cn(
-                    "w-8 h-8 rounded-xl flex items-center justify-center transition-colors shadow-sm",
+                    "w-8 h-8 rounded-xl flex items-center justify-center transition-colors",
                     selectedCategoryId === cat.id ? "bg-primary-600 text-white" : "bg-white text-slate-400 group-hover:text-primary-600"
                   )}>
                     <Shirt size={14} />
@@ -285,7 +285,7 @@ const Categories: React.FC = () => {
         </div>
 
         {/* Detail: Product List */}
-        <div className="flex-1 flex flex-col card overflow-hidden border-slate-100/80 shadow-2xl shadow-slate-200/50">
+        <div className="flex-1 flex flex-col card overflow-hidden border-slate-100/80">
           {selectedCategory ? (
             <>
               {/* Header */}
@@ -306,7 +306,7 @@ const Categories: React.FC = () => {
                     setItemForm({ name: '', price: 0 });
                     setIsItemFormOpen(true);
                   }}
-                  className="btn-primary h-11 px-6 rounded-xl flex items-center gap-2 text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary-600/20 active:scale-95 transition-all"
+                  className="btn-primary h-11 px-6 rounded-xl flex items-center gap-2 text-[10px] font-black uppercase tracking-widest active:scale-95 transition-all"
                 >
                   <Plus size={16} />
                   <span>New Product</span>
@@ -316,7 +316,7 @@ const Categories: React.FC = () => {
               {/* Form Overlay */}
               {isItemFormOpen && (
                 <div className="absolute inset-0 z-20 flex items-center justify-center p-6 bg-white/60 backdrop-blur-md animate-fade-in">
-                  <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl border border-slate-100 p-8 transform animate-slide-up">
+                  <div className="w-full max-w-md bg-white rounded-3xl border border-slate-100 p-8 transform animate-slide-up">
                     <div className="flex items-center justify-between mb-8">
                        <h4 className="text-sm font-black text-slate-900 uppercase tracking-[0.2em]">{editingItemId ? 'Update Information' : 'Registry New Product'}</h4>
                        <button onClick={() => setIsItemFormOpen(false)} className="p-2 hover:bg-slate-50 rounded-full text-slate-400"><X size={20} /></button>
@@ -350,7 +350,7 @@ const Categories: React.FC = () => {
                         <p className="text-[9px] font-bold text-primary-500 uppercase tracking-widest ml-1">This rate applies to this specific service item</p>
                       </div>
 
-                      <button type="submit" className="w-full btn-primary h-12 rounded-xl text-xs font-black uppercase tracking-widest shadow-xl shadow-primary-600/20 active:scale-[0.98] transition-all">
+                      <button type="submit" className="w-full btn-primary h-12 rounded-xl text-xs font-black uppercase tracking-widest active:scale-[0.98] transition-all">
                         {editingItemId ? 'Commit Changes' : 'Entry in Catalog'}
                       </button>
                     </form>
@@ -368,7 +368,7 @@ const Categories: React.FC = () => {
                 ) : (
                   <div className="grid gap-3">
                     {filteredItems.map(item => (
-                      <div key={item.id} className="group p-4 bg-slate-50/50 hover:bg-white rounded-2xl border border-transparent hover:border-slate-100 hover:shadow-xl hover:shadow-slate-200/40 transition-all duration-300 flex items-center justify-between">
+                      <div key={item.id} className="group p-4 bg-slate-50/50 hover:bg-white rounded-2xl border border-transparent hover:border-slate-100 transition-all duration-300 flex items-center justify-between">
                         <div className="flex items-center gap-4">
                            <div className="w-10 h-10 rounded-xl bg-white border border-slate-100 flex items-center justify-center font-black text-slate-400 group-hover:text-primary-600 transition-colors">
                               {item.name[0]}
@@ -386,14 +386,14 @@ const Categories: React.FC = () => {
                         <div className="flex items-center gap-1 transition-all">
                            <button 
                             onClick={() => startEditItem(item)}
-                            className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white transition-all flex items-center justify-center shadow-sm"
+                            className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white transition-all flex items-center justify-center"
                             title="Edit Product"
                            >
                             <Edit2 size={12} />
                            </button>
                            <button 
                             onClick={() => deleteItem(item.id)}
-                            className="w-8 h-8 rounded-lg bg-rose-50 text-rose-500 hover:bg-rose-600 hover:text-white transition-all flex items-center justify-center shadow-sm"
+                            className="w-8 h-8 rounded-lg bg-rose-50 text-rose-500 hover:bg-rose-600 hover:text-white transition-all flex items-center justify-center"
                             title="Delete Product"
                            >
                             <Trash2 size={12} />
