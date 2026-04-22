@@ -187,6 +187,55 @@ export const orderService = {
   },
 
   /**
+   * Update an existing order and its items
+   */
+  async updateOrder(orderId: string, orderData: any, items: any[]) {
+    // 1. Update main order record
+    const { error: orderError } = await supabase
+      .from('orders')
+      .update({
+        customer_id: orderData.customerId,
+        branch_id: orderData.branchId,
+        total_amount: orderData.totalAmount,
+        advance_amount: orderData.advanceAmount,
+        balance_amount: orderData.totalAmount - orderData.advanceAmount,
+        discount_amount: orderData.discountAmount,
+        due_date: orderData.dueDate,
+        payment_status: (orderData.advanceAmount >= orderData.totalAmount && orderData.totalAmount > 0) ? 'paid' : (orderData.advanceAmount > 0 ? 'partially_paid' : 'pending'),
+      })
+      .eq('id', orderId);
+
+    if (orderError) throw orderError;
+
+    // 2. Delete existing items
+    const { error: deleteError } = await supabase
+      .from('order_items')
+      .delete()
+      .eq('order_id', orderId);
+
+    if (deleteError) throw deleteError;
+
+    // 3. Insert new items
+    const orderItems = items.map(item => ({
+      order_id: orderId,
+      cloth_type_id: item.cloth_type_id,
+      custom_item_name: item.item_name || item.custom_item_name,
+      quantity: item.quantity,
+      wash_price: item.wash_price,
+      iron_price: item.iron_price,
+      subtotal: item.subtotal
+    }));
+
+    const { error: itemsError } = await supabase
+      .from('order_items')
+      .insert(orderItems);
+
+    if (itemsError) throw itemsError;
+
+    return { id: orderId };
+  },
+
+  /**
    * Update order lifecycle status
    */
   async updateOrderStatus(orderId: string, status: string) {
@@ -236,13 +285,19 @@ export const orderService = {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
+    const oneYearAgo = new Date();
+    oneYearAgo.setDate(oneYearAgo.getDate() - 365);
+    oneYearAgo.setHours(0, 0, 0, 0);
+
     const [
       { count: customerCount },
       { data: orders },
       { data: branchStats }
     ] = await Promise.all([
       supabase.from('customers').select('*', { count: 'exact', head: true }),
-      supabase.from('orders').select('total_amount, payment_status, created_at, branch_id, branches(name)'),
+      supabase.from('orders')
+        .select('total_amount, payment_status, created_at, branch_id, branches(name)')
+        .gte('created_at', oneYearAgo.toISOString()),
       supabase.from('branches').select(`
         id,
         name,
@@ -250,14 +305,11 @@ export const orderService = {
       `)
     ]);
 
-    // Calculate sales trend for the last 30 days
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-    thirtyDaysAgo.setHours(0, 0, 0, 0);
-
+    // Calculate sales trend for a longer period (365 days) to support various timeframes
+    const rangeDays = 365;
     const trendMap = new Map();
-    // Pre-fill last 30 days with 0s
-    for (let i = 29; i >= 0; i--) {
+    // Pre-fill last 365 days with 0s
+    for (let i = rangeDays - 1; i >= 0; i--) {
       const d = new Date();
       d.setDate(d.getDate() - i);
       const dateStr = d.toISOString().split('T')[0];

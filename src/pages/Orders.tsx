@@ -10,7 +10,8 @@ import {
   Package,
   AlertCircle,
   CreditCard,
-  Share2
+  Share2,
+  Edit2
 } from 'lucide-react';
 import { orderService } from '@backend/services/orderService';
 import { notificationService } from '@backend/services/notificationService';
@@ -29,6 +30,7 @@ export default function Orders() {
   const [searchTerm] = useState('');
   const [statusFilter] = useState('all');
   const [printingOrderData, setPrintingOrderData] = useState<PrintReceiptProps['orderData'] | null>(null);
+  const [editingOrderId, setEditingOrderId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchData();
@@ -54,6 +56,7 @@ export default function Orders() {
 
   const handleOrderSuccess = () => {
     setIsModalOpen(false);
+    setEditingOrderId(null);
     fetchData();
   };
 
@@ -376,6 +379,16 @@ export default function Orders() {
                   <td className="table-cell px-6 text-right">
                     <div className="flex justify-end gap-2">
                       <button
+                        onClick={() => {
+                          setEditingOrderId(order.id);
+                          setIsModalOpen(true);
+                        }}
+                        className="w-9 h-9 flex items-center justify-center bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl shadow-lg shadow-indigo-500/10 transition-all active:scale-90"
+                        title="Edit Order"
+                      >
+                        <Edit2 size={16} strokeWidth={2.5} />
+                      </button>
+                      <button
                         onClick={() => handlePrintOrder(order.id)}
                         className="w-9 h-9 flex items-center justify-center bg-slate-800 hover:bg-slate-900 text-white rounded-xl shadow-lg shadow-slate-900/10 transition-all active:scale-90"
                         title="Print / Save PDF"
@@ -417,7 +430,11 @@ export default function Orders() {
       {/* Order Entry Form Modal */}
       {isModalOpen && (
         <OrderEntryForm
-          onClose={() => setIsModalOpen(false)}
+          onClose={() => {
+            setIsModalOpen(false);
+            setEditingOrderId(null);
+          }}
+          editOrderId={editingOrderId || undefined}
           onSuccess={handleOrderSuccess}
           onPrintSuccess={(orderId) => {
             setIsModalOpen(false);

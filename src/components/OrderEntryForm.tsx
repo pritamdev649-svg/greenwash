@@ -9,7 +9,8 @@ import {
   AlertCircle,
   MessageCircle,
   Printer,
-  Check
+  Check,
+  Edit
 } from 'lucide-react';
 import { customerService } from '@backend/services/customerService';
 import { orderService } from '@backend/services/orderService';
@@ -34,9 +35,10 @@ interface OrderEntryFormProps {
   onClose: () => void;
   onSuccess: () => void;
   onPrintSuccess?: (orderId: string) => void;
+  editOrderId?: string;
 }
 
-export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSuccess, onPrintSuccess }) => {
+export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSuccess, onPrintSuccess, editOrderId }) => {
   const navigate = useNavigate();
   const { t } = useLanguage();
   const [customers, setCustomers] = useState<any[]>([]);
@@ -75,7 +77,7 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
   };
   const [orderDate, setOrderDate] = useState(new Date().toISOString().split('T')[0]);
   const [dueDate, setDueDate] = useState(new Date(Date.now() + 86400000 * 2).toISOString().split('T')[0]);
-  const [orderNo] = useState(() => Math.floor(1000 + Math.random() * 9000).toString());
+  const [orderNo, setOrderNo] = useState(() => Math.floor(1000 + Math.random() * 9000).toString());
   const [isSuccess, setIsSuccess] = useState(false);
   const [createdOrderId, setCreatedOrderId] = useState('');
   const [createdOrder, setCreatedOrder] = useState<any>(null);
@@ -169,6 +171,59 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
     fetchData();
   }, []);
 
+  // Fetch Edit Data
+  useEffect(() => {
+    const fetchEditData = async () => {
+      if (!editOrderId) return;
+      try {
+        setLoading(true);
+        const order = await orderService.getOrderById(editOrderId);
+        if (order) {
+          setSelectedCustomerId(order.customer_id);
+          setSelectedCustomer(order.customers);
+          setCustomerSearch(order.customers?.name || '');
+          setOrderDate(new Date(order.created_at).toISOString().split('T')[0]);
+          setDueDate(order.due_date || '');
+          setOrderNo(order.order_number || '');
+          setAdvanceAmount(order.advance_amount || 0);
+          setDiscount(order.discount_amount || 0);
+          setDiscountType('amount'); // Default for imported
+
+          // Map Items
+          const mappedRows: SaleRow[] = order.order_items
+            .filter((item: any) => !item.custom_item_name?.startsWith('[CHARGE]'))
+            .map((item: any) => ({
+              id: item.id,
+              category: item.wash_price > 0 && item.iron_price > 0 ? 'Wash & Iron' : item.wash_price > 0 ? 'Wash' : 'Iron',
+              item_id: item.cloth_type_id || 'custom',
+              item_name: item.custom_item_name || item.cloth_types?.name || '',
+              description: '',
+              qty: item.quantity,
+              unit: 'PCS',
+              price: (item.wash_price || 0) + (item.iron_price || 0),
+              amount: item.subtotal
+            }));
+          
+          if (mappedRows.length > 0) setRows(mappedRows);
+
+          // Map Charges
+          const mappedCharges = order.order_items
+            .filter((item: any) => item.custom_item_name?.startsWith('[CHARGE]'))
+            .map((item: any) => ({
+              label: item.custom_item_name.replace('[CHARGE] ', ''),
+              amount: item.subtotal
+            }));
+          setAdditionalCharges(mappedCharges);
+        }
+      } catch (err) {
+        console.error("Error fetching edit data:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchEditData();
+  }, [editOrderId]);
+
   const handleAddRow = () => {
     const newRow: SaleRow = {
       id: Date.now().toString(),
@@ -242,19 +297,35 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
         }))
       ];
 
-      const order = await orderService.createOrder(
-        selectedCustomerId, 
-        selectedCustomer?.branch_id || null, 
-        grandTotal, 
-        finalItems,
-        advanceAmount,
-        discountAmount,
-        dueDate
-      );
-      
-      setCreatedOrderId(order.id);
-      setCreatedOrder(order);
-      setIsSuccess(true);
+      const finalOrderData = {
+          customerId: selectedCustomerId,
+          branchId: selectedCustomer?.branch_id || null,
+          totalAmount: grandTotal,
+          advanceAmount,
+          discountAmount,
+          dueDate
+      };
+
+      if (editOrderId) {
+        await orderService.updateOrder(editOrderId, finalOrderData, finalItems);
+        // For Edit, we can just trigger success or show success screen
+        setIsSuccess(true);
+        setCreatedOrderId(editOrderId);
+        // We might need to refresh local state if needed
+      } else {
+        const order = await orderService.createOrder(
+          selectedCustomerId, 
+          selectedCustomer?.branch_id || null, 
+          grandTotal, 
+          finalItems,
+          advanceAmount,
+          discountAmount,
+          dueDate
+        );
+        setCreatedOrderId(order.id);
+        setCreatedOrder(order);
+        setIsSuccess(true);
+      }
 
       // --- NEW: PDF GENERATION & AUTOMATED WHATSAPP SEND ---
       try {
@@ -366,8 +437,8 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
                  <Plus size={24} />
               </div>
               <div>
-                 <h3 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight uppercase">{t('new_sale_entry')}</h3>
-                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mt-0.5">Green Wash Co Ledger System</p>
+                 <h3 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight uppercase">{editOrderId ? t('edit_bill') : t('new_sale_entry')}</h3>
+                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mt-0.5">{editOrderId ? 'Update existing transaction' : 'Green Wash Co Ledger System'}</p>
               </div>
            </div>
            <button onClick={onClose} className="p-2 bg-slate-50 hover:bg-slate-100 rounded-full text-slate-400 transition-colors">
@@ -717,8 +788,8 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
               </div>
               <div className="space-y-3 mt-8">
                  <button onClick={handleSave} disabled={loading || !selectedCustomerId} className="w-full h-16 bg-primary-600 hover:bg-primary-700 text-white rounded-[2rem] shadow-xl shadow-primary-600/30 active:scale-[0.98] transition-all disabled:opacity-50 disabled:grayscale flex flex-col items-center justify-center">
-                    <span className="text-sm font-black tracking-widest uppercase">Save Order</span>
-                    <span className="text-[8px] font-bold opacity-70 tracking-tighter">CONFIRM LEDGER TRANSACTION</span>
+                    <span className="text-sm font-black tracking-widest uppercase">{editOrderId ? t('update_order') : t('save_order')}</span>
+                    <span className="text-[8px] font-bold opacity-70 tracking-tighter">{editOrderId ? t('confirm_changes') : t('confirm_transaction')}</span>
                  </button>
               </div>
            </div>

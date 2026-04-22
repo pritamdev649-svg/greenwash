@@ -45,8 +45,66 @@ interface Stats {
   }>;
 }
 
-const SalesTrendChart: React.FC<{ data: Stats['salesTrend'], timeframe: '7d' | '30d' }> = ({ data, timeframe }) => {
-  const filteredData = timeframe === '7d' ? data.slice(-7) : data;
+type Timeframe = '7d' | '30d' | 'this-week' | 'this-month' | 'last-month' | 'this-quarter' | 'half-year' | 'this-year';
+
+const SalesTrendChart: React.FC<{ data: Stats['salesTrend'], timeframe: Timeframe }> = ({ data, timeframe }) => {
+  const filteredData = React.useMemo(() => {
+    const now = new Date();
+    const formatDate = (d: Date) => d.toISOString().split('T')[0];
+    
+    switch (timeframe) {
+      case 'this-week': {
+        const startOfWeek = new Date(now);
+        startOfWeek.setDate(now.getDate() - now.getDay());
+        const startStr = formatDate(startOfWeek);
+        return data.filter(d => d.date >= startStr);
+      }
+      case 'this-month': {
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        const startStr = formatDate(startOfMonth);
+        return data.filter(d => d.date >= startStr);
+      }
+      case 'last-month': {
+        const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0);
+        const startStr = formatDate(startOfLastMonth);
+        const endStr = formatDate(endOfLastMonth);
+        return data.filter(d => d.date >= startStr && d.date <= endStr);
+      }
+      case 'this-quarter': {
+        const quarterStartMonth = Math.floor(now.getMonth() / 3) * 3;
+        const startOfQuarter = new Date(now.getFullYear(), quarterStartMonth, 1);
+        const startStr = formatDate(startOfQuarter);
+        return data.filter(d => d.date >= startStr);
+      }
+      case 'half-year': {
+        const sixMonthsAgo = new Date(now);
+        sixMonthsAgo.setMonth(now.getMonth() - 6);
+        const startStr = formatDate(sixMonthsAgo);
+        return data.filter(d => d.date >= startStr);
+      }
+      case 'this-year': {
+        const startOfYear = new Date(now.getFullYear(), 0, 1);
+        const startStr = formatDate(startOfYear);
+        return data.filter(d => d.date >= startStr);
+      }
+      case '30d':
+        return data.slice(-30);
+      case '7d':
+      default:
+        return data.slice(-7);
+    }
+  }, [data, timeframe]);
+
+  if (filteredData.length === 0) {
+    return (
+      <div className="w-full h-full flex flex-col items-center justify-center text-slate-400">
+         <TrendingUp size={40} className="mb-4 opacity-20" />
+         <p className="text-[10px] font-black uppercase tracking-widest">No data for this period</p>
+      </div>
+    );
+  }
+
   
   // Calculate stats for header
   const totalSales = filteredData.reduce((sum, d) => sum + d.sales, 0);
@@ -185,7 +243,12 @@ const SalesTrendChart: React.FC<{ data: Stats['salesTrend'], timeframe: '7d' | '
         
         {/* X Axis Labels */}
         <div className="absolute -bottom-2 left-[50px] right-0 flex justify-between px-2">
-          {filteredData.filter((_, i) => timeframe === '7d' || i % 6 === 0).map((d, i) => (
+          {filteredData.filter((_, i) => {
+             if (filteredData.length <= 10) return true;
+             if (filteredData.length <= 31) return i % 5 === 0;
+             if (filteredData.length <= 100) return i % 15 === 0;
+             return i % 45 === 0;
+          }).map((d, i) => (
             <span key={i} className="text-[9px] font-black text-slate-400 uppercase tracking-tighter px-1 rounded">
               {new Date(d.date).toLocaleDateString([], { day: 'numeric', month: 'short' })}
             </span>
@@ -211,7 +274,7 @@ const Dashboard: React.FC = () => {
     salesTrend: []
   });
   const [loading, setLoading] = useState(true);
-  const [timeframe, setTimeframe] = useState<'7d' | '30d'>('7d');
+  const [timeframe, setTimeframe] = useState<Timeframe>('7d');
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -340,8 +403,13 @@ const Dashboard: React.FC = () => {
                   value={timeframe}
                   onChange={(e) => setTimeframe(e.target.value as any)}
                 >
+                  <option value="last-month">{t('last_month')}</option>
+                  <option value="this-week">{t('this_week')}</option>
+                  <option value="this-month">{t('this_month')}</option>
+                  <option value="this-quarter">{t('this_quarter')}</option>
+                  <option value="half-year">{t('half_year')}</option>
+                  <option value="this-year">{t('this_year')}</option>
                   <option value="7d">{language === 'hi' ? 'पिछले 7 दिन' : 'Last 7 Days'}</option>
-                  <option value="30d">{language === 'hi' ? 'पिछले 30 दिन' : 'This Month'}</option>
                 </select>
                 <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none group-hover/select:text-primary-500 transition-colors" />
               </div>
