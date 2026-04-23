@@ -2,10 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
-import { 
-  Mail, 
-  Lock, 
-  ChevronRight, 
+import {
+  Mail,
+  Lock,
+  ChevronRight,
   Zap,
   Menu,
   X,
@@ -56,11 +56,11 @@ const Home: React.FC = () => {
       {/* Navbar */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-white shadow-sm border-b border-emerald-50">
         <div className="max-w-7xl mx-auto px-6 h-28 flex items-center justify-between">
-          <div className="flex items-center cursor-pointer transition-transform active:scale-95" onClick={() => window.scrollTo(0,0)}>
-            <img 
-               src="/assets/greenwashlogo.jpeg" 
-               alt="Green Wash Co Logo" 
-               className="h-24 w-auto object-contain" 
+          <div className="flex items-center cursor-pointer transition-transform active:scale-95" onClick={() => window.scrollTo(0, 0)}>
+            <img
+              src="/assets/greenwashlogo.jpeg"
+              alt="Green Wash Co Logo"
+              className="h-24 w-auto object-contain"
             />
           </div>
 
@@ -69,9 +69,9 @@ const Home: React.FC = () => {
             <a href="#home" className="text-sm font-semibold text-slate-600 hover:text-emerald-600 transition-colors">Home</a>
             <a href="#steps" className="text-sm font-semibold text-slate-600 hover:text-emerald-600 transition-colors">How it works</a>
             <a href="#services" className="text-sm font-semibold text-slate-600 hover:text-emerald-600 transition-colors">Services</a>
-            <button 
+            <button
               onClick={() => setIsLoginModalOpen(true)}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2 rounded-full text-xs font-bold shadow-lg shadow-emerald-600/20 active:scale-95 transition-all"
+              className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2 rounded-full text-xs font-bold active:scale-95 transition-all"
             >
               Admin Login
             </button>
@@ -89,7 +89,7 @@ const Home: React.FC = () => {
             <a href="#home" onClick={() => setIsMobileMenuOpen(false)} className="text-sm font-semibold text-slate-600 hover:text-emerald-600 transition-colors">Home</a>
             <a href="#steps" onClick={() => setIsMobileMenuOpen(false)} className="text-sm font-semibold text-slate-600 hover:text-emerald-600 transition-colors">How it works</a>
             <a href="#services" onClick={() => setIsMobileMenuOpen(false)} className="text-sm font-semibold text-slate-600 hover:text-emerald-600 transition-colors">Services</a>
-            <button 
+            <button
               onClick={() => {
                 setIsMobileMenuOpen(false);
                 setIsLoginModalOpen(true);
@@ -106,7 +106,7 @@ const Home: React.FC = () => {
       <section id="home" className="relative pt-40 pb-12 lg:pt-48 lg:pb-20 overflow-hidden bg-emerald-50/20">
         {/* Wave Background */}
         <div className="absolute top-0 right-0 w-[60%] h-full bg-emerald-200/20 blur-[120px] rounded-full translate-x-1/2 -translate-y-1/2 -z-10" />
-        
+
         <div className="max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-12 items-center">
           <div className="relative z-10">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-100/50 text-emerald-600 text-[10px] font-bold uppercase tracking-wider mb-4">
@@ -121,9 +121,9 @@ const Home: React.FC = () => {
               We take care of your laundry so you can focus on what matters. Fast, reliable, and perfectly pressed every single time.
             </p>
             <div className="flex flex-wrap gap-4">
-              <button 
+              <button
                 onClick={() => setIsLoginModalOpen(true)}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-xl text-base font-bold shadow-xl shadow-emerald-600/20 transition-all active:scale-95 flex items-center gap-2"
+                className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-xl text-base font-bold  transition-all active:scale-95 flex items-center gap-2"
               >
                 Watch Demo Account
                 <ChevronRight size={18} />
@@ -147,14 +147,14 @@ const Home: React.FC = () => {
           </div>
 
           <div className="relative">
-             <div className="relative z-10 w-full animate-float max-w-lg mx-auto overflow-hidden rounded-[3rem]">
-                <div className="absolute inset-0 bg-emerald-500/10 blur-3xl rounded-full translate-y-10" />
-                <img 
-                  src="/assets/hero.png" 
-                  alt="Laundry Illustration" 
-                  className="relative z-10 w-full object-contain"
-                />
-             </div>
+            <div className="relative z-10 w-full animate-float max-w-lg mx-auto overflow-hidden rounded-[3rem]">
+              <div className="absolute inset-0 bg-emerald-500/10 blur-3xl rounded-full translate-y-10" />
+              <img
+                src="/assets/hero.png"
+                alt="Laundry Illustration"
+                className="relative z-10 w-full object-contain"
+              />
+            </div>
           </div>
         </div>
       </section>
@@ -170,59 +170,59 @@ const Home: React.FC = () => {
           <div className="relative">
             {/* SVG Connector Path (Desktop) */}
             <svg className="hidden lg:block absolute top-0 left-0 w-full h-[600px] -z-0 pointer-events-none" viewBox="0 0 1000 600" fill="none">
-               <path 
-                 d="M200,100 C400,100 600,100 800,100 C920,100 920,300 800,300 C600,300 400,300 200,300 C100,300 100,500 200,500 C400,500 600,500 800,500" 
-                 stroke="#10b981" 
-                 strokeWidth="3" 
-                 strokeDasharray="12 12" 
-                 opacity="0.2"
-               />
+              <path
+                d="M200,100 C400,100 600,100 800,100 C920,100 920,300 800,300 C600,300 400,300 200,300 C100,300 100,500 200,500 C400,500 600,500 800,500"
+                stroke="#10b981"
+                strokeWidth="3"
+                strokeDasharray="12 12"
+                opacity="0.2"
+              />
             </svg>
 
             <div className="space-y-32 lg:space-y-0">
-               {/* Row 1: 1 2 3 */}
-               <div className="grid lg:grid-cols-3 gap-20 lg:mb-40">
-                  {[
-                    { id: 1, label: "Pickup", color: "bg-emerald-500", desc: "Eco-friendly van pickup", img: "/assets/step1.png" },
-                    { id: 2, label: "Reception", color: "bg-blue-500", desc: "Expert assessment", img: "/assets/step2.png" },
-                    { id: 3, label: "Washing", color: "bg-indigo-500", desc: "Advanced washing tech", img: "/assets/step3.png" }
-                  ].map((step) => (
-                    <div key={step.id} className="relative z-10 group flex flex-col items-center">
-                       <div className="w-40 h-32 rounded-[2rem] bg-white border border-emerald-50 flex items-center justify-center p-4 shadow-lg group-hover:shadow-2xl group-hover:-translate-y-3 transition-all duration-500 relative text-emerald-600">
-                           <img src={step.img} alt={step.label} className="w-24 h-24 object-contain group-hover:scale-110 transition-transform duration-500" />
-                           <div className={cn("absolute -top-2 -right-2 w-10 h-10 rounded-xl flex items-center justify-center text-white text-sm font-black shadow-xl", step.color)}>
-                              {step.id}
-                           </div>
-                        </div>
-                        <div className="mt-8 text-center max-w-[180px]">
-                           <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight mb-2">{step.label}</h3>
-                           <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">{step.desc}</p>
-                        </div>
-                     </div>
-                   ))}
-               </div>
+              {/* Row 1: 1 2 3 */}
+              <div className="grid lg:grid-cols-3 gap-20 lg:mb-40">
+                {[
+                  { id: 1, label: "Pickup", color: "bg-emerald-500", desc: "Eco-friendly van pickup", img: "/assets/step1.png" },
+                  { id: 2, label: "Reception", color: "bg-blue-500", desc: "Expert assessment", img: "/assets/step2.png" },
+                  { id: 3, label: "Washing", color: "bg-indigo-500", desc: "Advanced washing tech", img: "/assets/step3.png" }
+                ].map((step) => (
+                  <div key={step.id} className="relative z-10 group flex flex-col items-center">
+                    <div className="w-40 h-32 rounded-[2rem] bg-white border border-emerald-50 flex items-center justify-center p-4 shadow-lg group-hover:shadow-2xl group-hover:-translate-y-3 transition-all duration-500 relative text-emerald-600">
+                      <img src={step.img} alt={step.label} className="w-24 h-24 object-contain group-hover:scale-110 transition-transform duration-500" />
+                      <div className={cn("absolute -top-2 -right-2 w-10 h-10 rounded-xl flex items-center justify-center text-white text-sm font-black shadow-xl", step.color)}>
+                        {step.id}
+                      </div>
+                    </div>
+                    <div className="mt-8 text-center max-w-[180px]">
+                      <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight mb-2">{step.label}</h3>
+                      <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">{step.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
 
-               {/* Row 2: 4 5 6 */}
-               <div className="grid lg:grid-cols-3 gap-20">
-                  {[
-                     { id: 4, label: "Folding", color: "bg-rose-500", desc: "Quality inspection", img: "/assets/step4.png" },
-                     { id: 5, label: "Packaging", color: "bg-amber-500", desc: "Eco-friendly wrap", img: "/assets/step5.png" },
-                     { id: 6, label: "Delivery", color: "bg-emerald-600", desc: "Doorstep delivery", img: "/assets/step6.png" }
-                  ].map((step) => (
-                    <div key={step.id} className="relative z-10 group flex flex-col items-center">
-                       <div className="w-40 h-32 rounded-[2rem] bg-white border border-emerald-50 flex items-center justify-center p-4 shadow-lg group-hover:shadow-2xl group-hover:-translate-y-3 transition-all duration-500 relative text-emerald-600">
-                           <img src={step.img} alt={step.label} className="w-24 h-24 object-contain group-hover:scale-110 transition-transform duration-500" />
-                           <div className={cn("absolute -top-2 -right-2 w-10 h-10 rounded-xl flex items-center justify-center text-white text-sm font-black shadow-xl", step.color)}>
-                              {step.id}
-                           </div>
-                        </div>
-                        <div className="mt-8 text-center max-w-[180px]">
-                           <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight mb-2">{step.label}</h3>
-                           <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">{step.desc}</p>
-                        </div>
-                     </div>
-                   ))}
-               </div>
+              {/* Row 2: 4 5 6 */}
+              <div className="grid lg:grid-cols-3 gap-20">
+                {[
+                  { id: 4, label: "Folding", color: "bg-rose-500", desc: "Quality inspection", img: "/assets/step4.png" },
+                  { id: 5, label: "Packaging", color: "bg-amber-500", desc: "Eco-friendly wrap", img: "/assets/step5.png" },
+                  { id: 6, label: "Delivery", color: "bg-emerald-600", desc: "Doorstep delivery", img: "/assets/step6.png" }
+                ].map((step) => (
+                  <div key={step.id} className="relative z-10 group flex flex-col items-center">
+                    <div className="w-40 h-32 rounded-[2rem] bg-white border border-emerald-50 flex items-center justify-center p-4 shadow-lg group-hover:shadow-2xl group-hover:-translate-y-3 transition-all duration-500 relative text-emerald-600">
+                      <img src={step.img} alt={step.label} className="w-24 h-24 object-contain group-hover:scale-110 transition-transform duration-500" />
+                      <div className={cn("absolute -top-2 -right-2 w-10 h-10 rounded-xl flex items-center justify-center text-white text-sm font-black shadow-xl", step.color)}>
+                        {step.id}
+                      </div>
+                    </div>
+                    <div className="mt-8 text-center max-w-[180px]">
+                      <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight mb-2">{step.label}</h3>
+                      <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">{step.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
@@ -247,16 +247,16 @@ const Home: React.FC = () => {
             ].map((service, i) => (
               <div key={i} className="bg-white p-8 rounded-[2.5rem] border border-emerald-50 hover:border-emerald-200 shadow-sm hover:shadow-xl hover:shadow-emerald-900/5 transition-all group overflow-hidden relative">
                 <div className="flex flex-col items-center text-center">
-                   <div className="w-full h-48 mb-6 rounded-3xl bg-emerald-50 flex items-center justify-center overflow-hidden relative shadow-inner">
-                       <img 
-                         src={service.img} 
-                         alt={service.title} 
-                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
-                       />
-                       <div className="absolute inset-0 bg-emerald-900/10 group-hover:opacity-0 transition-opacity" />
-                   </div>
-                   <h4 className="font-black text-2xl text-slate-900 mb-2">{service.title}</h4>
-                   <p className="text-[10px] text-slate-400 font-black uppercase tracking-[0.2em]">{service.subtitle}</p>
+                  <div className="w-full h-48 mb-6 rounded-3xl bg-emerald-50 flex items-center justify-center overflow-hidden relative shadow-inner">
+                    <img
+                      src={service.img}
+                      alt={service.title}
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                    />
+                    <div className="absolute inset-0 bg-emerald-900/10 group-hover:opacity-0 transition-opacity" />
+                  </div>
+                  <h4 className="font-black text-2xl text-slate-900 mb-2">{service.title}</h4>
+                  <p className="text-[10px] text-slate-400 font-black uppercase tracking-[0.2em]">{service.subtitle}</p>
                 </div>
               </div>
             ))}
@@ -272,11 +272,11 @@ const Home: React.FC = () => {
             <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-12 text-center lg:text-left">
               <div>
                 <h2 className="text-3xl lg:text-4xl font-black text-white mb-8">
-                   Need a specialized <br />
-                   cleaning plan?
+                  Need a specialized <br />
+                  cleaning plan?
                 </h2>
-                <button className="bg-emerald-500 hover:bg-emerald-600 text-white px-10 py-5 rounded-2xl font-black transition-all active:scale-95 shadow-xl shadow-emerald-500/20">
-                   Contact Specialist
+                <button className="bg-emerald-500 hover:bg-emerald-600 text-white px-10 py-5 rounded-2xl font-black transition-all active:scale-95">
+                  Contact Specialist
                 </button>
               </div>
               <div className="relative text-emerald-500 opacity-20 group-hover:opacity-40 transition-opacity transform group-hover:scale-110 duration-500">
@@ -291,21 +291,31 @@ const Home: React.FC = () => {
       <footer className="bg-slate-50 border-t border-emerald-50 pt-16 pb-8 px-6">
         <div className="max-w-7xl mx-auto grid md:grid-cols-4 gap-12">
           <div className="col-span-2 md:col-span-1">
-             <div className="flex items-center mb-6 -ml-4">
-                <img 
-                   src="/assets/greenwashlogo.jpeg" 
-                   alt="Green Wash Co Logo" 
-                   className="h-28 w-auto object-contain" 
-                />
-             </div>
-             <p className="text-slate-400 text-sm leading-relaxed mb-8 font-medium">
-               Modernizing laundry management for businesses and individuals. Eco-friendly, fast, and professional.
-             </p>
-             <div className="flex gap-3">
-                {[1,2,3].map(i => <div key={i} className="w-10 h-10 rounded-full bg-white border border-emerald-50 flex items-center justify-center text-slate-400 hover:text-emerald-500 transition-colors cursor-pointer shadow-sm"><Star size={18} /></div>)}
-             </div>
+            <div className="flex items-center mb-6 -ml-4">
+              <img
+                src="/assets/greenwashlogo.jpeg"
+                alt="Green Wash Co Logo"
+                className="h-28 w-auto object-contain"
+              />
+            </div>
+            <p className="text-slate-400 text-sm leading-relaxed mb-4 font-medium">
+              Modernizing laundry management for businesses and individuals. Eco-friendly, fast, and professional.
+            </p>
+            <div className="flex flex-col gap-3 text-slate-400 mb-8 font-bold text-sm">
+              <div className="flex items-center gap-3">
+                <Smartphone size={18} className="text-emerald-500" />
+                <span>+91 9451034909</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <Mail size={18} className="text-emerald-500" />
+                <span>ask003683@gmail.com</span>
+              </div>
+            </div>
+            <div className="flex gap-3">
+              {[1, 2, 3].map(i => <div key={i} className="w-10 h-10 rounded-full bg-white border border-emerald-50 flex items-center justify-center text-slate-400 hover:text-emerald-500 transition-colors cursor-pointer shadow-sm"><Star size={18} /></div>)}
+            </div>
           </div>
-          
+
           <div>
             <h5 className="font-bold text-slate-900 mb-6 uppercase tracking-wider text-xs">About us</h5>
             <ul className="space-y-4 text-sm text-slate-400 font-bold">
