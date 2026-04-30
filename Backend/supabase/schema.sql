@@ -66,3 +66,17 @@ CREATE POLICY "Public Read/Write Access" ON public.customers FOR ALL USING (true
 CREATE POLICY "Public Read/Write Access" ON public.cloth_types FOR ALL USING (true);
 CREATE POLICY "Public Read/Write Access" ON public.orders FOR ALL USING (true);
 CREATE POLICY "Public Read/Write Access" ON public.order_items FOR ALL USING (true);
+
+-- 4. Offers Table
+CREATE TABLE IF NOT EXISTS public.offers (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  image_url TEXT NOT NULL,
+  title TEXT,
+  subtext TEXT,
+  points JSONB DEFAULT '[]'::jsonb,
+  button_text TEXT DEFAULT 'Schedule Pickup Now',
+  is_active BOOLEAN DEFAULT true NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL
+);
+
+CREATE POLICY "Public Read/Write Access" ON public.offers FOR ALL USING (true);

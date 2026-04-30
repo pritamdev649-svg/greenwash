@@ -9,7 +9,8 @@ import {
   LayoutGrid,
   LogOut, 
   Menu,
-  Settings
+  Settings,
+  Image
 } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { clsx, type ClassValue } from 'clsx';
@@ -25,6 +26,7 @@ const navItems = [
   { path: '/customers', label: 'customers', icon: Users },
   { path: '/categories', label: 'categories', icon: LayoutGrid },
   { path: '/orders', label: 'orders', icon: Receipt },
+  { path: '/offers', label: 'Promotional Offers', icon: Image },
   { path: '/settings', label: 'settings', icon: Settings },
 ];
 

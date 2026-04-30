@@ -13,6 +13,10 @@ import {
   Star
 } from 'lucide-react';
 
+import { OfferPopup } from '../components/OfferPopup';
+import { FloatingActions } from '../components/FloatingActions';
+import { OfferSlider } from '../components/OfferSlider';
+
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -158,6 +162,9 @@ const Home: React.FC = () => {
           </div>
         </div>
       </section>
+
+      {/* Offers Strip Section */}
+      <OfferSlider />
 
       {/* Steps Section - Zig Zag Flow */}
       <section id="steps" className="py-24 bg-white relative overflow-hidden">
@@ -432,6 +439,10 @@ const Home: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Dynamic Features */}
+      <OfferPopup />
+      <FloatingActions />
     </div>
   );
 };

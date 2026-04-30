@@ -15,6 +15,7 @@ import SaleOrder from './pages/SaleOrder';
 import Categories from './pages/Categories';
 import PublicReceipt from './pages/PublicReceipt';
 import Settings from './pages/Settings';
+import Offers from './pages/Offers';
 
 const App: React.FC = () => {
   return (
@@ -86,6 +87,16 @@ const App: React.FC = () => {
               <ProtectedRoute>
                 <DashboardLayout>
                   <Settings />
+                </DashboardLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/offers"
+            element={
+              <ProtectedRoute>
+                <DashboardLayout>
+                  <Offers />
                 </DashboardLayout>
               </ProtectedRoute>
             }
