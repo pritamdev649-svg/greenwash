@@ -54,32 +54,23 @@ export const OfferPopup: React.FC = () => {
         onClick={() => setIsOpen(false)}
       />
       
-      <div className="relative bg-white w-full max-w-4xl rounded-[2rem] sm:rounded-[3rem] shadow-2xl overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-10 duration-500">
+      <div className="relative bg-transparent w-full max-w-2xl rounded-3xl overflow-hidden animate-in zoom-in-95 duration-500">
         {/* Close Button */}
         <button 
           onClick={() => setIsOpen(false)}
-          className="absolute top-4 right-4 sm:top-8 sm:right-8 z-20 p-2 bg-white/20 hover:bg-white/40 backdrop-blur-md rounded-full text-white transition-all active:scale-95"
+          className="absolute top-4 right-4 z-20 p-2 bg-slate-900/40 hover:bg-slate-900/60 backdrop-blur-md rounded-full text-white transition-all active:scale-95 border border-white/20"
         >
-          <X size={24} />
+          <X size={20} />
         </button>
 
-        {/* Content Slider */}
-        <div className="relative aspect-[4/5] sm:aspect-video w-full group">
+        {/* Poster Slider */}
+        <div className="relative w-full group">
           <img 
             src={offers[currentIndex].image_url} 
-            alt={offers[currentIndex].title} 
-            className="w-full h-full object-cover transition-all duration-700"
+            alt="Promotion" 
+            className="w-full h-auto max-h-[85vh] object-contain rounded-2xl shadow-2xl"
           />
           
-          {/* Title Overlay */}
-          {offers[currentIndex].title && (
-            <div className="absolute bottom-0 left-0 right-0 p-8 sm:p-12 bg-gradient-to-t from-slate-900/80 to-transparent">
-              <h2 className="text-2xl sm:text-4xl font-black text-white uppercase tracking-tight">
-                {offers[currentIndex].title}
-              </h2>
-            </div>
-          )}
-
           {/* Navigation Arrows (if multiple) */}
           {offers.length > 1 && (
             <>
@@ -95,18 +86,6 @@ export const OfferPopup: React.FC = () => {
               >
                 <ChevronRight size={24} />
               </button>
-              
-              {/* Pagination Dots */}
-              <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2">
-                {offers.map((_, i) => (
-                  <div 
-                    key={i}
-                    className={`h-1.5 rounded-full transition-all duration-300 ${
-                      i === currentIndex ? 'w-8 bg-emerald-500' : 'w-2 bg-white/40'
-                    }`}
-                  />
-                ))}
-              </div>
             </>
           )}
         </div>
