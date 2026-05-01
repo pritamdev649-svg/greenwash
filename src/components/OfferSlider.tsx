@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { ChevronLeft, ChevronRight, Zap, ArrowRight, CheckCircle2 } from 'lucide-react';
-import { offerService } from '@backend/services/offerService';
+import { offerService } from '../../Backend/src/services/offerService';
 import { cn } from '../lib/utils';
 
 interface Offer {

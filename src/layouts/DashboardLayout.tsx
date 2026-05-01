@@ -10,7 +10,8 @@ import {
   LogOut, 
   Menu,
   Settings,
-  Image
+  Image,
+  Tag
 } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { clsx, type ClassValue } from 'clsx';
@@ -27,6 +28,7 @@ const navItems = [
   { path: '/categories', label: 'categories', icon: LayoutGrid },
   { path: '/orders', label: 'orders', icon: Receipt },
   { path: '/offers', label: 'Promotional Offers', icon: Image },
+  { path: '/pricing-manager', label: 'Rate List Manager', icon: Tag },
   { path: '/settings', label: 'settings', icon: Settings },
 ];
 

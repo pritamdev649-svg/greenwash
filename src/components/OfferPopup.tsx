@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
-import { offerService } from '@backend/services/offerService';
+import { offerService } from '../../Backend/src/services/offerService';
 
 interface Offer {
   id: string;

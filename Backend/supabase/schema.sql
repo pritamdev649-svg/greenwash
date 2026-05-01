@@ -80,3 +80,16 @@ CREATE TABLE IF NOT EXISTS public.offers (
 );
 
 CREATE POLICY "Public Read/Write Access" ON public.offers FOR ALL USING (true);
+
+-- 5. Pricing Table
+CREATE TABLE IF NOT EXISTS public.pricing (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  category TEXT NOT NULL, -- e.g., 'Premium Laundry', 'Dry Cleaning'
+  item TEXT NOT NULL,
+  price TEXT NOT NULL, -- using text to support ranges like '39/79/-'
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL
+);
+
+ALTER TABLE public.pricing ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Public Read Access" ON public.pricing FOR SELECT USING (true);
+CREATE POLICY "Admin All Access" ON public.pricing FOR ALL USING (true);
