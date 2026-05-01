@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Plus, Trash2, Search, WashingMachine as Laundry, Sparkles, Shirt, Footprints, Save, X, Edit2, QrCode as QrIcon, Download } from 'lucide-react';
+import { Plus, Trash2, Search, Save, X, Edit2, QrCode as QrIcon, Download } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { pricingService } from '../../Backend/src/services/pricingService';
 import type { PricingItem } from '../../Backend/src/services/pricingService';
