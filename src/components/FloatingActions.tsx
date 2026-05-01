@@ -18,7 +18,7 @@ export const FloatingActions: React.FC = () => {
         <span className="absolute right-full mr-4 px-4 py-2 bg-slate-900 text-white text-xs font-black uppercase tracking-widest rounded-xl opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none whitespace-nowrap">
           Chat on WhatsApp
         </span>
-        <div className="w-14 h-14 bg-[#25D366] hover:bg-[#128C7E] text-white rounded-[1.25rem] flex items-center justify-center transition-all duration-300 active:scale-90 group-hover:rotate-12 shadow-lg">
+        <div className="w-14 h-14 bg-[#25D366] hover:bg-[#128C7E] text-white rounded-[1.25rem] flex items-center justify-center transition-all duration-300 active:scale-90 group-hover:rotate-12">
           <svg 
             viewBox="0 0 24 24" 
             className="w-8 h-8 fill-current"

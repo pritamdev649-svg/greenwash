@@ -111,7 +111,7 @@ const Pricing: React.FC = () => {
       {/* Pricing Content */}
       <div className="max-w-xl mx-auto px-6 mt-8 space-y-12">
         {Object.entries(groupedPricing).length === 0 ? (
-          <div className="text-center py-20 bg-white rounded-[2.5rem] border border-slate-100 shadow-sm">
+          <div className="text-center py-20 bg-white rounded-[2.5rem] border border-slate-100">
              <Search size={48} className="mx-auto text-slate-200 mb-4" />
              <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">No items found</p>
           </div>
@@ -127,7 +127,7 @@ const Pricing: React.FC = () => {
                   <h2 className="text-sm font-black text-slate-900 uppercase tracking-[0.2em]">{category}</h2>
                 </div>
 
-                <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden">
+                <div className="bg-white rounded-[2rem] border border-slate-100 overflow-hidden">
                   <div className="divide-y divide-slate-50">
                     {items.map((item) => (
                       <div key={item.id} className="p-5 flex items-center justify-between group hover:bg-slate-50/50 transition-colors">
@@ -160,7 +160,7 @@ const Pricing: React.FC = () => {
           href="https://wa.me/919451034909?text=Hello Green Wash Co! I've checked your price list and want to book a pickup."
           target="_blank"
           rel="noopener noreferrer"
-          className="w-full h-16 bg-[#25D366] text-white rounded-2xl flex items-center justify-center gap-3 shadow-2xl shadow-[#25D366]/40 active:scale-95 transition-all"
+          className="w-full h-16 bg-[#25D366] text-white rounded-2xl flex items-center justify-center gap-3 active:scale-95 transition-all"
         >
           <MessageCircle size={24} className="fill-current" />
           <span className="text-sm font-black uppercase tracking-widest">Book Free Pickup</span>

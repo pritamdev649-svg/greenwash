@@ -94,7 +94,7 @@ const PricingManager: React.FC = () => {
           </div>
           
           {/* Quick QR View */}
-          <div className="hidden sm:flex items-center gap-3 bg-white p-2 pr-4 rounded-2xl border border-slate-100 shadow-sm">
+          <div className="hidden sm:flex items-center gap-3 bg-white p-2 pr-4 rounded-2xl border border-slate-100">
             <div className="bg-slate-50 p-1.5 rounded-xl border border-slate-100 relative group/qr">
               <QRCodeSVG 
                 id="pricing-qr-code"
@@ -188,7 +188,7 @@ const PricingManager: React.FC = () => {
       </div>
 
       {isAdding && (
-        <div className="card p-8 bg-white border-primary-500 shadow-2xl shadow-primary-900/5 animate-slide-up max-w-2xl">
+        <div className="card p-8 bg-white border-primary-500 animate-slide-up max-w-2xl">
           <form onSubmit={handleSubmit} className="space-y-6">
             <h3 className="text-lg font-black text-slate-900 uppercase tracking-tight flex items-center gap-2">
               {editingId ? <Edit2 className="text-primary-600" /> : <Plus className="text-primary-600" />}
@@ -256,7 +256,7 @@ const PricingManager: React.FC = () => {
           />
         </div>
 
-        <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
+        <div className="bg-white rounded-[2.5rem] border border-slate-100 overflow-hidden">
           <table className="w-full">
             <thead>
               <tr className="bg-slate-50/50 border-b border-slate-50">
