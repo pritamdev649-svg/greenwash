@@ -1,5 +1,5 @@
 import React from 'react';
-import { Phone, MessageCircle } from 'lucide-react';
+import { Phone } from 'lucide-react';
 
 export const FloatingActions: React.FC = () => {
   const phoneNumber = "9451034909";
