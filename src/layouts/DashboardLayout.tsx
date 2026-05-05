@@ -27,8 +27,8 @@ const navItems = [
   { path: '/customers', label: 'customers', icon: Users },
   { path: '/categories', label: 'categories', icon: LayoutGrid },
   { path: '/orders', label: 'orders', icon: Receipt },
-  { path: '/offers', label: 'Promotional Offers', icon: Image },
-  { path: '/pricing-manager', label: 'Rate List Manager', icon: Tag },
+  { path: '/offers', label: 'promotional_offers', icon: Image },
+  { path: '/pricing-manager', label: 'rate_list_manager', icon: Tag },
   { path: '/settings', label: 'settings', icon: Settings },
 ];
 

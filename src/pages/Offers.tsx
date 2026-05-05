@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { 
-  Image as ImageIcon, 
-  Trash2, 
-  Plus, 
+import {
+  Image as ImageIcon,
+  Trash2,
+  Plus,
   X,
   Eye,
   EyeOff,
@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { offerService } from '@backend/services/offerService';
 import { cn } from '../lib/utils';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface Offer {
   id: string;
@@ -26,12 +27,13 @@ interface Offer {
 }
 
 const Offers: React.FC = () => {
+  const { t } = useLanguage();
   const [offers, setOffers] = useState<Offer[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAddingOffer, setIsAddingOffer] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
-  
+
   const [offerForm, setOfferForm] = useState({
     image_url: '',
     title: '',
@@ -65,7 +67,7 @@ const Offers: React.FC = () => {
       const publicUrl = await offerService.uploadImage(file);
       setOfferForm(prev => ({ ...prev, image_url: publicUrl }));
     } catch (err: any) {
-      alert("Error uploading image: " + err.message);
+      alert(t('error_upload') + " " + err.message);
     } finally {
       setUploading(false);
     }
@@ -89,10 +91,10 @@ const Offers: React.FC = () => {
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!offerForm.image_url.trim() || !offerForm.title.trim()) {
-      alert("Headline and Image are required!");
+      alert(t('required_fields'));
       return;
     }
-    
+
     try {
       const finalPoints = offerForm.points.filter(p => p.trim() !== '');
       const payload = { ...offerForm, points: finalPoints };
@@ -102,21 +104,21 @@ const Offers: React.FC = () => {
       } else {
         await offerService.addOffer(payload);
       }
-      
+
       resetForm();
       fetchOffers();
     } catch (err) {
-      alert("Error saving offer. Please check your database connection.");
+      alert(t('error_save'));
     }
   };
 
   const resetForm = () => {
-    setOfferForm({ 
-      image_url: '', 
-      title: '', 
-      subtext: '', 
-      points: [''], 
-      button_text: 'Schedule Pickup Now' 
+    setOfferForm({
+      image_url: '',
+      title: '',
+      subtext: '',
+      points: [''],
+      button_text: 'Schedule Pickup Now'
     });
     setIsAddingOffer(false);
     setEditingId(null);
@@ -136,12 +138,12 @@ const Offers: React.FC = () => {
   };
 
   const handleDeleteOffer = async (id: string) => {
-    if (!window.confirm("Delete this offer poster?")) return;
+    if (!window.confirm(t('delete_confirm_poster'))) return;
     try {
       await offerService.deleteOffer(id);
       fetchOffers();
     } catch (err) {
-      alert("Error deleting offer");
+      alert(t('error_delete'));
     }
   };
 
@@ -150,7 +152,7 @@ const Offers: React.FC = () => {
       await offerService.toggleOfferStatus(offer.id, offer.is_active);
       fetchOffers();
     } catch (err) {
-      alert("Error updating status");
+      alert(t('error_status'));
     }
   };
 
@@ -159,21 +161,21 @@ const Offers: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h2 className="text-3xl font-black text-slate-900 tracking-tight uppercase">Detailed Promotions</h2>
-          <p className="text-slate-500 mt-1 font-medium italic">Create professional banners with headlines, bullet points, and CTAs.</p>
+          <h2 className="text-3xl font-black text-slate-900 tracking-tight uppercase">{t('detailed_promotions')}</h2>
+          <p className="text-slate-500 mt-1 font-medium italic">{t('promotions_desc')}</p>
         </div>
-        
-        <button 
+
+        <button
           onClick={() => isAddingOffer ? resetForm() : setIsAddingOffer(true)}
           className={cn(
             "h-12 px-8 rounded-2xl flex items-center gap-3 text-sm font-black uppercase tracking-widest transition-all active:scale-95",
-            isAddingOffer 
-              ? "bg-rose-50 text-rose-600 border border-rose-100" 
+            isAddingOffer
+              ? "bg-rose-50 text-rose-600 border border-rose-100"
               : "bg-primary-600 text-white"
           )}
         >
           {isAddingOffer ? <X size={20} /> : <Plus size={20} />}
-          <span>{isAddingOffer ? 'Cancel' : 'Design New Offer'}</span>
+          <span>{isAddingOffer ? t('cancel') : t('design_new_offer')}</span>
         </button>
       </div>
 
@@ -182,7 +184,7 @@ const Offers: React.FC = () => {
           <form onSubmit={handleFormSubmit} className="space-y-8">
             <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight flex items-center gap-2">
               {editingId ? <Edit2 className="text-primary-600" /> : <Plus className="text-primary-600" />}
-              {editingId ? 'Edit Promotion' : 'New Promotion'}
+              {editingId ? t('edit_promotion') : t('new_promotion')}
             </h3>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -190,51 +192,51 @@ const Offers: React.FC = () => {
               <div className="space-y-6">
                 <div className="space-y-2">
                   <label className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">
-                    <CheckCircle2 size={12} className="text-primary-500" /> Headline
+                    <CheckCircle2 size={12} className="text-primary-500" /> {t('headline')}
                   </label>
-                  <input 
+                  <input
                     required
                     placeholder="E.G. GET 20% OFF ON LAUNDRY SERVICES"
                     className="w-full h-12 px-4 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500/50 transition-all"
                     value={offerForm.title}
-                    onChange={(e) => setOfferForm({...offerForm, title: e.target.value})}
+                    onChange={(e) => setOfferForm({ ...offerForm, title: e.target.value })}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Subtext (Description)</label>
-                  <textarea 
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">{t('subtext_desc')}</label>
+                  <textarea
                     rows={3}
                     placeholder="ENJOY HASSLE-FREE LAUNDRY WITH ECO-FRIENDLY CLEANING..."
                     className="w-full p-4 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500/50 transition-all resize-none"
                     value={offerForm.subtext}
-                    onChange={(e) => setOfferForm({...offerForm, subtext: e.target.value})}
+                    onChange={(e) => setOfferForm({ ...offerForm, subtext: e.target.value })}
                   />
                 </div>
 
                 <div className="space-y-3">
                   <div className="flex justify-between items-center px-1">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Key Points</label>
-                    <button 
-                      type="button" 
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{t('key_points')}</label>
+                    <button
+                      type="button"
                       onClick={handleAddPoint}
                       className="text-[9px] font-black text-primary-600 uppercase hover:underline"
                     >
-                      + Add Point
+                      {t('add_point')}
                     </button>
                   </div>
                   <div className="space-y-2">
                     {offerForm.points.map((point, idx) => (
                       <div key={idx} className="flex gap-2">
-                        <input 
+                        <input
                           placeholder={`POINT ${idx + 1}`}
                           className="flex-1 h-10 px-4 bg-slate-50 border border-slate-100 rounded-lg text-xs font-bold"
                           value={point}
                           onChange={(e) => handlePointChange(idx, e.target.value)}
                         />
                         {offerForm.points.length > 1 && (
-                          <button 
-                            type="button" 
+                          <button
+                            type="button"
                             onClick={() => handleRemovePoint(idx)}
                             className="p-2 text-rose-400 hover:text-rose-600 transition-colors"
                           >
@@ -247,12 +249,12 @@ const Offers: React.FC = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Button Text</label>
-                  <input 
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">{t('button_text')}</label>
+                  <input
                     placeholder="SCHEDULE PICKUP NOW"
                     className="w-full h-12 px-4 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold"
                     value={offerForm.button_text}
-                    onChange={(e) => setOfferForm({...offerForm, button_text: e.target.value})}
+                    onChange={(e) => setOfferForm({ ...offerForm, button_text: e.target.value })}
                   />
                 </div>
               </div>
@@ -260,17 +262,17 @@ const Offers: React.FC = () => {
               {/* Right Column: Media */}
               <div className="space-y-6">
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Poster Image</label>
-                  
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">{t('poster_image')}</label>
+
                   <div className="flex gap-2 mb-4">
-                    <button 
-                      type="button" 
+                    <button
+                      type="button"
                       className="flex-1 h-12 flex items-center justify-center gap-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-black uppercase tracking-widest text-slate-500 hover:bg-slate-100 transition-all overflow-hidden relative"
                     >
                       <Upload size={16} />
-                      <span>{uploading ? 'Uploading...' : 'Upload from System'}</span>
-                      <input 
-                        type="file" 
+                      <span>{uploading ? t('uploading') : t('upload_system')}</span>
+                      <input
+                        type="file"
                         accept="image/*"
                         className="absolute inset-0 opacity-0 cursor-pointer"
                         onChange={handleFileUpload}
@@ -283,11 +285,11 @@ const Offers: React.FC = () => {
                     <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-300">
                       <LinkIcon size={16} />
                     </div>
-                    <input 
-                      placeholder="OR PASTE IMAGE URL HERE..."
+                    <input
+                      placeholder={t('paste_url')}
                       className="w-full h-12 pl-10 pr-4 bg-slate-50 border border-slate-100 rounded-xl text-xs font-bold"
                       value={offerForm.image_url}
-                      onChange={(e) => setOfferForm({...offerForm, image_url: e.target.value})}
+                      onChange={(e) => setOfferForm({ ...offerForm, image_url: e.target.value })}
                     />
                   </div>
 
@@ -298,20 +300,20 @@ const Offers: React.FC = () => {
                     ) : (
                       <div className="text-center text-slate-300">
                         <ImageIcon size={40} className="mx-auto mb-2 opacity-50" />
-                        <p className="text-[10px] font-black uppercase tracking-widest">Image Preview</p>
+                        <p className="text-[10px] font-black uppercase tracking-widest">{t('image_preview')}</p>
                       </div>
                     )}
                   </div>
                 </div>
               </div>
             </div>
-            
-            <button 
-              type="submit" 
+
+            <button
+              type="submit"
               disabled={uploading}
               className="w-full h-16 bg-primary-600 text-white rounded-[2rem] text-sm font-black uppercase tracking-[0.4em] active:scale-[0.98] transition-all disabled:opacity-50"
             >
-              🚀 {editingId ? 'Update Promotion' : 'Launch Professional Offer'}
+              🚀 {editingId ? t('update_promotion') : t('launch_offer')}
             </button>
           </form>
         </div>
@@ -327,18 +329,18 @@ const Offers: React.FC = () => {
           <div className="p-6 bg-white rounded-full shadow-sm mb-6 text-slate-300">
             <ImageIcon size={48} />
           </div>
-          <h3 className="text-lg font-black text-slate-900 uppercase tracking-tight">No active posters</h3>
-          <p className="text-slate-400 text-sm font-medium mt-2">Design your first promotional banner to engage customers.</p>
+          <h3 className="text-lg font-black text-slate-900 uppercase tracking-tight">{t('no_active_posters')}</h3>
+          <p className="text-slate-400 text-sm font-medium mt-2">{t('no_posters_desc')}</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
           {offers.map((offer) => (
-            <div key={offer.id} className="group bg-white rounded-[2.5rem] border border-slate-100 overflow-hidden hover:shadow-2xl hover:shadow-slate-200 transition-all duration-500 flex flex-col">
+            <div key={offer.id} className="group bg-white border border-slate-100 overflow-hidden hover:shadow-2xlhover:shadow-slate-200 transition-all duration-500 flex flex-col  rounded-[1.0rem]">
               {/* Image Preview */}
               <div className="aspect-[16/10] bg-slate-100 relative overflow-hidden">
-                <img 
-                  src={offer.image_url} 
-                  alt={offer.title} 
+                <img
+                  src={offer.image_url}
+                  alt={offer.title}
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                   onError={(e) => {
                     (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1545173168-9f1947eebb9f?auto=format&fit=crop&q=80&w=800';
@@ -349,7 +351,7 @@ const Offers: React.FC = () => {
                     "px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest backdrop-blur-md shadow-lg",
                     offer.is_active ? "bg-emerald-500/90 text-white" : "bg-slate-900/80 text-slate-300"
                   )}>
-                    {offer.is_active ? 'Active' : 'Inactive'}
+                    {offer.is_active ? t('active') : t('inactive')}
                   </div>
                 </div>
               </div>
@@ -358,8 +360,8 @@ const Offers: React.FC = () => {
               <div className="p-6 flex-1 flex flex-col justify-between">
                 <div>
                   <h4 className="text-sm font-black text-slate-900 uppercase tracking-tight line-clamp-1">{offer.title}</h4>
-                  <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1 line-clamp-2">{offer.subtext || 'No description provided'}</p>
-                  
+                  <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1 line-clamp-2">{offer.subtext || t('no_description')}</p>
+
                   {offer.points && offer.points.length > 0 && (
                     <div className="mt-3 flex flex-wrap gap-1.5">
                       {offer.points.slice(0, 3).map((p, i) => (
@@ -373,31 +375,31 @@ const Offers: React.FC = () => {
 
                 <div className="flex items-center justify-between mt-8 pt-6 border-t border-slate-50">
                   <div className="flex items-center gap-1">
-                    <button 
+                    <button
                       onClick={() => handleToggleStatus(offer)}
                       className={cn(
                         "p-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all",
-                        offer.is_active 
-                          ? "bg-rose-50 text-rose-600 hover:bg-rose-100" 
+                        offer.is_active
+                          ? "bg-rose-50 text-rose-600 hover:bg-rose-100"
                           : "bg-emerald-50 text-emerald-600 hover:bg-emerald-100"
                       )}
-                      title={offer.is_active ? "Deactivate" : "Activate"}
+                      title={offer.is_active ? t('deactivate') : t('activate')}
                     >
                       {offer.is_active ? <EyeOff size={16} /> : <Eye size={16} />}
                     </button>
 
-                    <button 
+                    <button
                       onClick={() => startEdit(offer)}
                       className="p-2.5 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded-xl transition-all"
-                      title="Edit Offer"
+                      title={t('edit_offer')}
                     >
                       <Edit2 size={16} />
                     </button>
 
-                    <button 
+                    <button
                       onClick={() => handleDeleteOffer(offer.id)}
                       className="p-2.5 bg-rose-50 text-rose-400 hover:bg-rose-600 hover:text-white rounded-xl transition-all"
-                      title="Delete Offer"
+                      title={t('delete_offer')}
                     >
                       <Trash2 size={16} />
                     </button>
