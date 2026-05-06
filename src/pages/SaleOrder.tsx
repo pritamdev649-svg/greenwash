@@ -151,6 +151,12 @@ const SaleOrder: React.FC = () => {
     setRows(prev => prev.map(row => {
       if (row.id === id) {
         const updated = { ...row, ...updates };
+        
+        // Enforce 80/kg price if unit is KG
+        if (updated.unit === 'KG') {
+          updated.price = 80;
+        }
+        
         updated.amount = updated.qty * updated.price;
         return updated;
       }
@@ -517,9 +523,11 @@ const SaleOrder: React.FC = () => {
                           <td className="p-2">
                              <input 
                                type="number"
+                               step="0.01"
+                               min="0"
                                className="w-full h-10 px-2 bg-transparent border border-transparent focus:border-emerald-200 focus:bg-white rounded-lg text-xs font-black text-center"
                                value={row.qty}
-                               onChange={(e) => updateRow(row.id, { qty: parseInt(e.target.value) || 0 })}
+                               onChange={(e) => updateRow(row.id, { qty: parseFloat(e.target.value) || 0 })}
                              />
                           </td>
                           <td className="p-2">

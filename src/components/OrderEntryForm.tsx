@@ -84,7 +84,7 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
 
   const [rows, setRows] = useState<SaleRow[]>([
-    { id: '1', category: '', item_id: '', item_name: '', description: '', qty: 1, unit: 'NONE', price: 0, amount: 0 }
+    { id: '1', category: '', item_id: '', item_name: '', description: '', qty: 1, unit: 'PCS', price: 0, amount: 0 }
   ]);
 
   const [discount, setDiscount] = useState(0);
@@ -231,7 +231,7 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
       item_name: '',
       description: '',
       qty: 1,
-      unit: 'NONE',
+      unit: 'PCS',
       price: 0,
       amount: 0
     };
@@ -241,7 +241,24 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
   const updateRow = (id: string, updates: Partial<SaleRow>) => {
     setRows(prev => prev.map(row => {
       if (row.id === id) {
-        const updated = { ...row, ...updates };
+        let updated = { ...row, ...updates };
+        
+        // 1. Handle Unit Toggle Logic
+        if (updates.unit === 'KG') {
+          updated.price = 80; // Force 80 for KG
+        } else if (updates.unit === 'PCS') {
+          // If switching from KG back to PCS, clear the 80 rate
+          if (row.unit === 'KG' && updated.price === 80) {
+            updated.price = 0;
+          }
+          updated.qty = Math.round(updated.qty); // Force integer for PCS
+        }
+        
+        // 2. Additional enforcement for PCS
+        if (updated.unit === 'PCS' && updates.qty !== undefined) {
+          updated.qty = Math.round(updated.qty);
+        }
+        
         updated.amount = updated.qty * updated.price;
         return updated;
       }
@@ -562,6 +579,7 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
                       <th className="p-4 text-[10px] font-black text-slate-500 uppercase w-32">Service</th>
                       <th className="p-4 text-[10px] font-black text-slate-500 uppercase w-48">Item Name</th>
                       <th className="p-4 text-[10px] font-black text-slate-500 uppercase w-20 text-center">Qty</th>
+                      <th className="p-4 text-[10px] font-black text-slate-500 uppercase w-24 text-center">Unit</th>
                       <th className="p-4 text-[10px] font-black text-slate-500 uppercase w-28 text-right">Rate</th>
                       <th className="p-4 text-[10px] font-black text-slate-500 uppercase w-32 text-right">Amount</th>
                       <th className="p-4 w-10"></th>
@@ -609,9 +627,26 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
                         </td>
                         <td className="p-2">
                           <input
-                            type="number" className="w-full h-9 text-center bg-transparent border-none font-bold text-xs focus:ring-0"
-                            value={row.qty} onChange={(e) => updateRow(row.id, { qty: parseInt(e.target.value) || 0 })}
+                            type="number" 
+                            step={row.unit === 'KG' ? "0.01" : "1"}
+                            min="0"
+                            className="w-full h-9 text-center bg-transparent border-none font-bold text-xs focus:ring-0"
+                            value={row.qty} 
+                            onChange={(e) => {
+                              const val = parseFloat(e.target.value) || 0;
+                              updateRow(row.id, { qty: row.unit === 'PCS' ? Math.round(val) : val });
+                            }}
                           />
+                        </td>
+                        <td className="p-2">
+                          <select
+                            className="w-full h-9 bg-transparent border-none rounded-lg text-[10px] font-black focus:ring-0 appearance-none cursor-pointer uppercase text-center"
+                            value={row.unit}
+                            onChange={(e) => updateRow(row.id, { unit: e.target.value })}
+                          >
+                            <option value="PCS">PCS</option>
+                            <option value="KG">KG</option>
+                          </select>
                         </td>
                         <td className="p-2 text-right">
                           <input
