@@ -305,7 +305,7 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
         ...items,
         ...additionalCharges.map(charge => ({
           cloth_type_id: null,
-          custom_item_name: `[CHARGE] ${charge.label}`,
+          item_name: `[CHARGE] ${charge.label}`,
           quantity: 1,
           wash_price: charge.amount,
           iron_price: 0,
