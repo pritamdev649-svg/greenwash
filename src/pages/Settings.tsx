@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
-import { 
-  Settings as SettingsIcon, 
-  FileText, 
-  Globe, 
-  Save, 
+import {
+  Settings as SettingsIcon,
+  FileText,
+  Globe,
+  Save,
   CheckCircle,
   Plus,
   Trash2
@@ -15,7 +15,6 @@ export default function Settings() {
   const { language, setLanguage, t } = useLanguage();
   const [terms, setTerms] = useState<string[]>([]);
   const [newTerm, setNewTerm] = useState('');
-  const [reviewLink, setReviewLink] = useState('');
   const [showSuccess, setShowSuccess] = useState(false);
 
   useEffect(() => {
@@ -31,11 +30,6 @@ export default function Settings() {
       ];
       setTerms(defaults);
       localStorage.setItem('app_terms_conditions', JSON.stringify(defaults));
-    }
-
-    const savedReviewLink = localStorage.getItem('app_review_link');
-    if (savedReviewLink) {
-      setReviewLink(savedReviewLink);
     }
   }, []);
 
@@ -53,7 +47,6 @@ export default function Settings() {
 
   const handleSave = () => {
     localStorage.setItem('app_terms_conditions', JSON.stringify(terms));
-    localStorage.setItem('app_review_link', reviewLink);
     setShowSuccess(true);
     setTimeout(() => setShowSuccess(false), 3000);
   };
@@ -68,7 +61,7 @@ export default function Settings() {
           </h1>
           <p className="text-slate-500 mt-1 font-medium italic">Configure your business rules and preferences</p>
         </div>
-        
+
         {showSuccess && (
           <div className="flex items-center gap-2 text-emerald-600 bg-emerald-50 px-4 py-2 rounded-full font-bold animate-in slide-in-from-top duration-300">
             <CheckCircle size={18} />
@@ -101,8 +94,8 @@ export default function Settings() {
                   onClick={() => setLanguage(lang.id as any)}
                   className={cn(
                     "w-full p-4 rounded-2xl flex items-center justify-between border-2 transition-all active:scale-95 group",
-                    language === lang.id 
-                      ? "border-indigo-600 bg-indigo-50/50" 
+                    language === lang.id
+                      ? "border-indigo-600 bg-indigo-50/50"
                       : "border-slate-100 hover:border-indigo-200"
                   )}
                 >
@@ -121,32 +114,7 @@ export default function Settings() {
             </div>
           </div>
 
-          {/* Review Link Section */}
-          <div className="bg-white rounded-3xl p-8 shadow-2xl shadow-slate-200/50 border border-slate-100 ring-1 ring-slate-900/5">
-            <div className="flex items-center gap-4 mb-8">
-              <div className="w-12 h-12 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center">
-                <Plus size={24} />
-              </div>
-              <div>
-                <h3 className="text-lg font-bold text-slate-900">Google Review</h3>
-                <p className="text-xs text-slate-400 uppercase tracking-widest font-bold">Review Link</p>
-              </div>
-            </div>
 
-            <div className="space-y-4">
-              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Google Maps Review Link</p>
-                <input
-                  type="text"
-                  value={reviewLink}
-                  onChange={(e) => setReviewLink(e.target.value)}
-                  placeholder="Paste your link here..."
-                  className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-amber-500 focus:outline-none transition-all"
-                />
-              </div>
-              <p className="text-[10px] text-slate-400 italic">This link will be automatically added to the WhatsApp delivery message.</p>
-            </div>
-          </div>
         </div>
 
         {/* Right Column: Terms & Conditions */}
@@ -162,7 +130,7 @@ export default function Settings() {
                   <p className="text-xs text-slate-400 uppercase tracking-widest font-bold">Rules appearing on all PDFs</p>
                 </div>
               </div>
-              
+
               <button
                 onClick={handleSave}
                 className="flex items-center gap-2 px-6 h-12 bg-slate-900 text-white rounded-2xl font-bold hover:bg-slate-800 transition-all active:scale-95 shadow-lg shadow-slate-900/20"
@@ -179,7 +147,7 @@ export default function Settings() {
                     {index + 1}
                   </div>
                   <p className="text-slate-600 font-medium flex-grow leading-relaxed">{term}</p>
-                  <button 
+                  <button
                     onClick={() => handleDeleteTerm(index)}
                     className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-xl opacity-0 group-hover:opacity-100 transition-all"
                   >
