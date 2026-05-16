@@ -11,7 +11,8 @@ import {
   AlertCircle,
   CreditCard,
   Share2,
-  Edit2
+  Edit2,
+  Ban
 } from 'lucide-react';
 import { orderService } from '@backend/services/orderService';
 import { notificationService } from '@backend/services/notificationService';
@@ -150,6 +151,20 @@ export default function Orders() {
     }
   };
 
+  const handleCancelOrder = async (orderId: string) => {
+    if (!window.confirm("Are you sure you want to CANCEL this order? The record will remain but will be marked as Cancelled.")) return;
+    try {
+      setLoading(true);
+      await orderService.updateOrderStatus(orderId, 'Cancelled');
+      await fetchData();
+    } catch (err) {
+      console.error(err);
+      alert("Failed to cancel order.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleCollectBalance = async (orderId: string) => {
     if (!window.confirm(t('confirm_balance'))) return;
     try {
@@ -195,6 +210,7 @@ export default function Orders() {
 
   const formatOrderForPrint = (order: any): PrintReceiptProps['orderData'] => {
     return {
+      status: order.order_status,
       orderNo: order.order_number ? `GWC${order.order_number}` : 'GWC' + order.id.slice(0, 4).toUpperCase(),
       date: new Date(order.created_at).toLocaleDateString('en-GB'),
       dueDate: order.due_date
@@ -252,9 +268,9 @@ export default function Orders() {
   today.setHours(0, 0, 0, 0);
 
   const stats = [
-    { label: t('active_orders'), value: orders.filter(o => o.order_status !== 'Delivered').length, icon: Package, color: 'text-primary-600', bg: 'bg-primary-50' },
-    { label: t('todays_sales'), value: `₹${orders.filter(o => new Date(o.created_at) >= today).reduce((sum, o) => sum + Number(o.total_amount), 0).toLocaleString()}`, icon: TrendingUp, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-    { label: t('total_outstanding'), value: `₹${orders.reduce((sum, o) => sum + Number(o.balance_amount || 0), 0).toLocaleString()}`, icon: AlertCircle, color: 'text-rose-600', bg: 'bg-rose-50' }
+    { label: t('active_orders'), value: orders.filter(o => o.order_status !== 'Delivered' && o.order_status !== 'Cancelled').length, icon: Package, color: 'text-primary-600', bg: 'bg-primary-50' },
+    { label: t('todays_sales'), value: `₹${orders.filter(o => new Date(o.created_at) >= today && o.order_status !== 'Cancelled').reduce((sum, o) => sum + Number(o.total_amount), 0).toLocaleString()}`, icon: TrendingUp, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+    { label: t('total_outstanding'), value: `₹${orders.filter(o => o.order_status !== 'Cancelled').reduce((sum, o) => sum + Number(o.balance_amount || 0), 0).toLocaleString()}`, icon: AlertCircle, color: 'text-rose-600', bg: 'bg-rose-50' }
   ];
 
   return (
@@ -322,7 +338,7 @@ export default function Orders() {
               ) : filteredOrders.length === 0 ? (
                 <tr><td colSpan={9} className="p-32 text-center text-slate-400 font-medium tracking-tight">System holds no records for your current filters.</td></tr>
               ) : filteredOrders.map((order) => (
-                <tr key={order.id} className="table-row group hover:bg-slate-50/10">
+                <tr key={order.id} className={cn("table-row group hover:bg-slate-50/10", order.order_status === 'Cancelled' && "opacity-60 bg-slate-50 grayscale transition-all")}>
                   <td className="table-cell px-6 text-xs font-bold text-slate-400 font-mono">{order.order_number ? `GWC${order.order_number}` : `GWC${order.id.slice(0, 4).toUpperCase()}`}</td>
                   <td className="table-cell px-6">
                     <div className="flex flex-col">
@@ -367,15 +383,17 @@ export default function Orders() {
                   </td>
                   <td className="table-cell px-6">
                     <button
-                      onClick={() => advanceOrderStatus(order)}
+                      onClick={() => order.order_status !== 'Cancelled' && advanceOrderStatus(order)}
+                      disabled={order.order_status === 'Cancelled'}
                       className={cn(
                         "inline-flex items-center gap-2 h-7 px-3 rounded-full text-[9px] font-extrabold uppercase tracking-widest transition-all",
+                        order.order_status === 'Cancelled' ? "bg-red-100 text-red-700 cursor-not-allowed" :
                         (order.order_status || 'Pending') === 'Delivered'
                           ? "bg-slate-100 text-slate-500"
                           : "bg-indigo-100 text-indigo-700"
                       )}
                     >
-                      {order.order_status}
+                      {order.order_status || 'Pending'}
                     </button>
                   </td>
                   <td className="table-cell px-6 text-right">
@@ -420,6 +438,15 @@ export default function Orders() {
                       >
                         <Trash2 size={16} strokeWidth={2.5} />
                       </button>
+                      {order.order_status !== 'Cancelled' && (
+                        <button
+                          onClick={() => handleCancelOrder(order.id)}
+                          className="w-9 h-9 flex items-center justify-center bg-slate-200 hover:bg-red-100 text-slate-600 hover:text-red-600 rounded-xl transition-all active:scale-90"
+                          title="Cancel Order"
+                        >
+                          <Ban size={16} strokeWidth={2.5} />
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>

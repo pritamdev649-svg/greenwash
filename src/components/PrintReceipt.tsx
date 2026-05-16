@@ -4,6 +4,7 @@ import { QRCodeSVG } from 'qrcode.react';
 
 export interface PrintReceiptProps {
   orderData: {
+    status?: string;
     orderNo: string;
     date: string;
     dueDate: string;
@@ -81,9 +82,18 @@ export const PrintReceipt: React.FC<PrintReceiptProps> = ({ orderData }) => {
     <div 
       id="receipt-print-content"
       // Use absolute positioning off-screen instead of hidden so html2canvas can capture it
-      className="absolute -left-[9999px] top-0 print:static print:left-0 font-sans text-black p-8 w-full bg-white printable-area" 
+      className="absolute -left-[9999px] top-0 print:static print:left-0 font-sans text-black p-8 w-full bg-white printable-area relative overflow-hidden" 
       style={{ fontFamily: 'Arial, sans-serif', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' } as React.CSSProperties}
     >
+      {/* Cancelled Watermark */}
+      {orderData.status === 'Cancelled' && (
+        <div className="absolute inset-0 flex items-center justify-center z-50 pointer-events-none opacity-20 print:opacity-30">
+          <div className="border-[8px] border-red-600 text-red-600 rounded-3xl px-12 py-6 transform -rotate-45 font-black tracking-widest" style={{ fontSize: '100px' }}>
+            CANCELLED
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex justify-between items-start border-b-2 border-slate-400 pb-2 mb-4">
         <div>

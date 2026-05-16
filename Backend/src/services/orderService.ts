@@ -297,11 +297,12 @@ export const orderService = {
       supabase.from('customers').select('*', { count: 'exact', head: true }),
       supabase.from('orders')
         .select('total_amount, payment_status, created_at, branch_id, branches(name)')
-        .gte('created_at', oneYearAgo.toISOString()),
+        .gte('created_at', oneYearAgo.toISOString())
+        .neq('order_status', 'Cancelled'),
       supabase.from('branches').select(`
         id,
         name,
-        orders:orders(total_amount, created_at)
+        orders:orders(total_amount, created_at, order_status)
       `)
     ]);
 
@@ -344,7 +345,7 @@ export const orderService = {
       todayOrders: orders?.filter(o => new Date(o.created_at) >= today).length || 0,
       salesTrend,
       branchPerformance: (branchStats || []).map(b => {
-        const branchOrders = (b as any).orders || [];
+        const branchOrders = ((b as any).orders || []).filter((o: any) => o.order_status !== 'Cancelled');
         const todayBranchOrders = branchOrders.filter((o: any) => new Date(o.created_at) >= today);
         return {
           name: b.name,
@@ -362,6 +363,7 @@ export const orderService = {
           total_amount,
           customers (name)
         `)
+        .neq('order_status', 'Cancelled')
         .order('created_at', { ascending: false })
         .limit(5)).data || []).map((o: any) => ({
           ...o,
