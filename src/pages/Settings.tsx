@@ -15,6 +15,7 @@ export default function Settings() {
   const { language, setLanguage, t } = useLanguage();
   const [terms, setTerms] = useState<string[]>([]);
   const [newTerm, setNewTerm] = useState('');
+  const [reviewLink, setReviewLink] = useState('');
   const [showSuccess, setShowSuccess] = useState(false);
 
   useEffect(() => {
@@ -30,6 +31,11 @@ export default function Settings() {
       ];
       setTerms(defaults);
       localStorage.setItem('app_terms_conditions', JSON.stringify(defaults));
+    }
+
+    const savedReviewLink = localStorage.getItem('app_review_link');
+    if (savedReviewLink) {
+      setReviewLink(savedReviewLink);
     }
   }, []);
 
@@ -47,6 +53,7 @@ export default function Settings() {
 
   const handleSave = () => {
     localStorage.setItem('app_terms_conditions', JSON.stringify(terms));
+    localStorage.setItem('app_review_link', reviewLink);
     setShowSuccess(true);
     setTimeout(() => setShowSuccess(false), 3000);
   };
@@ -111,6 +118,33 @@ export default function Settings() {
                   </div>
                 </button>
               ))}
+            </div>
+          </div>
+
+          {/* Review Link Section */}
+          <div className="bg-white rounded-3xl p-8 shadow-2xl shadow-slate-200/50 border border-slate-100 ring-1 ring-slate-900/5">
+            <div className="flex items-center gap-4 mb-8">
+              <div className="w-12 h-12 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center">
+                <Plus size={24} />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-slate-900">Google Review</h3>
+                <p className="text-xs text-slate-400 uppercase tracking-widest font-bold">Review Link</p>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Google Maps Review Link</p>
+                <input
+                  type="text"
+                  value={reviewLink}
+                  onChange={(e) => setReviewLink(e.target.value)}
+                  placeholder="Paste your link here..."
+                  className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-amber-500 focus:outline-none transition-all"
+                />
+              </div>
+              <p className="text-[10px] text-slate-400 italic">This link will be automatically added to the WhatsApp delivery message.</p>
             </div>
           </div>
         </div>

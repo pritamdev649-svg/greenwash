@@ -167,15 +167,29 @@ export const PrintReceipt: React.FC<PrintReceiptProps> = ({ orderData }) => {
             </div>
             <p className="text-[10px] text-gray-800 mt-3 italic font-medium">Thanks for doing business with us!</p>
           </div>
-          <div className="mt-2 text-center w-24">
-            {/* Simple QR representation or fallback */}
-            <div className="w-20 h-20 border border-gray-400 p-1 rounded inline-block bg-white relative flex items-center justify-center">
-              <QRCodeSVG 
-                value={`upi://pay?pa=9628562024@kotak811&pn=SUMIT%20KUMAR&am=${orderData.balance}&tn=Order_${orderData.orderNo}&cu=INR`}
-                size={70}
-              />
+          <div className="mt-4 flex gap-6">
+            {/* Payment QR Code */}
+            <div className="text-center w-24">
+              <div className="w-20 h-20 border border-gray-400 p-1 rounded inline-block bg-white relative flex items-center justify-center">
+                <QRCodeSVG 
+                  value={`upi://pay?pa=9628562024@kotak811&pn=SUMIT%20KUMAR&am=${orderData.balance}&tn=Order_${orderData.orderNo}&cu=INR`}
+                  size={70}
+                />
+              </div>
+              <div className="bg-[#2FA84B] text-white text-[9px] py-1 mt-1 rounded font-bold w-full mx-auto uppercase">Scan to Pay</div>
             </div>
-            <div className="bg-[#2FA84B] text-white text-[9px] py-1 mt-1 rounded font-bold w-full mx-auto">SCAN TO PAY</div>
+
+            {/* Google Review QR Code */}
+            <div className="text-center w-24">
+              <div className="w-20 h-20 border border-[#4285F4] p-1 rounded inline-block bg-white relative flex items-center justify-center">
+                <QRCodeSVG 
+                  value={`https://g.page/r/CWo32A-V7qWGEBM/review`}
+                  size={70}
+                  fgColor="#4285F4"
+                />
+              </div>
+              <div className="bg-[#4285F4] text-white text-[9px] py-1 mt-1 rounded font-bold w-full mx-auto uppercase">Review Us</div>
+            </div>
           </div>
         </div>
 

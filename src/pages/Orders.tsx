@@ -102,8 +102,10 @@ export default function Orders() {
               `Remaining Balance: ₹${balanceAmount}\n\n` +
               `See you soon! 🙏`;
           } else if (nextPhase === 'Delivered') {
+            const reviewLink = "https://g.page/r/CWo32A-V7qWGEBM/review";
             alertMsg = `Hi ${customerName}, your order *${orderRef}* has been successfully delivered. ✅\n\n` +
-              `Thank you for choosing Green Wash Co.! We look forward to serving you again soon. ✨`;
+              `Thank you for choosing Green Wash Co.! We look forward to serving you again soon. ✨\n\n` +
+              `*How was your experience?*\nHelp us grow by leaving a review here:\n${reviewLink} 🙏`;
           }
 
           if (alertMsg && mobile) {
