@@ -32,26 +32,33 @@ const Home: React.FC = () => {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
-  const { session, signIn } = useAuth();
+  const { session, role, signIn } = useAuth();
+
+  const getDashboardPath = (r: typeof role) => {
+    if (r === 'super_admin') return '/super-admin/dashboard';
+    if (r === 'admin') return '/admin/dashboard';
+    return '/dashboard';
+  };
 
   useEffect(() => {
-    if (session) {
-      navigate('/dashboard');
+    if (session && role) {
+      navigate(getDashboardPath(role));
     }
-  }, [session, navigate]);
+  }, [session, role, navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
 
-    const { error } = await signIn(email, password);
+    const { data, error } = await signIn(email, password);
 
     if (error) {
       setError(error.message);
       setLoading(false);
     } else {
-      navigate('/dashboard');
+      const r = data?.role ?? null;
+      navigate(getDashboardPath(r));
     }
   };
 

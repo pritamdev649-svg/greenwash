@@ -9,7 +9,7 @@ export const branchService = {
       .from('branches')
       .select('*')
       .order('name');
-    
+
     if (error) throw error;
     return data || [];
   },
@@ -22,7 +22,7 @@ export const branchService = {
       .from('branches')
       .insert([{ name, address, phone }])
       .select();
-    
+
     if (error) throw error;
     return data[0];
   },
@@ -36,7 +36,7 @@ export const branchService = {
       .update({ name, address, phone })
       .eq('id', id)
       .select();
-    
+
     if (error) throw error;
     return data[0];
   },
@@ -49,7 +49,7 @@ export const branchService = {
       .from('branches')
       .delete()
       .eq('id', id);
-    
+
     if (error) throw error;
     return true;
   }

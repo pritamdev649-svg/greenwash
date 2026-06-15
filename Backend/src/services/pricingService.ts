@@ -8,18 +8,19 @@ export type PricingItem = {
 }
 
 export const pricingService = {
-  async getAllPricing() {
-    const { data, error } = await supabase
+  async getAllPricing(vendorId?: string | null) {
+    let query = supabase
       .from('pricing')
       .select('*')
       .order('category', { ascending: true })
       .order('item', { ascending: true });
-
+    if (vendorId) query = query.eq('vendor_id', vendorId);
+    const { data, error } = await query;
     if (error) throw error;
     return data as PricingItem[];
   },
 
-  async addPricingItem(data: Omit<PricingItem, 'id'>) {
+  async addPricingItem(data: Omit<PricingItem, 'id'> & { vendor_id?: string | null }) {
     const { data: result, error } = await supabase
       .from('pricing')
       .insert([data])

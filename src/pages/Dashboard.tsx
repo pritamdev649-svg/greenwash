@@ -14,6 +14,7 @@ import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { orderService } from '@backend/services/orderService';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useAuth } from '../contexts/AuthContext';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -262,6 +263,7 @@ const SalesTrendChart: React.FC<{ data: Stats['salesTrend'], timeframe: Timefram
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const { t, language } = useLanguage();
+  const { vendorId } = useAuth();
   const [stats, setStats] = useState<Stats>({
     totalCustomers: 0,
     totalOrders: 0,
@@ -280,7 +282,7 @@ const Dashboard: React.FC = () => {
     const fetchStats = async () => {
       try {
         setLoading(true);
-        const data = await orderService.getDashboardStats();
+        const data = await orderService.getDashboardStats(vendorId);
         setStats(data);
       } catch (err) {
         console.error(err);
@@ -290,7 +292,7 @@ const Dashboard: React.FC = () => {
     };
 
     fetchStats();
-  }, []);
+  }, [vendorId]);
 
   const statCards = [
     { 

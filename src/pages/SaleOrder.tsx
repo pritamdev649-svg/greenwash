@@ -15,6 +15,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { customerService } from '@backend/services/customerService';
 import { orderService } from '@backend/services/orderService';
+import { useAuth } from '../contexts/AuthContext';
 import { PrintReceipt } from '../components/PrintReceipt';
 
 
@@ -32,6 +33,7 @@ interface SaleRow {
 
 const SaleOrder: React.FC = () => {
   const navigate = useNavigate();
+  const { vendorId } = useAuth();
   const [customers, setCustomers] = useState<any[]>([]);
   const [clothTypes, setClothTypes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -118,8 +120,8 @@ const SaleOrder: React.FC = () => {
     const fetchData = async () => {
       try {
         const [cData, ctData] = await Promise.all([
-          customerService.getAllCustomers(),
-          orderService.getAllClothTypes()
+          customerService.getAllCustomers(true, vendorId),
+          orderService.getAllClothTypes(vendorId)
         ]);
         setCustomers(cData);
         setClothTypes(ctData);
@@ -130,7 +132,7 @@ const SaleOrder: React.FC = () => {
       }
     };
     fetchData();
-  }, []);
+  }, [vendorId]);
 
   const handleAddRow = () => {
     const newRow: SaleRow = {
@@ -222,13 +224,14 @@ const SaleOrder: React.FC = () => {
       ];
 
       await orderService.createOrder(
-        selectedCustomerId, 
-        selectedCustomer?.branch_id || null, 
-        grandTotal, 
+        selectedCustomerId,
+        selectedCustomer?.branch_id || null,
+        grandTotal,
         finalItems,
-        0, // advance
+        0,
         discountAmount,
-        dueDate
+        dueDate,
+        vendorId
       );
       
       alert("Order Generated Successfully!");

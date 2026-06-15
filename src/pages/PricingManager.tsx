@@ -5,6 +5,7 @@ import { pricingService } from '../../Backend/src/services/pricingService';
 import type { PricingItem } from '../../Backend/src/services/pricingService';
 import { cn } from '../lib/utils';
 import { PriceListPoster } from '../components/PriceListPoster';
+import { useAuth } from '../contexts/AuthContext';
 
 const categories = [
   'Premium Laundry',
@@ -15,6 +16,7 @@ const categories = [
 ];
 
 const PricingManager: React.FC = () => {
+  const { vendorId } = useAuth();
   const [pricing, setPricing] = useState<PricingItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -30,7 +32,7 @@ const PricingManager: React.FC = () => {
   const fetchPricing = async () => {
     try {
       setLoading(true);
-      const data = await pricingService.getAllPricing();
+      const data = await pricingService.getAllPricing(vendorId);
       setPricing(data);
     } catch (err) {
       console.error(err);
@@ -41,7 +43,7 @@ const PricingManager: React.FC = () => {
 
   useEffect(() => {
     fetchPricing();
-  }, []);
+  }, [vendorId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,7 +53,7 @@ const PricingManager: React.FC = () => {
       if (editingId) {
         await pricingService.updatePricingItem(editingId, form);
       } else {
-        await pricingService.addPricingItem(form);
+        await pricingService.addPricingItem({ ...form, vendor_id: vendorId });
       }
       setForm({ category: categories[0], item: '', price: '' });
       setIsAdding(false);

@@ -1,33 +1,29 @@
 import { supabase } from '../config/supabase';
 
 export const offerService = {
-  async getAllOffers() {
-    const { data, error } = await supabase
-      .from('offers')
-      .select('*')
-      .order('created_at', { ascending: false });
-
+  async getAllOffers(vendorId?: string | null) {
+    let query = supabase.from('offers').select('*').order('created_at', { ascending: false });
+    if (vendorId) query = query.eq('vendor_id', vendorId);
+    const { data, error } = await query;
     if (error) throw error;
     return data;
   },
 
-  async getActiveOffers() {
-    const { data, error } = await supabase
-      .from('offers')
-      .select('*')
-      .eq('is_active', true)
-      .order('created_at', { ascending: false });
-
+  async getActiveOffers(vendorId?: string | null) {
+    let query = supabase.from('offers').select('*').eq('is_active', true).order('created_at', { ascending: false });
+    if (vendorId) query = query.eq('vendor_id', vendorId);
+    const { data, error } = await query;
     if (error) throw error;
     return data;
   },
 
-  async addOffer(offer: { 
-    image_url: string; 
-    title?: string; 
-    subtext?: string; 
-    points?: string[]; 
-    button_text?: string 
+  async addOffer(offer: {
+    image_url: string;
+    title?: string;
+    subtext?: string;
+    points?: string[];
+    button_text?: string;
+    vendor_id?: string | null;
   }) {
     const { data, error } = await supabase
       .from('offers')

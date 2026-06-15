@@ -64,8 +64,8 @@ const PublicReceipt: React.FC = () => {
   const pData = {
     orderNo: order.order_number ? `GWC${order.order_number}` : 'GWC' + order.id.slice(0, 4).toUpperCase(),
     date: new Date(order.created_at).toLocaleDateString('en-GB'),
-    dueDate: order.due_date 
-      ? order.due_date.split('-').reverse().join('/') 
+    dueDate: order.due_date
+      ? order.due_date.split('-').reverse().join('/')
       : new Date(order.created_at).toLocaleDateString('en-GB'),
     customerName: order.customers?.name || 'Customer',
     customerAddress: order.customers?.address || '',

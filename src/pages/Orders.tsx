@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import {
   Plus,
   Printer,
@@ -24,6 +25,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 
 export default function Orders() {
   const location = useLocation();
+  const { vendorId } = useAuth();
   const { t, language } = useLanguage();
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -41,12 +43,12 @@ export default function Orders() {
       // Clean up URL without triggering navigation
       window.history.replaceState({}, '', window.location.pathname);
     }
-  }, [location.search]);
+  }, [location.search, vendorId]);
 
   const fetchData = async () => {
     try {
       setLoading(true);
-      const data = await orderService.getAllOrders();
+      const data = await orderService.getAllOrders(vendorId);
       setOrders(data);
     } catch (err) {
       console.error(err);
@@ -388,9 +390,9 @@ export default function Orders() {
                       className={cn(
                         "inline-flex items-center gap-2 h-7 px-3 rounded-full text-[9px] font-extrabold uppercase tracking-widest transition-all",
                         order.order_status === 'Cancelled' ? "bg-red-100 text-red-700 cursor-not-allowed" :
-                        (order.order_status || 'Pending') === 'Delivered'
-                          ? "bg-slate-100 text-slate-500"
-                          : "bg-indigo-100 text-indigo-700"
+                          (order.order_status || 'Pending') === 'Delivered'
+                            ? "bg-slate-100 text-slate-500"
+                            : "bg-indigo-100 text-indigo-700"
                       )}
                     >
                       {order.order_status || 'Pending'}

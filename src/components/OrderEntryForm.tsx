@@ -13,10 +13,12 @@ import {
 } from 'lucide-react';
 import { customerService } from '@backend/services/customerService';
 import { orderService } from '@backend/services/orderService';
+import { vendorService } from '@backend/services/vendorService';
 import { notificationService } from '@backend/services/notificationService';
 import { PrintReceipt } from './PrintReceipt';
 import { receiptService } from '../lib/receiptService';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useAuth } from '../contexts/AuthContext';
 
 interface SaleRow {
   id: string;
@@ -40,9 +42,11 @@ interface OrderEntryFormProps {
 export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSuccess, onPrintSuccess, editOrderId }) => {
   const navigate = useNavigate();
   const { t } = useLanguage();
+  const { vendorId } = useAuth();
   const [customers, setCustomers] = useState<any[]>([]);
   const [clothTypes, setClothTypes] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
+  const [vendorPayment, setVendorPayment] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   // Form State
@@ -134,7 +138,7 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
 
         // Fetch customers
         try {
-          const cData = await customerService.getAllCustomers();
+          const cData = await customerService.getAllCustomers(true, vendorId);
           console.log("Customers loaded:", cData?.length || 0);
           setCustomers(cData || []);
         } catch (cErr) {
@@ -143,7 +147,7 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
 
         // Fetch cloth types
         try {
-          const ctData = await orderService.getAllClothTypes();
+          const ctData = await orderService.getAllClothTypes(vendorId);
           console.log("Cloth types loaded:", ctData?.length || 0);
           setClothTypes(ctData || []);
         } catch (ctErr) {
@@ -152,13 +156,22 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
 
         // Fetch categories
         try {
-          const catData = await orderService.getAllCategories();
+          const catData = await orderService.getAllCategories(vendorId);
           console.log("Categories loaded:", catData?.length || 0);
           setCategories(catData || []);
         } catch (catErr) {
           console.error("Error loading categories (might be missing table):", catErr);
-          // Fallback handled by empty categories state
           setCategories([]);
+        }
+
+        // Fetch vendor payment info for QR on receipt
+        try {
+          if (vendorId) {
+            const payment = await vendorService.getVendorPayment(vendorId);
+            setVendorPayment(payment);
+          }
+        } catch (payErr) {
+          console.error("Error loading vendor payment:", payErr);
         }
 
       } catch (err) {
@@ -168,7 +181,7 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
       }
     };
     fetchData();
-  }, []);
+  }, [vendorId]);
 
   // Fetch Edit Data
   useEffect(() => {
@@ -242,7 +255,7 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
     setRows(prev => prev.map(row => {
       if (row.id === id) {
         let updated = { ...row, ...updates };
-        
+
         // 1. Handle Unit Toggle Logic
         if (updates.unit === 'KG') {
           updated.price = 80; // Force 80 for KG
@@ -253,12 +266,12 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
           }
           updated.qty = Math.round(updated.qty); // Force integer for PCS
         }
-        
+
         // 2. Additional enforcement for PCS
         if (updated.unit === 'PCS' && updates.qty !== undefined) {
           updated.qty = Math.round(updated.qty);
         }
-        
+
         updated.amount = updated.qty * updated.price;
         return updated;
       }
@@ -337,7 +350,8 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
           finalItems,
           advanceAmount,
           discountAmount,
-          dueDate
+          dueDate,
+          vendorId
         );
         savedOrder = order;
         setCreatedOrderId(order.id);
@@ -627,11 +641,11 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
                         </td>
                         <td className="p-2">
                           <input
-                            type="number" 
+                            type="number"
                             step={row.unit === 'KG' ? "0.01" : "1"}
                             min="0"
                             className="w-full h-9 text-center bg-transparent border-none font-bold text-xs focus:ring-0"
-                            value={row.qty} 
+                            value={row.qty}
                             onChange={(e) => {
                               const val = parseFloat(e.target.value) || 0;
                               updateRow(row.id, { qty: row.unit === 'PCS' ? Math.round(val) : val });
@@ -748,8 +762,8 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
                           <div
                             key={charge.label}
                             className={`flex items-center justify-between px-3 py-2 rounded-xl border transition-all ${isActive
-                                ? 'bg-primary-600 border-primary-600 text-white'
-                                : 'bg-slate-50 border-slate-100 text-slate-600 hover:border-primary-200 cursor-pointer'
+                              ? 'bg-primary-600 border-primary-600 text-white'
+                              : 'bg-slate-50 border-slate-100 text-slate-600 hover:border-primary-200 cursor-pointer'
                               }`}
                             onClick={() => !isActive && togglePredefinedCharge(charge.label, charge.amount)}
                           >
@@ -856,7 +870,13 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
                 discount: discountAmount,
                 total: grandTotal,
                 advance: advanceAmount,
-                balance: (grandTotal - advanceAmount)
+                balance: (grandTotal - advanceAmount),
+                paymentInfo: vendorPayment ? {
+                  upiId: vendorPayment.upi_id,
+                  qrCodeUrl: vendorPayment.qr_code_url,
+                  qrCodeText: vendorPayment.qr_code_text,
+                  accountHolderName: vendorPayment.account_holder_name,
+                } : null,
               }} />
             </div>
           </div>

@@ -5,25 +5,18 @@ export const orderService = {
   /**
    * Fetch all cloth types (pricing data)
    */
-  async getAllClothTypes() {
+  async getAllClothTypes(vendorId?: string | null) {
     try {
-      console.log("orderService.getAllClothTypes started");
-      const { data, error } = await supabase
-        .from('cloth_types')
-        .select('*, categories(name)')
-        .order('name');
-      
+      let query = supabase.from('cloth_types').select('*, categories(name)').order('name');
+      if (vendorId) query = query.eq('vendor_id', vendorId);
+
+      const { data, error } = await query;
       if (error) {
         console.warn("orderService.getAllClothTypes error (likely missing categories table):", error);
-        // Fallback: try fetching without categories if it fails
-        const { data: fallbackData, error: fallbackError } = await supabase
-          .from('cloth_types')
-          .select('*')
-          .order('name');
-        if (fallbackError) {
-          console.error("orderService.getAllClothTypes fallback failed:", fallbackError);
-          throw fallbackError;
-        }
+        let fallbackQuery = supabase.from('cloth_types').select('*').order('name');
+        if (vendorId) fallbackQuery = fallbackQuery.eq('vendor_id', vendorId);
+        const { data: fallbackData, error: fallbackError } = await fallbackQuery;
+        if (fallbackError) throw fallbackError;
         return (fallbackData || []).map((x: any) => ({ ...x, categories: { name: 'Uncategorized' } }));
       }
       return data || [];
@@ -33,23 +26,21 @@ export const orderService = {
     }
   },
 
-  async getAllCategories() {
-    const { data, error } = await supabase
-      .from('categories')
-      .select('*')
-      .order('name');
-    
+  async getAllCategories(vendorId?: string | null) {
+    let query = supabase.from('categories').select('*').order('name');
+    if (vendorId) query = query.eq('vendor_id', vendorId);
+    const { data, error } = await query;
     if (error) throw error;
     return data || [];
   },
 
-  async addCategory(name: string) {
+  async addCategory(name: string, vendorId?: string | null) {
     const { data, error } = await supabase
       .from('categories')
-      .insert([{ name }])
+      .insert([{ name, vendor_id: vendorId ?? null }])
       .select()
       .single();
-    
+
     if (error) throw error;
     return data;
   },
@@ -82,10 +73,11 @@ export const orderService = {
   },
 
   /**
-   * Fetch all orders with customer and item details
+   * Fetch all orders with customer and item details.
+   * Pass vendorId to scope results to a specific vendor.
    */
-  async getAllOrders() {
-    const { data, error } = await supabase
+  async getAllOrders(vendorId?: string | null) {
+    let query = supabase
       .from('orders')
       .select(`
         *,
@@ -96,7 +88,10 @@ export const orderService = {
       `)
       .order('created_at', { ascending: false })
       .limit(2000);
-    
+
+    if (vendorId) query = query.eq('vendor_id', vendorId);
+
+    const { data, error } = await query;
     if (error) throw error;
     return data || [];
   },
@@ -125,11 +120,11 @@ export const orderService = {
   /**
    * Create a new order with items
    */
-  async createOrder(customerId: string, branchId: string, totalAmount: number, items: any[], advanceAmount: number = 0, discountAmount: number = 0, dueDate: string | null = null) {
+  async createOrder(customerId: string, branchId: string, totalAmount: number, items: any[], advanceAmount: number = 0, discountAmount: number = 0, dueDate: string | null = null, vendorId?: string | null) {
     const netAmount = totalAmount; // Total amount passed already has discount subtract if was using grandTotal
     // Let's assume totalAmount passed is THE FINAL BILL total.
     // If we want to store SUB-TOTAL and DISCOUNT, we should.
-    
+
     const balanceAmount = netAmount - advanceAmount;
     const paymentStatus = (advanceAmount >= netAmount && netAmount > 0) ? 'paid' : (advanceAmount > 0 ? 'partially_paid' : 'pending');
 
@@ -139,7 +134,8 @@ export const orderService = {
       .insert([{
         customer_id: customerId,
         branch_id: branchId,
-        total_amount: netAmount, 
+        vendor_id: vendorId ?? null,
+        total_amount: netAmount,
         advance_amount: advanceAmount,
         balance_amount: balanceAmount,
         discount_amount: discountAmount,
@@ -150,7 +146,7 @@ export const orderService = {
       .single();
 
     if (orderError) throw orderError;
-    
+
     // items logic ...
     const orderItems = items.map(item => ({
       order_id: order.id,
@@ -181,7 +177,7 @@ export const orderService = {
       .update({ payment_status: status })
       .eq('id', orderId)
       .select();
-    
+
     if (error) throw error;
     return data[0];
   },
@@ -249,7 +245,7 @@ export const orderService = {
         customers(name, mobile),
         branches(name)
       `);
-    
+
     if (error) throw error;
     const order = data[0];
 
@@ -258,10 +254,10 @@ export const orderService = {
       const branchName = order.branches?.name || 'our branch';
       const orderRef = order.order_number ? `GWC${order.order_number}` : 'GWC' + order.id.slice(0, 4).toUpperCase();
       const mobile = order.customers.mobile;
-      
+
       const orderDate = new Date(order.created_at).toLocaleDateString('en-GB');
       const dueDate = order.due_date ? order.due_date.split('-').reverse().join('/') : orderDate;
-      
+
       const message = `Greetings from Green Wash Co.\n` +
         `We are pleased to have you as a valuable customer. Your laundry order ${orderRef} is cleaned and ready for pickup at our ${branchName}!\n\n` +
         `Invoice No:-${orderRef}\n` +
@@ -270,7 +266,7 @@ export const orderService = {
         `Total Amount: ₹${Number(order.total_amount).toLocaleString()}\n` +
         `Balance: ₹${Number(order.balance_amount || 0).toLocaleString()}\n\n` +
         `Please visit us during business hours. Thank you! 👕✨`;
-      
+
       // Automated send (Simulated placeholder for now)
       await notificationService.sendAutomatedWhatsApp(mobile, message);
     }
@@ -279,9 +275,10 @@ export const orderService = {
   },
 
   /**
-   * Fetch aggregate statistics for the dashboard
+   * Fetch aggregate statistics for the dashboard.
+   * Pass vendorId to scope to a specific vendor (Vendor role).
    */
-  async getDashboardStats() {
+  async getDashboardStats(vendorId?: string | null) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -289,21 +286,29 @@ export const orderService = {
     oneYearAgo.setDate(oneYearAgo.getDate() - 365);
     oneYearAgo.setHours(0, 0, 0, 0);
 
+    let customersQuery = supabase.from('customers').select('*', { count: 'exact', head: true });
+    if (vendorId) customersQuery = customersQuery.eq('vendor_id', vendorId);
+
+    let ordersQuery = supabase.from('orders')
+      .select('total_amount, payment_status, created_at, branch_id, branches(name)')
+      .gte('created_at', oneYearAgo.toISOString())
+      .neq('order_status', 'Cancelled');
+    if (vendorId) ordersQuery = ordersQuery.eq('vendor_id', vendorId);
+
+    let branchQuery = supabase.from('branches').select(`
+      id,
+      name,
+      orders:orders(total_amount, created_at, order_status)
+    `);
+
     const [
       { count: customerCount },
       { data: orders },
       { data: branchStats }
     ] = await Promise.all([
-      supabase.from('customers').select('*', { count: 'exact', head: true }),
-      supabase.from('orders')
-        .select('total_amount, payment_status, created_at, branch_id, branches(name)')
-        .gte('created_at', oneYearAgo.toISOString())
-        .neq('order_status', 'Cancelled'),
-      supabase.from('branches').select(`
-        id,
-        name,
-        orders:orders(total_amount, created_at, order_status)
-      `)
+      customersQuery,
+      ordersQuery,
+      branchQuery,
     ]);
 
     // Calculate sales trend for a longer period (365 days) to support various timeframes
@@ -382,7 +387,7 @@ export const orderService = {
       .from('orders')
       .delete()
       .eq('id', id);
-    
+
     if (error) throw error;
     return true;
   },
@@ -399,7 +404,7 @@ export const orderService = {
       })
       .eq('id', orderId)
       .select();
-    
+
     if (error) throw error;
     return data[0];
   }

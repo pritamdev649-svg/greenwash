@@ -12,6 +12,7 @@ import {
 import { orderService } from '@backend/services/orderService';
 import { cn } from '../lib/utils';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useAuth } from '../contexts/AuthContext';
 
 interface Category {
   id: string;
@@ -29,6 +30,7 @@ interface Item {
 
 const Categories: React.FC = () => {
   const { t } = useLanguage();
+  const { vendorId } = useAuth();
   // State
   const [categories, setCategories] = useState<Category[]>([]);
   const [items, setItems] = useState<Item[]>([]);
@@ -49,8 +51,8 @@ const Categories: React.FC = () => {
   const fetchData = async () => {
     try {
       const [catData, itemData] = await Promise.all([
-        orderService.getAllCategories(),
-        orderService.getAllClothTypes()
+        orderService.getAllCategories(vendorId),
+        orderService.getAllClothTypes(vendorId)
       ]);
       setCategories(catData as any);
       setItems(itemData as any);
@@ -66,14 +68,14 @@ const Categories: React.FC = () => {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [vendorId]);
 
   // Handlers - Categories
   const handleAddCategory = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newCategoryName.trim()) return;
     try {
-      const newCat = await orderService.addCategory(newCategoryName);
+      const newCat = await orderService.addCategory(newCategoryName, vendorId);
       setNewCategoryName('');
       setIsAddingCategory(false);
       await fetchData();

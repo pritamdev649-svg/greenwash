@@ -14,6 +14,7 @@ import {
 import { offerService } from '@backend/services/offerService';
 import { cn } from '../lib/utils';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useAuth } from '../contexts/AuthContext';
 
 interface Offer {
   id: string;
@@ -28,6 +29,7 @@ interface Offer {
 
 const Offers: React.FC = () => {
   const { t } = useLanguage();
+  const { vendorId } = useAuth();
   const [offers, setOffers] = useState<Offer[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAddingOffer, setIsAddingOffer] = useState(false);
@@ -45,7 +47,7 @@ const Offers: React.FC = () => {
   const fetchOffers = async () => {
     try {
       setLoading(true);
-      const data = await offerService.getAllOffers();
+      const data = await offerService.getAllOffers(vendorId);
       setOffers(data as Offer[]);
     } catch (err) {
       console.error(err);
@@ -56,7 +58,7 @@ const Offers: React.FC = () => {
 
   useEffect(() => {
     fetchOffers();
-  }, []);
+  }, [vendorId]);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -102,7 +104,7 @@ const Offers: React.FC = () => {
       if (editingId) {
         await offerService.updateOffer(editingId, payload);
       } else {
-        await offerService.addOffer(payload);
+        await offerService.addOffer({ ...payload, vendor_id: vendorId });
       }
 
       resetForm();

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Shirt, Trash2, Edit2, Plus, Check } from 'lucide-react';
 import { orderService } from '@backend/services/orderService';
+import { useAuth } from '../contexts/AuthContext';
 
 interface ClothType {
   id: string;
@@ -13,6 +14,7 @@ interface ClothType {
 }
 
 const ClothTypes: React.FC = () => {
+  const { vendorId } = useAuth();
   const [items, setItems] = useState<ClothType[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>('all');
@@ -24,8 +26,8 @@ const ClothTypes: React.FC = () => {
     try {
       setLoading(true);
       const [itData, catData] = await Promise.all([
-        orderService.getAllClothTypes(),
-        orderService.getAllCategories()
+        orderService.getAllClothTypes(vendorId),
+        orderService.getAllCategories(vendorId)
       ]);
       setItems(itData as any);
       setCategories(catData as any);
@@ -38,7 +40,7 @@ const ClothTypes: React.FC = () => {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [vendorId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,7 +48,7 @@ const ClothTypes: React.FC = () => {
       if (editingId) {
          await orderService.updateClothType(editingId, formData);
       } else {
-         await orderService.addClothType(formData);
+         await orderService.addClothType({ ...formData, vendor_id: vendorId });
       }
       setFormData({ name: '', category_id: '', wash_price: 0, iron_price: 0, dry_clean_price: 0 });
       setEditingId(null);

@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { 
-  Search, 
-  Filter, 
-  Phone, 
-  MapPin, 
-  History, 
-  UserPlus, 
-  X, 
+import {
+  Search,
+  Filter,
+  Phone,
+  MapPin,
+  History,
+  UserPlus,
+  X,
   MessageCircle,
   ArrowRight,
   TrendingUp,
@@ -25,6 +25,7 @@ import { notificationService } from '@backend/services/notificationService';
 import { PrintReceipt } from '../components/PrintReceipt';
 import type { PrintReceiptProps } from '../components/PrintReceipt';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useAuth } from '../contexts/AuthContext';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -53,12 +54,13 @@ const Customers: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useLanguage();
+  const { vendorId } = useAuth();
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [branches, setBranches] = useState<{ id: string, name: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedBranch, setSelectedBranch] = useState('all');
-  
+
   // Modals
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -75,13 +77,13 @@ const Customers: React.FC = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      
+
       // Use services
       const [bData, cData] = await Promise.all([
         branchService.getAllBranches(),
-        customerService.getAllCustomers()
+        customerService.getAllCustomers(true, vendorId)
       ]);
-      
+
       setBranches(bData);
       setCustomers(cData as any);
     } catch (err) {
@@ -97,16 +99,16 @@ const Customers: React.FC = () => {
     if (params.get('add') === 'true') {
       setIsAddModalOpen(true);
     }
-  }, [location.search]);
+  }, [location.search, vendorId]);
 
   const handleAddCustomer = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await customerService.addCustomer(formData);
+      await customerService.addCustomer({ ...formData, vendor_id: vendorId });
       setIsAddModalOpen(false);
       setFormData({ name: '', mobile: '', email: '', address: '', branch_id: '' });
       await fetchData();
-      
+
       const params = new URLSearchParams(location.search);
       const returnTo = params.get('returnTo');
       if (returnTo) {
@@ -161,7 +163,7 @@ const Customers: React.FC = () => {
     setSelectedCustomer(customer);
     setIsHistoryModalOpen(true);
     setOrdersLoading(true);
-    
+
     try {
       const data = await customerService.getCustomerOrders(customer.id);
       setCustomerOrders(data as any);
@@ -176,12 +178,12 @@ const Customers: React.FC = () => {
     try {
       setOrdersLoading(true);
       const detailedOrder = await orderService.getOrderById(orderId);
-      
+
       const pData: PrintReceiptProps['orderData'] = {
         orderNo: detailedOrder.id.slice(0, 6).toUpperCase(),
         date: new Date(detailedOrder.created_at).toLocaleDateString('en-GB'),
-        dueDate: detailedOrder.due_date 
-          ? detailedOrder.due_date.split('-').reverse().join('/') 
+        dueDate: detailedOrder.due_date
+          ? detailedOrder.due_date.split('-').reverse().join('/')
           : new Date(detailedOrder.created_at).toLocaleDateString('en-GB'),
         customerName: detailedOrder.customers?.name || selectedCustomer?.name || 'Customer',
         customerAddress: detailedOrder.customers?.address || selectedCustomer?.address || '',
@@ -200,9 +202,9 @@ const Customers: React.FC = () => {
         advance: detailedOrder.advance_amount || 0,
         balance: detailedOrder.balance_amount || 0
       };
-      
+
       setPrintingOrderData(pData);
-      
+
       setTimeout(() => {
         window.print();
         setPrintingOrderData(null);
@@ -216,8 +218,8 @@ const Customers: React.FC = () => {
   };
 
   const filteredCustomers = customers.filter(c => {
-    const matchesSearch = c.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          c.mobile.includes(searchTerm);
+    const matchesSearch = c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      c.mobile.includes(searchTerm);
     const matchesBranch = selectedBranch === 'all' || c.branch_id === selectedBranch;
     return matchesSearch && matchesBranch;
   });
@@ -244,155 +246,155 @@ const Customers: React.FC = () => {
 
   return (
     <>
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h2 className="text-2xl font-bold text-slate-900 tracking-tight">{t('customer_directory')}</h2>
-          <p className="text-sm text-slate-500 font-medium">{t('manage_customer_base')}</p>
-        </div>
-        <button 
-          onClick={() => setIsAddModalOpen(true)}
-          className="btn-primary flex items-center gap-2 h-11 px-5 rounded-xl shadow-lg shadow-primary-600/20 active:scale-95 transition-all text-sm font-bold"
-        >
-          <UserPlus size={18} />
-          <span>{t('add_customer_btn')}</span>
-        </button>
-      </div>
-
-      {/* Filters */}
-      <div className="flex flex-col md:flex-row gap-4">
-        <div className="relative flex-1 group">
-          <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-primary-500 transition-colors">
-            <Search size={18} />
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div>
+            <h2 className="text-2xl font-bold text-slate-900 tracking-tight">{t('customer_directory')}</h2>
+            <p className="text-sm text-slate-500 font-medium">{t('manage_customer_base')}</p>
           </div>
-          <input
-            type="text"
-            placeholder={t('search_customers')}
-            className="w-full h-11 pl-10 pr-4 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
-        <div className="relative w-full md:w-64 group">
-          <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-primary-500 transition-colors">
-            <Filter size={18} />
-          </div>
-          <select 
-            className="w-full h-11 pl-10 pr-4 bg-white border border-slate-200 rounded-xl text-sm appearance-none focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent cursor-pointer transition-all"
-            value={selectedBranch}
-            onChange={(e) => setSelectedBranch(e.target.value)}
+          <button
+            onClick={() => setIsAddModalOpen(true)}
+            className="btn-primary flex items-center gap-2 h-11 px-5 rounded-xl shadow-lg shadow-primary-600/20 active:scale-95 transition-all text-sm font-bold"
           >
-            <option value="all">{t('branches')}</option>
-            {branches.map(b => (
-              <option key={b.id} value={b.id}>{b.name}</option>
-            ))}
-          </select>
+            <UserPlus size={18} />
+            <span>{t('add_customer_btn')}</span>
+          </button>
         </div>
-      </div>
 
-      <div className="card overflow-hidden border-slate-200">
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[800px] text-left border-collapse">
-            <thead>
-              <tr className="bg-slate-50">
-                <th className="table-header">{t('customer_profile')}</th>
-                <th className="table-header">{t('contact_detail')}</th>
-                <th className="table-header text-center">{t('orders')}</th>
-                <th className="table-header">{t('remaining')}</th>
-                <th className="table-header text-right">{t('actions')}</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {loading ? (
-                <tr><td colSpan={5} className="p-20 text-center"><div className="w-8 h-8 border-2 border-primary-600 border-t-transparent animate-spin rounded-full mx-auto" /></td></tr>
-              ) : filteredCustomers.length === 0 ? (
-                <tr><td colSpan={5} className="p-32 text-center text-slate-400 font-medium">No customers found matching your criteria.</td></tr>
-              ) : filteredCustomers.map((customer) => (
-                <tr key={customer.id} className="table-row group">
-                  <td className="table-cell">
-                    <div className="flex items-center gap-4">
-                      <div className="w-11 h-11 rounded-full bg-slate-100 flex items-center justify-center font-bold text-slate-600 text-sm border-2 border-white shadow-sm group-hover:bg-primary-50 group-hover:text-primary-600 transition-colors">
-                        {customer.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()}
-                      </div>
-                      <div>
-                        <div className="font-bold text-slate-900 leading-tight">{customer.name}</div>
-                        <div className="text-xs font-semibold text-slate-400 mt-0.5 flex items-center gap-1 group-hover:text-slate-500 transition-colors">
-                          <MapPin size={10} />
-                          <span className="truncate max-w-[140px]">{customer.address || 'No address'}</span>
+        {/* Filters */}
+        <div className="flex flex-col md:flex-row gap-4">
+          <div className="relative flex-1 group">
+            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-primary-500 transition-colors">
+              <Search size={18} />
+            </div>
+            <input
+              type="text"
+              placeholder={t('search_customers')}
+              className="w-full h-11 pl-10 pr-4 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          <div className="relative w-full md:w-64 group">
+            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-primary-500 transition-colors">
+              <Filter size={18} />
+            </div>
+            <select
+              className="w-full h-11 pl-10 pr-4 bg-white border border-slate-200 rounded-xl text-sm appearance-none focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent cursor-pointer transition-all"
+              value={selectedBranch}
+              onChange={(e) => setSelectedBranch(e.target.value)}
+            >
+              <option value="all">{t('branches')}</option>
+              {branches.map(b => (
+                <option key={b.id} value={b.id}>{b.name}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        <div className="card overflow-hidden border-slate-200">
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[800px] text-left border-collapse">
+              <thead>
+                <tr className="bg-slate-50">
+                  <th className="table-header">{t('customer_profile')}</th>
+                  <th className="table-header">{t('contact_detail')}</th>
+                  <th className="table-header text-center">{t('orders')}</th>
+                  <th className="table-header">{t('remaining')}</th>
+                  <th className="table-header text-right">{t('actions')}</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {loading ? (
+                  <tr><td colSpan={5} className="p-20 text-center"><div className="w-8 h-8 border-2 border-primary-600 border-t-transparent animate-spin rounded-full mx-auto" /></td></tr>
+                ) : filteredCustomers.length === 0 ? (
+                  <tr><td colSpan={5} className="p-32 text-center text-slate-400 font-medium">No customers found matching your criteria.</td></tr>
+                ) : filteredCustomers.map((customer) => (
+                  <tr key={customer.id} className="table-row group">
+                    <td className="table-cell">
+                      <div className="flex items-center gap-4">
+                        <div className="w-11 h-11 rounded-full bg-slate-100 flex items-center justify-center font-bold text-slate-600 text-sm border-2 border-white shadow-sm group-hover:bg-primary-50 group-hover:text-primary-600 transition-colors">
+                          {customer.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()}
+                        </div>
+                        <div>
+                          <div className="font-bold text-slate-900 leading-tight">{customer.name}</div>
+                          <div className="text-xs font-semibold text-slate-400 mt-0.5 flex items-center gap-1 group-hover:text-slate-500 transition-colors">
+                            <MapPin size={10} />
+                            <span className="truncate max-w-[140px]">{customer.address || 'No address'}</span>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </td>
-                  <td className="table-cell">
-                    <div className="space-y-1">
-                      <button 
-                        onClick={() => handleSendDirectMessage(customer)}
-                        className="text-sm font-bold text-slate-700 hover:text-emerald-600 flex items-center gap-1.5 transition-colors group/msg"
-                        title="Send automated message to this customer"
-                      >
-                         <Phone size={14} className="text-slate-400 group-hover/msg:text-emerald-500" />
-                         {customer.mobile}
-                         <MessageCircle size={14} className="text-emerald-500 opacity-0 group-hover/msg:opacity-100 transition-opacity" />
-                      </button>
-                      <div className="inline-flex items-center px-1.5 py-0.5 rounded bg-primary-50 text-[10px] font-bold text-primary-600 border border-primary-100 uppercase tracking-tighter">
-                         {customer.branch?.name || 'Main Office'}
+                    </td>
+                    <td className="table-cell">
+                      <div className="space-y-1">
+                        <button
+                          onClick={() => handleSendDirectMessage(customer)}
+                          className="text-sm font-bold text-slate-700 hover:text-emerald-600 flex items-center gap-1.5 transition-colors group/msg"
+                          title="Send automated message to this customer"
+                        >
+                          <Phone size={14} className="text-slate-400 group-hover/msg:text-emerald-500" />
+                          {customer.mobile}
+                          <MessageCircle size={14} className="text-emerald-500 opacity-0 group-hover/msg:opacity-100 transition-opacity" />
+                        </button>
+                        <div className="inline-flex items-center px-1.5 py-0.5 rounded bg-primary-50 text-[10px] font-bold text-primary-600 border border-primary-100 uppercase tracking-tighter">
+                          {customer.branch?.name || 'Main Office'}
+                        </div>
                       </div>
-                    </div>
-                  </td>
-                  <td className="table-cell text-center">
-                    <div className="inline-flex items-center gap-1 bg-slate-50 px-2 py-1 rounded-md border border-slate-100">
-                      <span className="text-sm font-bold text-slate-900">{customer.total_orders}</span>
-                      <TrendingUp size={12} className="text-emerald-500" />
-                    </div>
-                  </td>
-                  <td className="table-cell">
-                    <div className={cn(
-                      "text-sm font-bold px-2 py-1 rounded-lg w-fit",
-                      (customer.pending_amount || 0) > 0 
-                        ? "text-rose-700 bg-rose-50 border border-rose-100" 
-                        : "text-emerald-700 bg-emerald-50 border border-emerald-100"
-                    )}>
-                      ₹{customer.pending_amount?.toLocaleString()}
-                    </div>
-                  </td>
-                  <td className="table-cell text-right">
-                    <div className="flex justify-end items-center gap-2">
-                       <button 
-                         onClick={() => fetchCustomerHistory(customer)}
-                         className="inline-flex items-center justify-center h-9 w-9 rounded-lg bg-slate-50 text-slate-500 hover:bg-primary-600 hover:text-white transition-all shadow-sm active:scale-95"
-                         title="View History"
-                       >
-                         <History size={16} />
-                       </button>
-                       <button 
-                         onClick={() => handleEditClick(customer)}
-                         className="inline-flex items-center justify-center h-9 w-9 rounded-lg bg-slate-50 text-slate-500 hover:bg-indigo-600 hover:text-white transition-all shadow-sm active:scale-95"
-                         title="Edit Profile"
-                       >
-                         <Edit2 size={16} />
-                       </button>
-                       <button 
-                         onClick={() => handleDeleteCustomer(customer.id)}
-                         className="inline-flex items-center justify-center h-9 w-9 rounded-lg bg-slate-50 text-rose-400 hover:bg-rose-600 hover:text-white transition-all shadow-sm active:scale-95"
-                         title="Delete Customer"
-                       >
-                         <Trash2 size={16} />
-                       </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                    </td>
+                    <td className="table-cell text-center">
+                      <div className="inline-flex items-center gap-1 bg-slate-50 px-2 py-1 rounded-md border border-slate-100">
+                        <span className="text-sm font-bold text-slate-900">{customer.total_orders}</span>
+                        <TrendingUp size={12} className="text-emerald-500" />
+                      </div>
+                    </td>
+                    <td className="table-cell">
+                      <div className={cn(
+                        "text-sm font-bold px-2 py-1 rounded-lg w-fit",
+                        (customer.pending_amount || 0) > 0
+                          ? "text-rose-700 bg-rose-50 border border-rose-100"
+                          : "text-emerald-700 bg-emerald-50 border border-emerald-100"
+                      )}>
+                        ₹{customer.pending_amount?.toLocaleString()}
+                      </div>
+                    </td>
+                    <td className="table-cell text-right">
+                      <div className="flex justify-end items-center gap-2">
+                        <button
+                          onClick={() => fetchCustomerHistory(customer)}
+                          className="inline-flex items-center justify-center h-9 w-9 rounded-lg bg-slate-50 text-slate-500 hover:bg-primary-600 hover:text-white transition-all shadow-sm active:scale-95"
+                          title="View History"
+                        >
+                          <History size={16} />
+                        </button>
+                        <button
+                          onClick={() => handleEditClick(customer)}
+                          className="inline-flex items-center justify-center h-9 w-9 rounded-lg bg-slate-50 text-slate-500 hover:bg-indigo-600 hover:text-white transition-all shadow-sm active:scale-95"
+                          title="Edit Profile"
+                        >
+                          <Edit2 size={16} />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteCustomer(customer.id)}
+                          className="inline-flex items-center justify-center h-9 w-9 rounded-lg bg-slate-50 text-rose-400 hover:bg-rose-600 hover:text-white transition-all shadow-sm active:scale-95"
+                          title="Delete Customer"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
 
-      {/* Add Customer Modal */}
-      {isAddModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-           <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setIsAddModalOpen(false)} />
-           <div className="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl p-8 animate-slide-up">
+        {/* Add Customer Modal */}
+        {isAddModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setIsAddModalOpen(false)} />
+            <div className="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl p-8 animate-slide-up">
               <div className="flex justify-between items-center mb-6">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-primary-100 text-primary-600 flex items-center justify-center">
@@ -405,38 +407,38 @@ const Customers: React.FC = () => {
 
               <form onSubmit={handleAddCustomer} className="grid grid-cols-2 gap-5">
                 <div className="col-span-2 space-y-1.5">
-                   <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Full Name</label>
-                   <input required className="input h-11 bg-slate-50 focus:bg-white" placeholder="John Doe" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} />
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Full Name</label>
+                  <input required className="input h-11 bg-slate-50 focus:bg-white" placeholder="John Doe" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
                 </div>
                 <div className="space-y-1.5">
-                   <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Mobile Number</label>
-                   <input required className="input h-11 bg-slate-50 focus:bg-white" placeholder="+91 0000 0000" value={formData.mobile} onChange={(e) => setFormData({...formData, mobile: e.target.value})} />
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Mobile Number</label>
+                  <input required className="input h-11 bg-slate-50 focus:bg-white" placeholder="+91 0000 0000" value={formData.mobile} onChange={(e) => setFormData({ ...formData, mobile: e.target.value })} />
                 </div>
                 <div className="space-y-1.5">
-                   <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Branch Assignment</label>
-                   <select required className="input h-11 bg-slate-50 focus:bg-white cursor-pointer" value={formData.branch_id} onChange={(e) => setFormData({...formData, branch_id: e.target.value})}>
-                      <option value="">Select branch</option>
-                      {branches.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
-                   </select>
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Branch Assignment</label>
+                  <select required className="input h-11 bg-slate-50 focus:bg-white cursor-pointer" value={formData.branch_id} onChange={(e) => setFormData({ ...formData, branch_id: e.target.value })}>
+                    <option value="">Select branch</option>
+                    {branches.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
+                  </select>
                 </div>
                 <div className="col-span-2 space-y-1.5">
-                   <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Service Address</label>
-                   <textarea className="input min-h-[80px] py-3 resize-none bg-slate-50 focus:bg-white" placeholder="Apt, Street, Landmark..." value={formData.address} onChange={(e) => setFormData({...formData, address: e.target.value})} />
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Service Address</label>
+                  <textarea className="input min-h-[80px] py-3 resize-none bg-slate-50 focus:bg-white" placeholder="Apt, Street, Landmark..." value={formData.address} onChange={(e) => setFormData({ ...formData, address: e.target.value })} />
                 </div>
                 <div className="col-span-2 pt-2 flex gap-3">
-                   <button type="button" onClick={() => setIsAddModalOpen(false)} className="flex-1 h-12 rounded-xl text-sm font-bold text-slate-500 hover:bg-slate-50 transition-colors">Dismiss</button>
-                   <button type="submit" className="flex-[2] btn-primary h-12 rounded-xl text-sm font-bold shadow-lg shadow-primary-600/20 active:scale-95 transition-all">Submit Entry</button>
+                  <button type="button" onClick={() => setIsAddModalOpen(false)} className="flex-1 h-12 rounded-xl text-sm font-bold text-slate-500 hover:bg-slate-50 transition-colors">Dismiss</button>
+                  <button type="submit" className="flex-[2] btn-primary h-12 rounded-xl text-sm font-bold shadow-lg shadow-primary-600/20 active:scale-95 transition-all">Submit Entry</button>
                 </div>
               </form>
-           </div>
-        </div>
-      )}
+            </div>
+          </div>
+        )}
 
-      {/* Edit Customer Modal */}
-      {isEditModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-           <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setIsEditModalOpen(false)} />
-           <div className="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl p-8 animate-slide-up">
+        {/* Edit Customer Modal */}
+        {isEditModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setIsEditModalOpen(false)} />
+            <div className="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl p-8 animate-slide-up">
               <div className="flex justify-between items-center mb-6">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center">
@@ -449,133 +451,133 @@ const Customers: React.FC = () => {
 
               <form onSubmit={handleUpdateCustomer} className="grid grid-cols-2 gap-5">
                 <div className="col-span-2 space-y-1.5">
-                   <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Full Name</label>
-                   <input required className="input h-11 bg-slate-50 focus:bg-white" placeholder="John Doe" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} />
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Full Name</label>
+                  <input required className="input h-11 bg-slate-50 focus:bg-white" placeholder="John Doe" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
                 </div>
                 <div className="space-y-1.5">
-                   <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Mobile Number</label>
-                   <input required className="input h-11 bg-slate-50 focus:bg-white" placeholder="+91 0000 0000" value={formData.mobile} onChange={(e) => setFormData({...formData, mobile: e.target.value})} />
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Mobile Number</label>
+                  <input required className="input h-11 bg-slate-50 focus:bg-white" placeholder="+91 0000 0000" value={formData.mobile} onChange={(e) => setFormData({ ...formData, mobile: e.target.value })} />
                 </div>
                 <div className="space-y-1.5">
-                   <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Branch Assignment</label>
-                   <select required className="input h-11 bg-slate-50 focus:bg-white cursor-pointer" value={formData.branch_id} onChange={(e) => setFormData({...formData, branch_id: e.target.value})}>
-                      <option value="">Select branch</option>
-                      {branches.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
-                   </select>
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Branch Assignment</label>
+                  <select required className="input h-11 bg-slate-50 focus:bg-white cursor-pointer" value={formData.branch_id} onChange={(e) => setFormData({ ...formData, branch_id: e.target.value })}>
+                    <option value="">Select branch</option>
+                    {branches.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
+                  </select>
                 </div>
                 <div className="col-span-2 space-y-1.5">
-                   <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Service Address</label>
-                   <textarea className="input min-h-[80px] py-3 resize-none bg-slate-50 focus:bg-white" placeholder="Apt, Street, Landmark..." value={formData.address} onChange={(e) => setFormData({...formData, address: e.target.value})} />
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Service Address</label>
+                  <textarea className="input min-h-[80px] py-3 resize-none bg-slate-50 focus:bg-white" placeholder="Apt, Street, Landmark..." value={formData.address} onChange={(e) => setFormData({ ...formData, address: e.target.value })} />
                 </div>
                 <div className="col-span-2 pt-2 flex gap-3">
-                   <button type="button" onClick={() => setIsEditModalOpen(false)} className="flex-1 h-12 rounded-xl text-sm font-bold text-slate-500 hover:bg-slate-50 transition-colors">Discard</button>
-                   <button type="submit" className="flex-[2] h-12 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-bold shadow-lg shadow-indigo-600/20 active:scale-95 transition-all">Save Changes</button>
+                  <button type="button" onClick={() => setIsEditModalOpen(false)} className="flex-1 h-12 rounded-xl text-sm font-bold text-slate-500 hover:bg-slate-50 transition-colors">Discard</button>
+                  <button type="submit" className="flex-[2] h-12 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-bold shadow-lg shadow-indigo-600/20 active:scale-95 transition-all">Save Changes</button>
                 </div>
               </form>
-           </div>
-        </div>
-      )}
+            </div>
+          </div>
+        )}
 
-      {/* History Modal */}
-      {isHistoryModalOpen && selectedCustomer && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-           <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setIsHistoryModalOpen(false)} />
-           <div className="relative w-full max-w-3xl bg-white rounded-3xl shadow-2xl overflow-hidden animate-slide-up flex flex-col max-h-[90vh]">
+        {/* History Modal */}
+        {isHistoryModalOpen && selectedCustomer && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setIsHistoryModalOpen(false)} />
+            <div className="relative w-full max-w-3xl bg-white rounded-3xl shadow-2xl overflow-hidden animate-slide-up flex flex-col max-h-[90vh]">
               <div className="p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-                 <div className="flex items-center gap-5">
-                    <div className="w-14 h-14 rounded-2xl bg-primary-600 text-white flex items-center justify-center text-xl font-bold shadow-xl shadow-primary-600/20">
-                      {selectedCustomer.name[0].toUpperCase()}
+                <div className="flex items-center gap-5">
+                  <div className="w-14 h-14 rounded-2xl bg-primary-600 text-white flex items-center justify-center text-xl font-bold shadow-xl shadow-primary-600/20">
+                    {selectedCustomer.name[0].toUpperCase()}
+                  </div>
+                  <div>
+                    <h3 className="text-2xl font-bold text-slate-900">{selectedCustomer.name}</h3>
+                    <div className="flex items-center gap-3 mt-1 text-sm font-medium text-slate-500">
+                      <span className="flex items-center gap-1"><Phone size={14} className="text-slate-400" /> {selectedCustomer.mobile}</span>
+                      <span className="w-1 h-1 rounded-full bg-slate-300" />
+                      <span className="flex items-center gap-1"><MapPin size={14} className="text-slate-400" /> {selectedCustomer.branch?.name || 'General Branch'}</span>
                     </div>
-                    <div>
-                       <h3 className="text-2xl font-bold text-slate-900">{selectedCustomer.name}</h3>
-                       <div className="flex items-center gap-3 mt-1 text-sm font-medium text-slate-500">
-                          <span className="flex items-center gap-1"><Phone size={14} className="text-slate-400" /> {selectedCustomer.mobile}</span>
-                          <span className="w-1 h-1 rounded-full bg-slate-300" />
-                          <span className="flex items-center gap-1"><MapPin size={14} className="text-slate-400" /> {selectedCustomer.branch?.name || 'General Branch'}</span>
-                       </div>
-                    </div>
-                 </div>
-                 <button onClick={() => setIsHistoryModalOpen(false)} className="p-2 bg-white rounded-full text-slate-400 hover:text-slate-600 transition-colors shadow-sm"><X size={24} /></button>
+                  </div>
+                </div>
+                <button onClick={() => setIsHistoryModalOpen(false)} className="p-2 bg-white rounded-full text-slate-400 hover:text-slate-600 transition-colors shadow-sm"><X size={24} /></button>
               </div>
 
               <div className="flex-1 overflow-y-auto p-8 scrollbar-hide">
-                 <div className="mb-6 flex items-center justify-between">
-                    <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest">Historical Ledger</h4>
-                    <div className="text-xs font-bold text-slate-500 bg-slate-100 px-3 py-1 rounded-full uppercase tracking-tight">
-                       {customerOrders.length} Completed Orders
-                    </div>
-                 </div>
+                <div className="mb-6 flex items-center justify-between">
+                  <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest">Historical Ledger</h4>
+                  <div className="text-xs font-bold text-slate-500 bg-slate-100 px-3 py-1 rounded-full uppercase tracking-tight">
+                    {customerOrders.length} Completed Orders
+                  </div>
+                </div>
 
-                 {ordersLoading ? (
-                    <div className="py-20 flex flex-col items-center gap-4">
-                       <div className="w-10 h-10 border-4 border-primary-100 border-t-primary-600 rounded-full animate-spin" />
-                       <p className="text-sm font-medium text-slate-400">Fetching order records...</p>
+                {ordersLoading ? (
+                  <div className="py-20 flex flex-col items-center gap-4">
+                    <div className="w-10 h-10 border-4 border-primary-100 border-t-primary-600 rounded-full animate-spin" />
+                    <p className="text-sm font-medium text-slate-400">Fetching order records...</p>
+                  </div>
+                ) : customerOrders.length === 0 ? (
+                  <div className="py-32 flex flex-col items-center gap-4 text-center">
+                    <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center text-slate-200">
+                      <Receipt size={32} />
                     </div>
-                 ) : customerOrders.length === 0 ? (
-                    <div className="py-32 flex flex-col items-center gap-4 text-center">
-                       <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center text-slate-200">
-                          <Receipt size={32} />
-                       </div>
-                       <p className="text-slate-400 font-medium">This customer hasn't placed any orders yet.</p>
-                       <button onClick={() => navigate('/sale-order')} className="text-primary-600 font-bold hover:underline py-2">Create First Order</button>
-                    </div>
-                 ) : (
-                    <div className="space-y-4">
-                       {customerOrders.map(order => (
-                          <div key={order.id} className="group flex items-center justify-between p-5 rounded-2xl border border-slate-100 hover:border-primary-200 hover:bg-slate-50/50 transition-all">
-                             <div className="flex items-center gap-6">
-                                <div className="text-center w-12 shrink-0">
-                                   <div className="text-[10px] font-bold text-slate-400 uppercase">{new Date(order.created_at).toLocaleDateString('en-US', { month: 'short' })}</div>
-                                   <div className="text-xl font-extrabold text-slate-800 leading-none">{new Date(order.created_at).getDate()}</div>
-                                </div>
-                                <div className="h-10 w-[1px] bg-slate-100" />
-                                <div>
-                                   <div className="text-sm font-bold text-slate-700 uppercase tracking-tighter mb-1">Order Ref: {order.id.slice(0, 8).toUpperCase()}</div>
-                                   <div className="flex items-center gap-3">
-                                      <div className={cn(
-                                        "text-[10px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-tighter",
-                                        order.payment_status === 'paid' ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-700"
-                                      )}>
-                                        {order.payment_status}
-                                      </div>
-                                      <span className="text-xs font-medium text-slate-400">{new Date(order.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                                   </div>
-                                </div>
-                             </div>
-                             <div className="text-right">
-                                <div className="text-lg font-extrabold text-slate-900 tracking-tight">₹{Number(order.total_amount).toLocaleString()}</div>
-                                <div className={cn(
-                                   "text-[10px] font-bold uppercase",
-                                   (order.balance_amount || 0) > 0 ? "text-rose-500" : "text-emerald-500"
-                                )}>
-                                    {(order.balance_amount || 0) > 0 ? `Balance: ₹${(order.balance_amount ?? 0).toLocaleString()}` : "Fully Paid"}
-                                </div>
-                                <button 
-                                   onClick={() => handlePrintOrder(order.id)}
-                                   className="mt-1 text-[10px] font-bold text-primary-600 uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 ml-auto"
-                                >
-                                   View Receipt <ArrowRight size={10} />
-                                </button>
-                             </div>
+                    <p className="text-slate-400 font-medium">This customer hasn't placed any orders yet.</p>
+                    <button onClick={() => navigate('/sale-order')} className="text-primary-600 font-bold hover:underline py-2">Create First Order</button>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {customerOrders.map(order => (
+                      <div key={order.id} className="group flex items-center justify-between p-5 rounded-2xl border border-slate-100 hover:border-primary-200 hover:bg-slate-50/50 transition-all">
+                        <div className="flex items-center gap-6">
+                          <div className="text-center w-12 shrink-0">
+                            <div className="text-[10px] font-bold text-slate-400 uppercase">{new Date(order.created_at).toLocaleDateString('en-US', { month: 'short' })}</div>
+                            <div className="text-xl font-extrabold text-slate-800 leading-none">{new Date(order.created_at).getDate()}</div>
                           </div>
-                       ))}
-                    </div>
-                 )}
+                          <div className="h-10 w-[1px] bg-slate-100" />
+                          <div>
+                            <div className="text-sm font-bold text-slate-700 uppercase tracking-tighter mb-1">Order Ref: {order.id.slice(0, 8).toUpperCase()}</div>
+                            <div className="flex items-center gap-3">
+                              <div className={cn(
+                                "text-[10px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-tighter",
+                                order.payment_status === 'paid' ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-700"
+                              )}>
+                                {order.payment_status}
+                              </div>
+                              <span className="text-xs font-medium text-slate-400">{new Date(order.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-lg font-extrabold text-slate-900 tracking-tight">₹{Number(order.total_amount).toLocaleString()}</div>
+                          <div className={cn(
+                            "text-[10px] font-bold uppercase",
+                            (order.balance_amount || 0) > 0 ? "text-rose-500" : "text-emerald-500"
+                          )}>
+                            {(order.balance_amount || 0) > 0 ? `Balance: ₹${(order.balance_amount ?? 0).toLocaleString()}` : "Fully Paid"}
+                          </div>
+                          <button
+                            onClick={() => handlePrintOrder(order.id)}
+                            className="mt-1 text-[10px] font-bold text-primary-600 uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 ml-auto"
+                          >
+                            View Receipt <ArrowRight size={10} />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
-              
+
               <div className="p-6 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
-                 <div className="flex items-center gap-2 text-rose-600 bg-rose-50 px-3 py-1.5 rounded-xl border border-rose-100">
-                    <AlertCircle size={16} />
-                    <span className="text-xs font-bold uppercase tracking-tight">Total Pending: ₹{selectedCustomer.pending_amount?.toLocaleString()}</span>
-                 </div>
-                 <button onClick={() => setIsHistoryModalOpen(false)} className="btn-primary h-11 px-6 rounded-xl font-bold text-sm">Close Record</button>
+                <div className="flex items-center gap-2 text-rose-600 bg-rose-50 px-3 py-1.5 rounded-xl border border-rose-100">
+                  <AlertCircle size={16} />
+                  <span className="text-xs font-bold uppercase tracking-tight">Total Pending: ₹{selectedCustomer.pending_amount?.toLocaleString()}</span>
+                </div>
+                <button onClick={() => setIsHistoryModalOpen(false)} className="btn-primary h-11 px-6 rounded-xl font-bold text-sm">Close Record</button>
               </div>
-           </div>
-        </div>
-      )}
-    </div>
-    
-    {printingOrderData && <PrintReceipt orderData={printingOrderData} />}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {printingOrderData && <PrintReceipt orderData={printingOrderData} />}
     </>
   );
 };

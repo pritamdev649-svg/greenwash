@@ -25,6 +25,12 @@ export interface PrintReceiptProps {
     total: number;
     advance: number;
     balance: number;
+    paymentInfo?: {
+      upiId?: string | null;
+      qrCodeUrl?: string | null;
+      qrCodeText?: string | null;
+      accountHolderName?: string | null;
+    } | null;
   };
 }
 
@@ -38,9 +44,9 @@ export const PrintReceipt: React.FC<PrintReceiptProps> = ({ orderData }) => {
     .split(' ')
     .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ');
-  
+
   const amountInWords = `${capitalizedWords} Rupees only`;
-  
+
   // Logic to separate standard items and [CHARGE] items
   // This ensures that even for saved orders where charges are merged into items,
   // we still display them professionally in the summary section.
@@ -79,10 +85,10 @@ export const PrintReceipt: React.FC<PrintReceiptProps> = ({ orderData }) => {
   }, []);
 
   return (
-    <div 
+    <div
       id="receipt-print-content"
       // Use absolute positioning off-screen instead of hidden so html2canvas can capture it
-      className="absolute -left-[9999px] top-0 print:static print:left-0 font-sans text-black p-8 w-full bg-white printable-area relative overflow-hidden" 
+      className="absolute -left-[9999px] top-0 print:static print:left-0 font-sans text-black p-8 w-full bg-white printable-area relative overflow-hidden"
       style={{ fontFamily: 'Arial, sans-serif', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' } as React.CSSProperties}
     >
       {/* Cancelled Watermark */}
@@ -178,21 +184,33 @@ export const PrintReceipt: React.FC<PrintReceiptProps> = ({ orderData }) => {
             <p className="text-[10px] text-gray-800 mt-3 italic font-medium">Thanks for doing business with us!</p>
           </div>
           <div className="mt-4 flex gap-6">
-            {/* Payment QR Code */}
+            {/* Payment QR Code — uses vendor payment info if available */}
             <div className="text-center w-24">
               <div className="w-20 h-20 border border-gray-400 p-1 rounded inline-block bg-white relative flex items-center justify-center">
-                <QRCodeSVG 
-                  value={`upi://pay?pa=9628562024@kotak811&pn=SUMIT%20KUMAR&am=${orderData.balance}&tn=Order_${orderData.orderNo}&cu=INR`}
-                  size={70}
-                />
+                {orderData.paymentInfo?.qrCodeUrl ? (
+                  <img src={orderData.paymentInfo.qrCodeUrl} alt="Pay QR" style={{ width: 70, height: 70, objectFit: 'contain' }} />
+                ) : (
+                  <QRCodeSVG
+                    value={
+                      orderData.paymentInfo?.qrCodeText ||
+                      (orderData.paymentInfo?.upiId
+                        ? `upi://pay?pa=${orderData.paymentInfo.upiId}&pn=${encodeURIComponent(orderData.paymentInfo.accountHolderName || 'Green Wash Co')}&am=${orderData.balance}&tn=Order_${orderData.orderNo}&cu=INR`
+                        : `upi://pay?pa=9628562024@kotak811&pn=SUMIT%20KUMAR&am=${orderData.balance}&tn=Order_${orderData.orderNo}&cu=INR`)
+                    }
+                    size={70}
+                  />
+                )}
               </div>
               <div className="bg-[#2FA84B] text-white text-[9px] py-1 mt-1 rounded font-bold w-full mx-auto uppercase">Scan to Pay</div>
+              {orderData.paymentInfo?.upiId && (
+                <p className="text-[8px] text-gray-500 mt-0.5 truncate w-24">{orderData.paymentInfo.upiId}</p>
+              )}
             </div>
 
             {/* Google Review QR Code */}
             <div className="text-center w-24">
               <div className="w-20 h-20 border border-[#4285F4] p-1 rounded inline-block bg-white relative flex items-center justify-center">
-                <QRCodeSVG 
+                <QRCodeSVG
                   value={`https://g.page/r/CWo32A-V7qWGEBM/review`}
                   size={70}
                   fgColor="#4285F4"
@@ -243,10 +261,10 @@ export const PrintReceipt: React.FC<PrintReceiptProps> = ({ orderData }) => {
               <div className="h-0 border-t border-gray-300 w-full opacity-0"></div>
               {/* Added a red semi-transparent mock signature squiggle for effect */}
               <div className="h-6 w-16 mx-auto -mt-4 opacity-30 mb-2 relative">
-                 <svg viewBox="0 0 100 40" className="w-full h-full text-red-500 fill-current opacity-80" preserveAspectRatio="none">
-                   <path d="M10,30 Q25,5 40,25 T70,10 T90,20" stroke="currentColor" fill="transparent" strokeWidth="2"/>
-                   <path d="M20,20 L80,20" stroke="currentColor" fill="transparent" strokeWidth="1"/>
-                 </svg>
+                <svg viewBox="0 0 100 40" className="w-full h-full text-red-500 fill-current opacity-80" preserveAspectRatio="none">
+                  <path d="M10,30 Q25,5 40,25 T70,10 T90,20" stroke="currentColor" fill="transparent" strokeWidth="2" />
+                  <path d="M20,20 L80,20" stroke="currentColor" fill="transparent" strokeWidth="1" />
+                </svg>
               </div>
               <p className="text-[11px] font-bold text-center">Authorized Signatory</p>
             </div>
