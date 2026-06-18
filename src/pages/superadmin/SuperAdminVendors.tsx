@@ -100,6 +100,13 @@ const SuperAdminVendors: React.FC = () => {
           state: vendorForm.state || null,
           admin_id: vendorForm.admin_id || null,
         } as Partial<VendorData>);
+        if (vendorForm.email.trim() && vendorForm.password.trim()) {
+          try {
+            await vendorService.createVendorAuthUser(editing.id, vendorForm.email, vendorForm.password);
+          } catch (authError: any) {
+            console.error("Auth creation skipped or failed:", authError);
+          }
+        }
         await superAdminService.writeAuditLog({ user_id: user?.id, user_role: 'super_admin', user_email: user?.email, action: 'UPDATE_VENDOR', entity_type: 'vendor', entity_id: editing.id });
       } else {
         const created = await vendorService.createVendor({
@@ -307,24 +314,28 @@ const SuperAdminVendors: React.FC = () => {
                   {admins.filter(a => a.is_active).map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
                 </select>
               </div>
-              {!editing && (
-                <div>
-                  <label className="block text-xs font-black text-slate-500 uppercase tracking-widest mb-1.5">Initial Password</label>
-                  <div className="relative">
-                    <input type={showPassword ? 'text' : 'password'} value={vendorForm.password} onChange={e => setVendorForm(f => ({ ...f, password: e.target.value }))}
-                      className="w-full border border-slate-200 rounded-xl px-4 py-2.5 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300"
-                      placeholder="Requires email above" />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600"
-                    >
-                      {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                    </button>
-                  </div>
-                  <p className="text-[10px] text-slate-400 mt-1">Creates a Supabase login for this vendor.</p>
+              <div>
+                <label className="block text-xs font-black text-slate-500 uppercase tracking-widest mb-1.5">
+                  {editing ? "Set Login Password (If not set)" : "Initial Password"}
+                </label>
+                <div className="relative">
+                  <input type={showPassword ? 'text' : 'password'} value={vendorForm.password} onChange={e => setVendorForm(f => ({ ...f, password: e.target.value }))}
+                    className="w-full border border-slate-200 rounded-xl px-4 py-2.5 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300"
+                    placeholder="Requires email above" />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600"
+                  >
+                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
                 </div>
-              )}
+                {editing ? (
+                  <p className="text-[10px] text-slate-400 mt-1">Fill email & password to assign login access to this vendor.</p>
+                ) : (
+                  <p className="text-[10px] text-slate-400 mt-1">Creates a Supabase login for this vendor.</p>
+                )}
+              </div>
             </div>
             <div className="flex gap-3 p-6 pt-0">
               <button onClick={() => setShowVendorModal(false)} className="flex-1 border border-slate-200 text-slate-600 rounded-xl py-2.5 text-sm font-bold hover:bg-slate-50 transition-colors">Cancel</button>
