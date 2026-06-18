@@ -91,22 +91,17 @@ export const adminService = {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    const [
-      { data: vendors },
-      { data: orders },
-    ] = await Promise.all([
-      supabase.from('vendors').select('id, name, is_active').eq('admin_id', adminId),
-      supabase
+    const { data: vendors } = await supabase.from('vendors').select('id, name, is_active').eq('admin_id', adminId);
+    const vendorIds = (vendors ?? []).map((v: { id: string }) => v.id);
+
+    let orders: any[] = [];
+    if (vendorIds.length > 0) {
+      const { data } = await supabase
         .from('orders')
         .select('total_amount, payment_status, created_at, vendor_id')
-        .in(
-          'vendor_id',
-          (await supabase.from('vendors').select('id').eq('admin_id', adminId)).data?.map((v: { id: string }) => v.id) ?? []
-        )
-        .neq('order_status', 'Cancelled'),
-    ]);
-
-    const vendorIds = (vendors ?? []).map((v: { id: string }) => v.id);
+        .in('vendor_id', vendorIds)
+        .neq('order_status', 'Cancelled');
+      orders = data ?? [];
     const rangeDays = 30;
     const trendMap = new Map<string, { orders: number; sales: number }>();
     for (let i = rangeDays - 1; i >= 0; i--) {
