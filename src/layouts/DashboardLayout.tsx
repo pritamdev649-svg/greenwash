@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import {
-  MapPin,
   Users,
   Receipt,
   LayoutDashboard,

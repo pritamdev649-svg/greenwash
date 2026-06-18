@@ -170,8 +170,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(response.data.session.user as any);
     }
     // Demo bypass returns role directly
-    if (response.data?.role) {
-      applyProfile(response.data.userProfile ?? null);
+    if ((response.data as any)?.role) {
+      applyProfile((response.data as any).userProfile ?? null);
     }
     return response;
   };

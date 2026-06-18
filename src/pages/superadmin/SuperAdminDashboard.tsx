@@ -117,11 +117,11 @@ const SuperAdminDashboard: React.FC = () => {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-black text-slate-900 truncate">{v.name}</p>
-                  <p className="text-[10px] text-slate-400 font-bold uppercase">{v.totalOrders} orders</p>
+                  <p className="text-[10px] text-slate-400 font-bold uppercase">{v.todayOrders} orders today</p>
                 </div>
                 <div className="text-right">
                   <p className="text-sm font-black text-slate-900">₹{v.totalSales.toLocaleString()}</p>
-                  <p className="text-[10px] text-emerald-500 font-bold uppercase">{v.todayOrders} today</p>
+                  <p className="text-[10px] text-emerald-500 font-bold uppercase">₹{v.todaySales.toLocaleString()} today</p>
                 </div>
               </div>
             ))}

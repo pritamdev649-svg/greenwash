@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Store, QrCode, X, Loader2, CreditCard, Plus, Edit2, Trash2, ToggleLeft, ToggleRight, Eye, EyeOff, LogIn } from 'lucide-react';
 import { vendorService } from '@backend/services/vendorService';
@@ -97,7 +97,7 @@ const handleSaveVendor = async () => {
         address: vendorForm.address || undefined,
         city: vendorForm.city || undefined,
         state: vendorForm.state || undefined,
-        admin_id: adminId,
+        admin_id: adminId ?? undefined,
         created_by: user?.id,
       });
       if (vendorForm.email.trim() && vendorForm.password.trim()) {
