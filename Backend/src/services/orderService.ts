@@ -77,6 +77,41 @@ export const orderService = {
    * Pass vendorId to scope results to a specific vendor.
    */
   async getAllOrders(vendorId?: string | null) {
+    if (typeof window !== 'undefined' && localStorage.getItem('sb-demo-session') === 'true') {
+      return [
+        {
+          id: 'demo-1',
+          order_number: '1001',
+          customers: { name: 'John Doe', mobile: '+91 9876543210' },
+          branches: { name: 'Main Branch' },
+          total_amount: 450,
+          order_status: 'Ready',
+          payment_status: 'paid',
+          created_at: new Date().toISOString()
+        },
+        {
+          id: 'demo-2',
+          order_number: '1002',
+          customers: { name: 'Alice Smith', mobile: '+91 9876543211' },
+          branches: { name: 'Downtown Branch' },
+          total_amount: 1200,
+          order_status: 'Washing',
+          payment_status: 'pending',
+          created_at: new Date(Date.now() - 86400000).toISOString()
+        },
+        {
+          id: 'demo-3',
+          order_number: '1003',
+          customers: { name: 'Bob Johnson', mobile: '+91 9876543212' },
+          branches: { name: 'Main Branch' },
+          total_amount: 850,
+          order_status: 'Processing',
+          payment_status: 'partially_paid',
+          created_at: new Date(Date.now() - 172800000).toISOString()
+        }
+      ];
+    }
+
     let query = supabase
       .from('orders')
       .select(`
@@ -91,9 +126,16 @@ export const orderService = {
 
     if (vendorId) query = query.eq('vendor_id', vendorId);
 
-    const { data, error } = await query;
-    if (error) throw error;
-    return data || [];
+    try {
+      // Add a simple timeout to prevent indefinite hanging if Supabase is unreachable
+      const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("Supabase timeout")), 5000));
+      const { data, error } = await Promise.race([query, timeoutPromise]) as any;
+      if (error) throw error;
+      return data || [];
+    } catch (err) {
+      console.error("Error fetching orders:", err);
+      return []; // Return empty array instead of hanging
+    }
   },
 
   /**
@@ -279,6 +321,35 @@ export const orderService = {
    * Pass vendorId to scope to a specific vendor (Vendor role).
    */
   async getDashboardStats(vendorId?: string | null) {
+    if (typeof window !== 'undefined' && localStorage.getItem('sb-demo-session') === 'true') {
+      const todaySales = 12500;
+      return {
+        totalCustomers: 124,
+        totalOrders: 89,
+        totalRevenue: 45000,
+        pendingPayments: 5200,
+        todaySales: todaySales,
+        todayOrders: 15,
+        salesTrend: [
+          { date: new Date(Date.now() - 5 * 86400000).toISOString().split('T')[0], orders: 12, sales: 9000 },
+          { date: new Date(Date.now() - 4 * 86400000).toISOString().split('T')[0], orders: 15, sales: 11000 },
+          { date: new Date(Date.now() - 3 * 86400000).toISOString().split('T')[0], orders: 8, sales: 5000 },
+          { date: new Date(Date.now() - 2 * 86400000).toISOString().split('T')[0], orders: 20, sales: 14000 },
+          { date: new Date(Date.now() - 1 * 86400000).toISOString().split('T')[0], orders: 18, sales: 13500 },
+          { date: new Date().toISOString().split('T')[0], orders: 15, sales: todaySales },
+        ],
+        branchPerformance: [
+          { name: 'Main Branch', todayOrders: 10, todaySales: 8500, totalSales: 30000 },
+          { name: 'Downtown Branch', todayOrders: 5, todaySales: 4000, totalSales: 15000 }
+        ],
+        recentOrders: [
+          { id: '1', order_number: '1001', created_at: new Date().toISOString(), total_amount: 450, customer: { name: 'John Doe' } },
+          { id: '2', order_number: '1002', created_at: new Date(Date.now() - 3600000).toISOString(), total_amount: 1200, customer: { name: 'Alice Smith' } },
+          { id: '3', order_number: '1003', created_at: new Date(Date.now() - 7200000).toISOString(), total_amount: 850, customer: { name: 'Bob Johnson' } }
+        ]
+      };
+    }
+
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 

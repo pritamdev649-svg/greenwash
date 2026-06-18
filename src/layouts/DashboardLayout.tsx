@@ -36,30 +36,30 @@ interface NavItem {
 }
 
 const VENDOR_NAV: NavItem[] = [
-  { path: '/dashboard',       label: 'dashboard',           icon: LayoutDashboard },
-  { path: '/customers',       label: 'customers',           icon: Users },
-  { path: '/categories',      label: 'categories',          icon: LayoutGrid },
-  { path: '/orders',          label: 'orders',              icon: Receipt },
-  { path: '/offers',          label: 'promotional_offers',  icon: Image },
-  { path: '/pricing-manager', label: 'rate_list_manager',   icon: Tag },
-  { path: '/settings',        label: 'settings',            icon: Settings },
+  { path: '/dashboard', label: 'dashboard', icon: LayoutDashboard },
+  { path: '/customers', label: 'customers', icon: Users },
+  { path: '/categories', label: 'categories', icon: LayoutGrid },
+  { path: '/orders', label: 'orders', icon: Receipt },
+  { path: '/offers', label: 'promotional_offers', icon: Image },
+  { path: '/pricing-manager', label: 'rate_list_manager', icon: Tag },
+  { path: '/settings', label: 'settings', icon: Settings },
 ];
 
 const ADMIN_NAV: NavItem[] = [
-  { path: '/admin/dashboard', label: 'Dashboard',   icon: LayoutDashboard },
-  { path: '/admin/vendors',   label: 'My Vendors',  icon: Store },
-  { path: '/admin/orders',    label: 'Orders',      icon: Receipt },
-  { path: '/admin/reports',   label: 'Reports',     icon: BarChart2 },
+  { path: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { path: '/admin/vendors', label: 'My Vendors', icon: Store },
+  { path: '/admin/orders', label: 'Orders', icon: Receipt },
+  { path: '/admin/reports', label: 'Reports', icon: BarChart2 },
 ];
 
 const SUPER_ADMIN_NAV: NavItem[] = [
-  { path: '/super-admin/dashboard',  label: 'Dashboard',     icon: Crown },
-  { path: '/super-admin/admins',     label: 'Admins',        icon: ShieldCheck },
-  { path: '/super-admin/vendors',    label: 'All Vendors',   icon: Building2 },
-  { path: '/super-admin/orders',     label: 'All Orders',    icon: ClipboardList },
-  { path: '/super-admin/analytics',  label: 'Analytics',     icon: BarChart2 },
-  { path: '/super-admin/audit-logs', label: 'Audit Logs',    icon: FileText },
-  { path: '/super-admin/settings',   label: 'Settings',      icon: Settings },
+  { path: '/super-admin/dashboard', label: 'Dashboard', icon: Crown },
+  { path: '/super-admin/admins', label: 'Admins', icon: ShieldCheck },
+  { path: '/super-admin/vendors', label: 'All Vendors', icon: Building2 },
+  { path: '/super-admin/orders', label: 'All Orders', icon: ClipboardList },
+  { path: '/super-admin/analytics', label: 'Analytics', icon: BarChart2 },
+  { path: '/super-admin/audit-logs', label: 'Audit Logs', icon: FileText },
+  { path: '/super-admin/settings', label: 'Settings', icon: Settings },
 ];
 
 const ROLE_NAV: Record<UserRole, NavItem[]> = {
@@ -70,12 +70,12 @@ const ROLE_NAV: Record<UserRole, NavItem[]> = {
 
 const ROLE_BADGE: Record<UserRole, { label: string; cls: string }> = {
   super_admin: { label: 'Super Admin', cls: 'bg-amber-50 text-amber-700 border-amber-200' },
-  admin:       { label: 'Admin',       cls: 'bg-blue-50 text-blue-700 border-blue-200' },
-  vendor:      { label: 'Vendor',      cls: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
+  admin: { label: 'Admin', cls: 'bg-blue-50 text-blue-700 border-blue-200' },
+  vendor: { label: 'Vendor', cls: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
 };
 
 export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { signOut, user, role, userProfile } = useAuth();
+  const { signOut, user, role, userProfile, isImpersonating, stopImpersonating } = useAuth();
   const { t, language } = useLanguage();
   const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -222,6 +222,21 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
           </button>
           <div className="flex items-center gap-4" />
         </header>
+
+        {isImpersonating && (
+          <div className="bg-amber-500 text-white px-6 py-2.5 text-sm font-bold flex justify-between items-center shrink-0 shadow-md z-20">
+            <span className="flex items-center gap-2"><Store size={16} /> Impersonating Branch: {userProfile?.name}</span>
+            <button 
+              onClick={() => {
+                stopImpersonating();
+                navigate('/admin/vendors');
+              }}
+              className="bg-amber-700 text-white px-4 py-1.5 rounded-lg text-xs hover:bg-amber-800 transition-colors flex items-center gap-2"
+            >
+              Exit to Admin
+            </button>
+          </div>
+        )}
 
         <main className="flex-1 p-6 overflow-y-auto scroll-smooth">
           <div className="max-w-7xl mx-auto">

@@ -10,6 +10,8 @@ import {
   Loader2,
   CreditCard,
   QrCode,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 import { vendorService } from '@backend/services/vendorService';
 import { adminService } from '@backend/services/adminService';
@@ -39,6 +41,7 @@ const SuperAdminVendors: React.FC = () => {
   const [paymentForm, setPaymentForm] = useState(EMPTY_PAYMENT);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -307,9 +310,18 @@ const SuperAdminVendors: React.FC = () => {
               {!editing && (
                 <div>
                   <label className="block text-xs font-black text-slate-500 uppercase tracking-widest mb-1.5">Initial Password</label>
-                  <input type="password" value={vendorForm.password} onChange={e => setVendorForm(f => ({ ...f, password: e.target.value }))}
-                    className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300"
-                    placeholder="Requires email above" />
+                  <div className="relative">
+                    <input type={showPassword ? 'text' : 'password'} value={vendorForm.password} onChange={e => setVendorForm(f => ({ ...f, password: e.target.value }))}
+                      className="w-full border border-slate-200 rounded-xl px-4 py-2.5 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300"
+                      placeholder="Requires email above" />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600"
+                    >
+                      {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                  </div>
                   <p className="text-[10px] text-slate-400 mt-1">Creates a Supabase login for this vendor.</p>
                 </div>
               )}

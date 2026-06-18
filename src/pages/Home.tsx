@@ -10,7 +10,9 @@ import {
   Menu,
   X,
   Smartphone,
-  Star
+  Star,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 
 import { OfferPopup } from '../components/OfferPopup';
@@ -31,6 +33,7 @@ const Home: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const { session, role, signIn } = useAuth();
 
@@ -51,14 +54,36 @@ const Home: React.FC = () => {
     setLoading(true);
     setError('');
 
-    const { data, error } = await signIn(email, password);
+    try {
+      // Add a 15 second timeout to prevent indefinite hanging
+      const timeoutPromise = new Promise<{data: any, error: any}>((_, reject) => 
+        setTimeout(() => reject(new Error("Login request timed out. Please check your internet connection.")), 15000)
+      );
+      
+      const { data, error } = await Promise.race([
+        signIn(email, password),
+        timeoutPromise
+      ]);
 
-    if (error) {
-      setError(error.message);
+      if (error) {
+        setError(error.message || "Invalid login credentials.");
+        setLoading(false);
+      } else {
+        const r = data?.role ?? null;
+        
+        // Prevent infinite redirect loops if role is missing
+        if (!r) {
+          setError("Your account does not have an assigned role. Please contact a super admin.");
+          setLoading(false);
+          return;
+        }
+        
+        navigate(getDashboardPath(r));
+      }
+    } catch (e: any) {
+      console.error("Login error:", e);
+      setError(e.message || "An unexpected error occurred during login.");
       setLoading(false);
-    } else {
-      const r = data?.role ?? null;
-      navigate(getDashboardPath(r));
     }
   };
 
@@ -413,13 +438,20 @@ const Home: React.FC = () => {
                       <Lock size={18} />
                     </div>
                     <input
-                      type="password"
+                      type={showPassword ? 'text' : 'password'}
                       required
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="w-full h-14 pl-12 pr-4 bg-slate-50 border border-slate-100 rounded-2xl text-slate-900 text-sm focus:outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500/50 transition-all font-medium"
+                      className="w-full h-14 pl-12 pr-12 bg-slate-50 border border-slate-100 rounded-2xl text-slate-900 text-sm focus:outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500/50 transition-all font-medium"
                       placeholder="••••••••"
                     />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-emerald-500 transition-colors"
+                    >
+                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
                   </div>
                 </div>
 
