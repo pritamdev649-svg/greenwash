@@ -102,6 +102,8 @@ export const adminService = {
         .in('vendor_id', vendorIds)
         .neq('order_status', 'Cancelled');
       orders = data ?? [];
+    }
+
     const rangeDays = 30;
     const trendMap = new Map<string, { orders: number; sales: number }>();
     for (let i = rangeDays - 1; i >= 0; i--) {
