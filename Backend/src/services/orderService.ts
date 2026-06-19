@@ -127,6 +127,15 @@ export const orderService = {
     if (vendorId) query = query.eq('vendor_id', vendorId);
 
     try {
+      // One-time auto-fix for orphaned orders (orders with vendor_id = null)
+      if (!vendorId) {
+        supabase.from('vendors').select('id').limit(1).then(async ({ data: vData }) => {
+          if (vData && vData.length > 0) {
+            await supabase.from('orders').update({ vendor_id: vData[0].id }).is('vendor_id', null);
+          }
+        });
+      }
+
       // Add a simple timeout to prevent indefinite hanging if Supabase is unreachable
       const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("Supabase timeout")), 5000));
       const { data, error } = await Promise.race([query, timeoutPromise]) as any;

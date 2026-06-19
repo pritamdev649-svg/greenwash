@@ -351,7 +351,7 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
           advanceAmount,
           discountAmount,
           dueDate,
-          vendorId
+          selectedCustomer?.vendor_id || vendorId
         );
         savedOrder = order;
         setCreatedOrderId(order.id);
