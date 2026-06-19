@@ -59,6 +59,7 @@ export const authService = {
         is_active: true,
       };
     }
+
     const { data } = await supabase
       .from('user_profiles')
       .select('*')
