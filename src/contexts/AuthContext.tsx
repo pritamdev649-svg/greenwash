@@ -127,21 +127,37 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       });
 
-      const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, s) => {
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, s) => {
         try {
           if (localStorage.getItem('sb-demo-session') === 'true') return;
           if (!isMounted) return;
           setSession(s);
           setUser(s?.user ?? null);
+          
           if (s?.user) {
-            const profile = await authService.getUserProfile(s.user.id);
-            if (isMounted) applyProfile(profile);
+            // Do not await this inside the listener to prevent GoTrue deadlocks
+            authService.getUserProfile(s.user.id).then(profile => {
+              if (isMounted) applyProfile(profile);
+              if (isMounted) {
+                setLoading(false);
+                clearTimeout(timeoutId);
+              }
+            }).catch(err => {
+              console.error("Error fetching profile in auth change:", err);
+              if (isMounted) {
+                setLoading(false);
+                clearTimeout(timeoutId);
+              }
+            });
           } else {
-            if (isMounted) applyProfile(null);
+            if (isMounted) {
+              applyProfile(null);
+              setLoading(false);
+              clearTimeout(timeoutId);
+            }
           }
         } catch (err) {
           console.error("Error in auth state change:", err);
-        } finally {
           if (isMounted) {
             setLoading(false);
             clearTimeout(timeoutId);

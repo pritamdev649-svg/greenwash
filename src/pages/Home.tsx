@@ -55,15 +55,8 @@ const Home: React.FC = () => {
     setError('');
 
     try {
-      // Add a 15 second timeout to prevent indefinite hanging
-      const timeoutPromise = new Promise<{data: any, error: any}>((_, reject) => 
-        setTimeout(() => reject(new Error("Login request timed out. Please check your internet connection.")), 15000)
-      );
-      
-      const { data, error } = await Promise.race([
-        signIn(email, password),
-        timeoutPromise
-      ]);
+      // Direct call without 15s timeout so we can see the REAL network error
+      const { data, error } = await signIn(email, password);
 
       if (error) {
         setError(error.message || "Invalid login credentials.");

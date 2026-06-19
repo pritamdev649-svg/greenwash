@@ -3,49 +3,56 @@ import type { UserRole, UserProfile } from '../../../src/types/hierarchy';
 
 export const authService = {
   async signIn(email: string, password: string) {
-    // Super Admin dev bypass
-    if (email === 'admin@greenwashco.com' && password === 'ironwala$99') {
-      localStorage.setItem('sb-demo-session', 'true');
-      localStorage.setItem('sb-demo-role', 'super_admin');
-      const user = { email: 'admin@greenwashco.com', id: 'local-admin', user_metadata: {} };
-      const profile: UserProfile = {
-        id: 'local-admin',
-        role: 'super_admin',
-        admin_id: null,
-        vendor_id: null,
-        name: 'Super Admin',
-        is_active: true,
-      };
+    console.log("=========================================");
+    console.log("[AUTH DEBUG] 1. Starting signIn for:", email);
+    
+    try {
+      console.log("[AUTH DEBUG] 3. Making network request to Supabase Auth API...");
+      const startTime = Date.now();
+      
+      // Real Supabase auth
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      
+      const timeTaken = Date.now() - startTime;
+      console.log(`[AUTH DEBUG] 4. Network request finished in ${timeTaken}ms`);
+      
+      if (error) {
+        console.error("[AUTH DEBUG] 5. Supabase returned an error:", error);
+        return { data, error };
+      }
+      
+      if (!data.session) {
+        console.error("[AUTH DEBUG] 5. No session returned.");
+        return { data, error: new Error("No session returned from Supabase.") };
+      }
+
+      // Fetch role from user_profiles
+      console.log("[AUTH DEBUG] 6. Real auth succeeded. Fetching user profile for:", data.user.id);
+      const { data: profile, error: profileError } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .eq('id', data.user.id)
+        .single();
+
+      if (profileError) {
+        console.error("[AUTH DEBUG] 7. Error fetching user profile:", profileError);
+      } else {
+        console.log("[AUTH DEBUG] 7. Profile fetched successfully:", profile);
+      }
+
+      console.log("=========================================");
       return {
         data: {
-          user,
-          session: { user, access_token: 'local-demo-token', refresh_token: 'local-demo-refresh' } as any,
-          role: 'super_admin' as UserRole,
-          userProfile: profile,
+          ...data,
+          role: (profile?.role ?? null) as UserRole | null,
+          userProfile: profile as UserProfile | null,
         },
         error: null,
       };
+    } catch (networkError) {
+      console.error("[AUTH DEBUG] CRITICAL: Network error or crash during signIn:", networkError);
+      return { data: { user: null, session: null }, error: networkError };
     }
-
-    // Real Supabase auth
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error || !data.session) return { data, error };
-
-    // Fetch role from user_profiles
-    const { data: profile } = await supabase
-      .from('user_profiles')
-      .select('*')
-      .eq('id', data.user.id)
-      .single();
-
-    return {
-      data: {
-        ...data,
-        role: (profile?.role ?? null) as UserRole | null,
-        userProfile: profile as UserProfile | null,
-      },
-      error: null,
-    };
   },
 
   async getUserProfile(userId: string): Promise<UserProfile | null> {
