@@ -4,7 +4,6 @@ import { AuthProvider } from './contexts/AuthContext';
 import { LanguageProvider } from './contexts/LanguageContext';
 import { RoleRoute } from './components/ProtectedRoute';
 import { DashboardLayout } from './layouts/DashboardLayout';
-import { DbCheck } from './DbCheck';
 
 // Public
 import Home from './pages/Home';
