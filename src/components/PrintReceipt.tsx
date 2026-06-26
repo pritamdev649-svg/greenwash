@@ -109,7 +109,7 @@ export const PrintReceipt: React.FC<PrintReceiptProps> = ({ orderData }) => {
           <p className="text-[11px] text-gray-700">Email : ask003683@gmail.com</p>
         </div>
         <div>
-          <img src="/assets/greenwashlogo.jpeg" alt="Green Wash Co Logo" className="h-20 object-contain" />
+          <img src="/assets/logo.jpeg" alt="Green Wash Co Logo" className="h-20 object-contain" />
         </div>
       </div>
 

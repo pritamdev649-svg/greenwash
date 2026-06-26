@@ -13,7 +13,7 @@ export const PriceListPoster: React.FC = () => {
       >
         {/* Actual Logo */}
         <div className="flex flex-col items-center mb-12">
-          <img src="/assets/greenwashlogo.jpeg" alt="Green Wash Co Logo" className="h-32 object-contain mb-6" />
+          <img src="/assets/logo.jpeg" alt="Green Wash Co Logo" className="h-32 object-contain mb-6" />
           <div className="text-center">
             <h1 className="text-5xl font-black tracking-tighter text-slate-900 uppercase">Green Wash Co.</h1>
             <p className="text-emerald-600 font-black uppercase tracking-[0.3em] text-sm mt-1">Premium Laundry & Dry Cleaning</p>

@@ -63,14 +63,14 @@ const Home: React.FC = () => {
         setLoading(false);
       } else {
         const r = data?.role ?? null;
-        
+
         // Prevent infinite redirect loops if role is missing
         if (!r) {
           setError("Your account does not have an assigned role. Please contact a super admin.");
           setLoading(false);
           return;
         }
-        
+
         navigate(getDashboardPath(r));
       }
     } catch (e: any) {
@@ -87,7 +87,7 @@ const Home: React.FC = () => {
         <div className="max-w-7xl mx-auto px-6 h-28 flex items-center justify-between">
           <div className="flex items-center cursor-pointer transition-transform active:scale-95" onClick={() => window.scrollTo(0, 0)}>
             <img
-              src="/assets/greenwashlogo.jpeg"
+              src="/assets/logo.jpeg"
               alt="Green Wash Co Logo"
               className="h-24 w-auto object-contain"
             />
@@ -325,7 +325,7 @@ const Home: React.FC = () => {
           <div className="col-span-2 md:col-span-1">
             <div className="flex items-center mb-6 -ml-4">
               <img
-                src="/assets/greenwashlogo.jpeg"
+                src="/assets/logo.jpeg"
                 alt="Green Wash Co Logo"
                 className="h-28 w-auto object-contain"
               />

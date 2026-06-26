@@ -156,7 +156,7 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
               onClick={() => navigate(homePath)}
             >
               <img
-                src="/assets/greenwashlogo.jpeg"
+                src="/assets/logo.jpeg"
                 alt="Green Wash Co Logo"
                 className="w-full h-auto max-h-24 object-contain"
               />
@@ -225,7 +225,7 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
         {isImpersonating && (
           <div className="bg-amber-500 text-white px-6 py-2.5 text-sm font-bold flex justify-between items-center shrink-0 shadow-md z-20">
             <span className="flex items-center gap-2"><Store size={16} /> Impersonating Branch: {userProfile?.name}</span>
-            <button 
+            <button
               onClick={() => {
                 stopImpersonating();
                 navigate('/admin/vendors');
