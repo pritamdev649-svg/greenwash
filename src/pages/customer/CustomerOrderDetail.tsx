@@ -111,7 +111,6 @@ const CustomerOrderDetail: React.FC = () => {
           {STEPS.map((step, idx) => {
             const done = idx < currentStepIdx;
             const active = idx === currentStepIdx;
-            const upcoming = idx > currentStepIdx;
             return (
               <div key={step} className="flex items-start gap-4">
                 {/* Icon + line */}

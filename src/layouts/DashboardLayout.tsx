@@ -65,12 +65,14 @@ const ROLE_NAV: Record<UserRole, NavItem[]> = {
   super_admin: SUPER_ADMIN_NAV,
   admin: ADMIN_NAV,
   vendor: VENDOR_NAV,
+  customer: [],
 };
 
 const ROLE_BADGE: Record<UserRole, { label: string; cls: string }> = {
   super_admin: { label: 'Super Admin', cls: 'bg-amber-50 text-amber-700 border-amber-200' },
   admin: { label: 'Admin', cls: 'bg-blue-50 text-blue-700 border-blue-200' },
   vendor: { label: 'Vendor', cls: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
+  customer: { label: 'Customer', cls: 'bg-slate-50 text-slate-700 border-slate-200' },
 };
 
 export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
