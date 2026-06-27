@@ -40,8 +40,19 @@ export const RoleRoute: React.FC<{
     // Redirect to the correct dashboard for their actual role
     if (role === 'super_admin') return <Navigate to="/super-admin/dashboard" replace />;
     if (role === 'admin') return <Navigate to="/admin/dashboard" replace />;
+    if (role === 'customer') return <Navigate to="/customer/dashboard" replace />;
     return <Navigate to="/dashboard" replace />;
   }
 
+  return <>{children}</>;
+};
+
+/** Restricts a route to customers only. */
+export const CustomerRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { session, loading, role } = useAuth();
+  if (loading) return <Spinner />;
+  if (!session) return <Navigate to="/customer/login" replace />;
+  if (!role) return <Spinner />;
+  if (role !== 'customer') return <Navigate to="/" replace />;
   return <>{children}</>;
 };

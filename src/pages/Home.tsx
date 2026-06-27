@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { supabase } from '@backend/config/supabase';
+import { orderService } from '@backend/services/orderService';
 
 import {
   Mail,
@@ -12,7 +14,15 @@ import {
   Smartphone,
   Star,
   Eye,
-  EyeOff
+  EyeOff,
+  Store,
+  Plus,
+  Minus,
+  ShoppingBag,
+  Search,
+  Shirt,
+  Loader2,
+  ChevronLeft
 } from 'lucide-react';
 
 import { OfferPopup } from '../components/OfferPopup';
@@ -37,6 +47,100 @@ const Home: React.FC = () => {
   const navigate = useNavigate();
   const { session, role, signIn } = useAuth();
 
+  // Guest Order States
+  const [vendors, setVendors] = useState<any[]>([]);
+  const [selectedVendor, setSelectedVendor] = useState<any | null>(null);
+  const [clothTypes, setClothTypes] = useState<any[]>([]);
+  const [cart, setCart] = useState<any[]>([]);
+  const [vendorSearch, setVendorSearch] = useState('');
+  const [itemSearch, setItemSearch] = useState('');
+  const [loadingVendors, setLoadingVendors] = useState(true);
+  const [loadingItems, setLoadingItems] = useState(false);
+  const [orderStep, setOrderStep] = useState<'vendor' | 'items'>('vendor');
+  const [isCartOpen, setIsCartOpen] = useState(false);
+
+  // Fetch all active vendors on mount
+  useEffect(() => {
+    supabase
+      .from('vendors')
+      .select('id, name, address, city, phone, branch_id')
+      .eq('is_active', true)
+      .order('name')
+      .then(({ data }) => {
+        setVendors(data || []);
+        setLoadingVendors(false);
+      });
+  }, []);
+
+  // Fetch cloth types when vendor selected
+  useEffect(() => {
+    if (!selectedVendor) return;
+    setLoadingItems(true);
+    setCart([]);
+    orderService.getAllClothTypes(selectedVendor.id).then(data => {
+      // fallback: load global cloth types if vendor has none
+      if (!data || data.length === 0) {
+        orderService.getAllClothTypes(null).then(global => {
+          setClothTypes(global || []);
+          setLoadingItems(false);
+        });
+      } else {
+        setClothTypes(data);
+        setLoadingItems(false);
+      }
+    });
+  }, [selectedVendor]);
+
+  const getCartItem = (id: string, service: string) =>
+    cart.find(c => c.cloth_type_id === id && c.service === service);
+
+  const setQty = (cloth: any, service: string, delta: number) => {
+    const price =
+      service === 'wash' ? Number(cloth.wash_price || 0) :
+      service === 'iron' ? Number(cloth.iron_price || 0) :
+      Number(cloth.dry_clean_price || 0);
+
+    setCart(prev => {
+      const existing = prev.find(c => c.cloth_type_id === cloth.id && c.service === service);
+      if (existing) {
+        const newQty = existing.quantity + delta;
+        if (newQty <= 0) return prev.filter(c => !(c.cloth_type_id === cloth.id && c.service === service));
+        return prev.map(c =>
+          c.cloth_type_id === cloth.id && c.service === service
+            ? { ...c, quantity: newQty, subtotal: price * newQty }
+            : c
+        );
+      }
+      if (delta <= 0) return prev;
+      return [...prev, {
+        cloth_type_id: cloth.id,
+        item_name: cloth.name,
+        quantity: 1,
+        service,
+        wash_price: Number(cloth.wash_price || 0),
+        iron_price: Number(cloth.iron_price || 0),
+        dry_clean_price: Number(cloth.dry_clean_price || 0),
+        subtotal: price,
+      }];
+    });
+  };
+
+  const cartTotal = cart.reduce((s, i) => s + i.subtotal, 0);
+
+  const handleProceedOrder = () => {
+    if (!selectedVendor) return;
+    const pendingOrder = {
+      vendor: selectedVendor,
+      cart: cart
+    };
+    localStorage.setItem('greenwash_pending_order', JSON.stringify(pendingOrder));
+    if (session && role === 'customer') {
+      navigate('/customer/new-order');
+    } else {
+      navigate('/customer/login?mode=signup');
+    }
+  };
+
   const getDashboardPath = (r: typeof role) => {
     if (r === 'super_admin') return '/super-admin/dashboard';
     if (r === 'admin') return '/admin/dashboard';
@@ -45,6 +149,10 @@ const Home: React.FC = () => {
 
   useEffect(() => {
     if (session && role) {
+      if (role === 'customer') {
+        // Stay on home page to allow ordering
+        return;
+      }
       navigate(getDashboardPath(role));
     }
   }, [session, role, navigate]);
@@ -98,6 +206,12 @@ const Home: React.FC = () => {
             <a href="#home" className="text-sm font-semibold text-slate-600 hover:text-emerald-600 transition-colors">Home</a>
             <a href="#steps" className="text-sm font-semibold text-slate-600 hover:text-emerald-600 transition-colors">How it works</a>
             <a href="#services" className="text-sm font-semibold text-slate-600 hover:text-emerald-600 transition-colors">Services</a>
+            <Link
+              to="/customer/login"
+              className="border-2 border-emerald-600 text-emerald-600 hover:bg-emerald-50 px-5 py-2 rounded-full text-xs font-bold active:scale-95 transition-all"
+            >
+              Customer Login
+            </Link>
             <button
               onClick={() => setIsLoginModalOpen(true)}
               className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2 rounded-full text-xs font-bold active:scale-95 transition-all"
@@ -118,6 +232,13 @@ const Home: React.FC = () => {
             <a href="#home" onClick={() => setIsMobileMenuOpen(false)} className="text-sm font-semibold text-slate-600 hover:text-emerald-600 transition-colors">Home</a>
             <a href="#steps" onClick={() => setIsMobileMenuOpen(false)} className="text-sm font-semibold text-slate-600 hover:text-emerald-600 transition-colors">How it works</a>
             <a href="#services" onClick={() => setIsMobileMenuOpen(false)} className="text-sm font-semibold text-slate-600 hover:text-emerald-600 transition-colors">Services</a>
+            <Link
+              to="/customer/login"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="border-2 border-emerald-600 text-emerald-600 px-5 py-3 rounded-xl text-center text-sm font-bold active:scale-95 transition-all"
+            >
+              Customer Login
+            </Link>
             <button
               onClick={() => {
                 setIsMobileMenuOpen(false);
@@ -260,39 +381,333 @@ const Home: React.FC = () => {
         </div>
       </section>
 
-      {/* Services Section */}
-      <section id="services" className="py-24 bg-emerald-50/20">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center mb-20">
-            <p className="text-emerald-600 font-black uppercase tracking-[0.2em] text-xs lg:text-sm mb-3">Professional Care</p>
-            <h2 className="text-3xl lg:text-5xl font-black text-slate-900 leading-tight">Get Every Service Very Easily</h2>
+      {/* Services & Ordering Section */}
+      <section id="services" className="py-24 bg-emerald-50/20 scroll-mt-28">
+        <div className="max-w-4xl mx-auto px-6">
+          <div className="text-center mb-12">
+            <p className="text-emerald-600 font-black uppercase tracking-[0.2em] text-xs lg:text-sm mb-3">Order Online</p>
+            <h2 className="text-3xl lg:text-4xl font-black text-slate-900 leading-tight">Order Directly from Home</h2>
+            <p className="text-slate-400 text-sm font-semibold mt-2">Select a nearby laundry and customize your laundry bag.</p>
           </div>
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
-            {[
-              { title: "Wash & Fold", subtitle: "Standard wash cycle", img: "/assets/wash_fold.png" },
-              { title: "Wash & Iron", subtitle: "Pressed to perfection", img: "/assets/wash_iron.png" },
-              { title: "Dry Clean", subtitle: "Special care fabrics", img: "/assets/dry_clean.png" },
-              { title: "Starching", subtitle: "Crisp cotton finish", img: "/assets/starching.png" },
-              { title: "Steam Press", subtitle: "Quick wrinkle removal", img: "/assets/steam_press.png" },
-              { title: "Premium Laundry", subtitle: "Luxury item handling", img: "/assets/premium_laundry.png" }
-            ].map((service, i) => (
-              <div key={i} className="bg-white p-8 rounded-[2.5rem] border border-emerald-50 hover:border-emerald-200 shadow-sm hover:shadow-xl hover:shadow-emerald-900/5 transition-all group overflow-hidden relative">
-                <div className="flex flex-col items-center text-center">
-                  <div className="w-full h-48 mb-6 rounded-3xl bg-emerald-50 flex items-center justify-center overflow-hidden relative shadow-inner">
-                    <img
-                      src={service.img}
-                      alt={service.title}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                    />
-                    <div className="absolute inset-0 bg-emerald-900/10 group-hover:opacity-0 transition-opacity" />
+          {/* Interactive Steps Control */}
+          <div className="flex items-center justify-center gap-4 mb-8">
+            <button
+              onClick={() => setOrderStep('vendor')}
+              className={cn(
+                "px-6 py-3 rounded-full text-xs font-black uppercase tracking-widest transition-all",
+                orderStep === 'vendor'
+                  ? "bg-emerald-600 text-white shadow-lg shadow-emerald-600/20"
+                  : "bg-white border border-slate-100 text-slate-500 hover:text-emerald-600"
+              )}
+            >
+              1. Select Store
+            </button>
+            <div className="w-8 h-px bg-slate-200" />
+            <button
+              onClick={() => selectedVendor && setOrderStep('items')}
+              disabled={!selectedVendor}
+              className={cn(
+                "px-6 py-3 rounded-full text-xs font-black uppercase tracking-widest transition-all",
+                orderStep === 'items'
+                  ? "bg-emerald-600 text-white shadow-lg shadow-emerald-600/20"
+                  : "bg-white border border-slate-100 text-slate-500 hover:text-emerald-600 disabled:opacity-55 disabled:cursor-not-allowed"
+              )}
+            >
+              2. Add Items
+            </button>
+          </div>
+
+          <div className="bg-white rounded-3xl border border-emerald-100/50 p-6 sm:p-8 shadow-sm">
+            {/* ─── VENDOR SELECTION STEP ─── */}
+            {orderStep === 'vendor' && (
+              <div className="space-y-6">
+                <div className="relative max-w-md mx-auto">
+                  <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" />
+                  <input
+                    type="text"
+                    placeholder="Search laundry store by name or city..."
+                    value={vendorSearch}
+                    onChange={e => setVendorSearch(e.target.value)}
+                    className="w-full h-12 pl-12 pr-4 bg-slate-50 border border-slate-100 rounded-2xl text-sm text-slate-900 focus:outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-400 transition-all font-medium"
+                  />
+                </div>
+
+                {loadingVendors ? (
+                  <div className="flex flex-col items-center justify-center py-12">
+                    <Loader2 className="w-8 h-8 text-emerald-600 animate-spin" />
+                    <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mt-3">Loading stores...</p>
                   </div>
-                  <h4 className="font-black text-2xl text-slate-900 mb-2">{service.title}</h4>
-                  <p className="text-[10px] text-slate-400 font-black uppercase tracking-[0.2em]">{service.subtitle}</p>
+                ) : (
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    {vendors.filter(v => `${v.name} ${v.city || ''}`.toLowerCase().includes(vendorSearch.toLowerCase())).map(v => (
+                      <button
+                        key={v.id}
+                        onClick={() => { setSelectedVendor(v); setOrderStep('items'); }}
+                        className={cn(
+                          "w-full text-left p-5 rounded-2xl border transition-all relative flex gap-4 group",
+                          selectedVendor?.id === v.id
+                            ? "border-emerald-500 bg-emerald-50/20 ring-1 ring-emerald-500"
+                            : "border-slate-100 hover:border-emerald-300 hover:shadow-sm"
+                        )}
+                      >
+                        <div className="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center shrink-0 text-emerald-600 group-hover:bg-emerald-100 transition-colors">
+                          <Store size={20} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-black text-slate-950 text-sm leading-snug">{v.name}</h4>
+                          <p className="text-xs text-slate-400 font-medium mt-1 truncate">
+                            {v.address ? `${v.address}, ` : ''}{v.city || ''}
+                          </p>
+                          {v.phone && <p className="text-[10px] font-bold text-emerald-600 mt-1">{v.phone}</p>}
+                        </div>
+                        <div className="absolute right-4 top-4 w-5 h-5 rounded-full border border-slate-200 flex items-center justify-center group-hover:border-emerald-400">
+                          {selectedVendor?.id === v.id && (
+                            <div className="w-3 h-3 rounded-full bg-emerald-500" />
+                          )}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* ─── ITEMS SELECTION STEP ─── */}
+            {orderStep === 'items' && (
+              <div className="space-y-6">
+                {/* Active store summary */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-emerald-50/40 rounded-2xl p-4 border border-emerald-100/30">
+                  <div className="flex items-center gap-3">
+                    <Store className="text-emerald-600 shrink-0" size={20} />
+                    <div>
+                      <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Ordering From</p>
+                      <h4 className="font-black text-slate-900 text-sm">{selectedVendor?.name}</h4>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setOrderStep('vendor')}
+                    className="text-xs font-black text-emerald-600 hover:underline flex items-center gap-1 self-start sm:self-auto"
+                  >
+                    <ChevronLeft size={14} /> Change Store
+                  </button>
+                </div>
+
+                {/* Search Bar for items */}
+                <div className="relative max-w-md">
+                  <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <input
+                    type="text"
+                    placeholder="Search laundry items (e.g. Bed Sheet, Blazer)..."
+                    value={itemSearch}
+                    onChange={e => setItemSearch(e.target.value)}
+                    className="w-full h-11 pl-10 pr-4 bg-slate-50 border border-slate-100 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-400 transition-all font-medium placeholder:text-slate-400"
+                  />
+                </div>
+
+                {loadingItems ? (
+                  <div className="flex flex-col items-center justify-center py-12">
+                    <Loader2 className="w-8 h-8 text-emerald-600 animate-spin" />
+                    <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mt-3">Loading menu...</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {clothTypes
+                      .filter(cloth => cloth.name.toLowerCase().includes(itemSearch.toLowerCase()))
+                      .map(cloth => {
+                        const services: ('wash' | 'iron' | 'dry_clean')[] = [];
+                        if (Number(cloth.wash_price) > 0) services.push('wash');
+                        if (Number(cloth.iron_price) > 0) services.push('iron');
+                        if (Number(cloth.dry_clean_price) > 0) services.push('dry_clean');
+                        if (services.length === 0) services.push('wash');
+
+                        return (
+                          <div key={cloth.id} className="bg-slate-50/50 rounded-2xl border border-slate-100/70 p-4 flex flex-col justify-between hover:border-emerald-100 transition-colors">
+                            <div className="flex items-center gap-2.5 mb-3">
+                              <div className="w-8 h-8 rounded-lg bg-white border border-slate-100 flex items-center justify-center shrink-0">
+                                <Shirt size={14} className="text-emerald-500" />
+                              </div>
+                              <p className="font-black text-slate-900 text-sm">{cloth.name}</p>
+                            </div>
+
+                            <div className="flex flex-wrap gap-2">
+                              {services.map(svc => {
+                                const price =
+                                  svc === 'wash' ? Number(cloth.wash_price || 0) :
+                                  svc === 'iron' ? Number(cloth.iron_price || 0) :
+                                  Number(cloth.dry_clean_price || 0);
+                                const cartItem = getCartItem(cloth.id, svc);
+                                const label = svc === 'wash' ? 'Wash' : svc === 'iron' ? 'Iron' : 'Dry Clean';
+
+                                return (
+                                  <div key={svc} className="bg-white border border-slate-100 rounded-xl p-1.5 px-2.5 flex items-center gap-2 shadow-sm shrink-0">
+                                    <div>
+                                      <p className="text-[9px] font-black text-slate-400 uppercase leading-none">{label}</p>
+                                      <p className="text-xs font-black text-emerald-600 mt-1">₹{price}</p>
+                                    </div>
+
+                                    <div className="flex items-center gap-1.5 ml-1">
+                                      {cartItem ? (
+                                        <>
+                                          <button
+                                            type="button"
+                                            onClick={() => setQty(cloth, svc, -1)}
+                                            className="w-5.5 h-5.5 rounded bg-slate-100 flex items-center justify-center text-slate-600 hover:bg-slate-200 transition-colors"
+                                          >
+                                            <Minus size={10} />
+                                          </button>
+                                          <span className="w-3 text-center text-xs font-black text-slate-900">{cartItem.quantity}</span>
+                                          <button
+                                            type="button"
+                                            onClick={() => setQty(cloth, svc, 1)}
+                                            className="w-5.5 h-5.5 rounded bg-emerald-500 flex items-center justify-center text-white hover:bg-emerald-600 transition-colors"
+                                          >
+                                            <Plus size={10} />
+                                          </button>
+                                        </>
+                                      ) : (
+                                        <button
+                                          type="button"
+                                          onClick={() => setQty(cloth, svc, 1)}
+                                          className="h-5.5 px-2 rounded bg-emerald-50 border border-emerald-100 text-emerald-600 text-[9px] font-black flex items-center gap-0.5 hover:bg-emerald-100 transition-colors"
+                                        >
+                                          <Plus size={8} /> Add
+                                        </button>
+                                      )}
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        );
+                      })}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Sticky checkout summary bar (Opens Sidebar) */}
+          {cart.length > 0 && orderStep === 'items' && (
+            <div className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-2xl z-50 bg-slate-900 rounded-3xl p-4 sm:p-5 text-white flex items-center justify-between gap-4 animate-in slide-in-from-bottom duration-300 shadow-2xl shadow-emerald-950/30 border border-slate-800/80">
+              <div className="flex items-center gap-3 sm:gap-4">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0">
+                  <ShoppingBag size={20} />
+                </div>
+                <div>
+                  <h4 className="font-black text-xs sm:text-sm">{cart.reduce((s, i) => s + i.quantity, 0)} Items Added</h4>
+                  <p className="text-[10px] sm:text-xs text-slate-300 font-semibold mt-0.5">Total Value: <span className="text-emerald-400 font-black text-xs sm:text-base ml-1">₹{cartTotal.toLocaleString('en-IN')}</span></p>
                 </div>
               </div>
-            ))}
-          </div>
+              <button
+                type="button"
+                onClick={() => setIsCartOpen(true)}
+                className="h-10 sm:h-12 px-4 sm:px-6 bg-emerald-500 hover:bg-emerald-600 text-white font-black rounded-2xl active:scale-95 transition-all flex items-center justify-center gap-1 sm:gap-1.5 text-xs sm:text-sm shrink-0"
+              >
+                <span>Review Laundry Bag</span>
+                <ChevronRight size={16} />
+              </button>
+            </div>
+          )}
+
+          {/* Cart Floating Card Modal */}
+          {isCartOpen && (
+            <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
+              {/* Backdrop */}
+              <div
+                className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"
+                onClick={() => setIsCartOpen(false)}
+              />
+              {/* Floating Card Panel */}
+              <div className="bg-white w-full max-w-lg rounded-[2rem] shadow-2xl relative z-10 flex flex-col border border-slate-100 overflow-hidden animate-in zoom-in-95 duration-300 max-h-[90vh]">
+                {/* Header */}
+                <div className="p-6 border-b border-slate-100 flex items-center justify-between">
+                  <div>
+                    <h3 className="text-lg font-black text-slate-955 flex items-center gap-2">
+                      <ShoppingBag className="text-emerald-600" size={18} />
+                      <span>My Laundry Bag</span>
+                    </h3>
+                    <p className="text-xs text-slate-400 font-semibold mt-1">
+                      {selectedVendor?.name ? `Ordering from ${selectedVendor.name}` : ''}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setIsCartOpen(false)}
+                    className="p-2 hover:bg-slate-100 rounded-full text-slate-400 transition-colors"
+                  >
+                    <X size={18} />
+                  </button>
+                </div>
+
+                {/* Scrollable Items */}
+                <div className="flex-1 overflow-y-auto p-6 space-y-4 max-h-[50vh] scrollbar-thin">
+                  {cart.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-10 text-center text-slate-400">
+                      <ShoppingBag size={40} className="text-slate-200 mb-2" />
+                      <p className="font-black text-sm">Your laundry bag is empty</p>
+                      <p className="text-xs text-slate-300 mt-1">Go back and add some items to your bag.</p>
+                    </div>
+                  ) : (
+                    cart.map((item, idx) => {
+                      const label = item.service === 'wash' ? 'Wash & Fold' : item.service === 'iron' ? 'Iron Only' : 'Dry Clean';
+                      const cloth = clothTypes.find(c => c.id === item.cloth_type_id) || {};
+
+                      return (
+                        <div key={idx} className="bg-slate-50 rounded-2xl p-4 border border-slate-100 flex items-center justify-between gap-4">
+                          <div className="min-w-0 flex-1">
+                            <p className="font-black text-slate-900 text-sm truncate">{item.item_name}</p>
+                            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">{label}</p>
+                            <p className="text-xs font-black text-emerald-600 mt-1">₹{item.subtotal / item.quantity} each</p>
+                          </div>
+
+                          <div className="flex items-center gap-3 shrink-0">
+                            {/* Quantity controls */}
+                            <div className="flex items-center gap-1.5 bg-white border border-slate-100 rounded-xl p-1 shadow-sm">
+                              <button
+                                type="button"
+                                onClick={() => setQty(cloth, item.service, -1)}
+                                className="w-5.5 h-5.5 rounded bg-slate-100 flex items-center justify-center text-slate-600 hover:bg-slate-200 transition-colors"
+                              >
+                                <Minus size={10} />
+                              </button>
+                              <span className="w-4 text-center text-xs font-black text-slate-900">{item.quantity}</span>
+                              <button
+                                type="button"
+                                onClick={() => setQty(cloth, item.service, 1)}
+                                className="w-5.5 h-5.5 rounded bg-emerald-500 flex items-center justify-center text-white hover:bg-emerald-600 transition-colors"
+                              >
+                                <Plus size={10} />
+                              </button>
+                            </div>
+                            <p className="text-xs font-black text-slate-900 w-12 text-right">₹{item.subtotal.toLocaleString('en-IN')}</p>
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+
+                {/* Footer Summary & Checkout */}
+                {cart.length > 0 && (
+                  <div className="p-6 border-t border-slate-100 bg-slate-50 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <p className="font-black text-slate-900 text-sm">Cart Subtotal</p>
+                      <p className="font-black text-emerald-600 text-lg">₹{cartTotal.toLocaleString('en-IN')}</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleProceedOrder}
+                      className="w-full h-12 bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-xl shadow-lg shadow-emerald-600/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2 text-sm"
+                    >
+                      <span>Confirm & Checkout</span>
+                      <ChevronRight size={18} />
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </section>
 

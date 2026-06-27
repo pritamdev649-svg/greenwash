@@ -12,6 +12,7 @@ interface AuthContextType {
   userProfile: UserProfile | null;
   vendorId: string | null;
   adminId: string | null;
+  customerId: string | null;
   signIn: (email: string, password: string) => Promise<{ data: any; error: any }>;
   signOut: () => Promise<void>;
   impersonate: (vendorId: string, vendorName: string) => void;
@@ -27,6 +28,7 @@ const AuthContext = createContext<AuthContextType>({
   userProfile: null,
   vendorId: null,
   adminId: null,
+  customerId: null,
   signIn: async () => ({ data: null, error: null }),
   signOut: async () => { },
   impersonate: () => {},
@@ -51,6 +53,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       role: 'vendor',
       vendor_id: vendorId,
       admin_id: userProfile?.admin_id || null,
+      customer_id: null,
       name: vendorName,
       is_active: true,
     };
@@ -91,6 +94,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           role: 'super_admin',
           admin_id: null,
           vendor_id: null,
+          customer_id: null,
           name: 'Super Admin',
           is_active: true,
         };
@@ -108,7 +112,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setSession(s);
           setUser(s?.user ?? null);
           if (s?.user) {
-            const profile = await authService.getUserProfile(s.user.id);
+            const profile = await authService.getUserProfile(s.user.id, s.user);
             if (isMounted) applyProfile(profile);
           }
         } catch (err) {
@@ -136,7 +140,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           
           if (s?.user) {
             // Do not await this inside the listener to prevent GoTrue deadlocks
-            authService.getUserProfile(s.user.id).then(profile => {
+            authService.getUserProfile(s.user.id, s.user).then(profile => {
               if (isMounted) applyProfile(profile);
               if (isMounted) {
                 setLoading(false);
@@ -209,6 +213,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         userProfile,
         vendorId: userProfile?.vendor_id ?? null,
         adminId: userProfile?.admin_id ?? null,
+        customerId: userProfile?.customer_id ?? null,
         signIn,
         signOut,
         impersonate,

@@ -1,13 +1,14 @@
 // GreenWashCo Hierarchy Types
 // Super Admin → Admin → Vendor
 
-export type UserRole = 'super_admin' | 'admin' | 'vendor';
+export type UserRole = 'super_admin' | 'admin' | 'vendor' | 'customer';
 
 export interface UserProfile {
   id: string;
   role: UserRole;
   admin_id: string | null;
   vendor_id: string | null;
+  customer_id: string | null;
   name: string | null;
   is_active: boolean;
 }

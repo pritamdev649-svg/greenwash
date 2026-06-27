@@ -2,13 +2,23 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { LanguageProvider } from './contexts/LanguageContext';
-import { RoleRoute } from './components/ProtectedRoute';
+import { RoleRoute, CustomerRoute } from './components/ProtectedRoute';
 import { DashboardLayout } from './layouts/DashboardLayout';
+import CustomerLayout from './layouts/CustomerLayout';
 
 // Public
 import Home from './pages/Home';
 import Pricing from './pages/Pricing';
 import PublicReceipt from './pages/PublicReceipt';
+
+// Customer
+import CustomerLogin from './pages/customer/CustomerLogin';
+import CustomerDashboard from './pages/customer/CustomerDashboard';
+import CustomerOrders from './pages/customer/CustomerOrders';
+import CustomerOrderDetail from './pages/customer/CustomerOrderDetail';
+import CustomerNewOrder from './pages/customer/CustomerNewOrder';
+import CustomerSchedule from './pages/customer/CustomerSchedule';
+import CustomerProfile from './pages/customer/CustomerProfile';
 
 // Vendor (existing)
 import Dashboard from './pages/Dashboard';
@@ -42,6 +52,12 @@ const wrap = (role: Parameters<typeof RoleRoute>[0]['allowedRoles'], Page: React
   </RoleRoute>
 );
 
+const wrapCustomer = (Page: React.ReactNode) => (
+  <CustomerRoute>
+    <CustomerLayout>{Page}</CustomerLayout>
+  </CustomerRoute>
+);
+
 const App: React.FC = () => {
   return (
     <Router>
@@ -52,6 +68,15 @@ const App: React.FC = () => {
             <Route path="/" element={<Home />} />
             <Route path="/pricing" element={<Pricing />} />
             <Route path="/receipt/:id" element={<PublicReceipt />} />
+
+            {/* ─── Customer ─── */}
+            <Route path="/customer/login"      element={<CustomerLogin />} />
+            <Route path="/customer/dashboard"  element={wrapCustomer(<CustomerDashboard />)} />
+            <Route path="/customer/orders"     element={wrapCustomer(<CustomerOrders />)} />
+            <Route path="/customer/orders/:id" element={wrapCustomer(<CustomerOrderDetail />)} />
+            <Route path="/customer/schedule"   element={wrapCustomer(<CustomerSchedule />)} />
+            <Route path="/customer/new-order"  element={wrapCustomer(<CustomerNewOrder />)} />
+            <Route path="/customer/profile"    element={wrapCustomer(<CustomerProfile />)} />
 
             {/* ─── Vendor Routes ─── */}
             <Route path="/dashboard"       element={wrap(['vendor', 'super_admin', 'admin'], <Dashboard />)} />
