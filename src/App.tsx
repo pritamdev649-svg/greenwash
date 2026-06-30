@@ -10,6 +10,7 @@ import CustomerLayout from './layouts/CustomerLayout';
 import Home from './pages/Home';
 import Pricing from './pages/Pricing';
 import PublicReceipt from './pages/PublicReceipt';
+import PrivacyPolicy from './pages/PrivacyPolicy';
 
 // Customer
 import CustomerLogin from './pages/customer/CustomerLogin';
@@ -68,6 +69,7 @@ const App: React.FC = () => {
             <Route path="/" element={<Home />} />
             <Route path="/pricing" element={<Pricing />} />
             <Route path="/receipt/:id" element={<PublicReceipt />} />
+            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
 
             {/* ─── Customer ─── */}
             <Route path="/customer/login"      element={<CustomerLogin />} />

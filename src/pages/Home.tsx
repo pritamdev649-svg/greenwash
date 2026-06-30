@@ -776,7 +776,7 @@ const Home: React.FC = () => {
             <ul className="space-y-4 text-sm text-slate-400 font-bold">
               <li className="hover:text-emerald-600 cursor-pointer transition-colors">Blog</li>
               <li className="hover:text-emerald-600 cursor-pointer transition-colors">Terms</li>
-              <li className="hover:text-emerald-600 cursor-pointer transition-colors">Privacy</li>
+              <li><Link to="/privacy-policy" className="hover:text-emerald-600 cursor-pointer transition-colors">Privacy</Link></li>
             </ul>
           </div>
           <div>
