@@ -18,6 +18,7 @@ import {
   Building2,
   Crown,
   FileText,
+  ShieldAlert,
 } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { clsx, type ClassValue } from 'clsx';
@@ -49,6 +50,7 @@ const ADMIN_NAV: NavItem[] = [
   { path: '/admin/vendors', label: 'My Vendors', icon: Store },
   { path: '/admin/orders', label: 'Orders', icon: Receipt },
   { path: '/admin/reports', label: 'Reports', icon: BarChart2 },
+  { path: '/admin/deletion-requests', label: 'Deletion Requests', icon: ShieldAlert },
 ];
 
 const SUPER_ADMIN_NAV: NavItem[] = [
@@ -59,6 +61,7 @@ const SUPER_ADMIN_NAV: NavItem[] = [
   { path: '/super-admin/analytics', label: 'Analytics', icon: BarChart2 },
   { path: '/super-admin/audit-logs', label: 'Audit Logs', icon: FileText },
   { path: '/super-admin/settings', label: 'Settings', icon: Settings },
+  { path: '/admin/deletion-requests', label: 'Deletion Requests', icon: ShieldAlert },
 ];
 
 const ROLE_NAV: Record<UserRole, NavItem[]> = {

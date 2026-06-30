@@ -777,6 +777,7 @@ const Home: React.FC = () => {
               <li className="hover:text-emerald-600 cursor-pointer transition-colors">Blog</li>
               <li className="hover:text-emerald-600 cursor-pointer transition-colors">Terms</li>
               <li><Link to="/privacy-policy" className="hover:text-emerald-600 cursor-pointer transition-colors">Privacy</Link></li>
+              <li><Link to="/request-delete-account" className="hover:text-emerald-600 cursor-pointer transition-colors">Delete Account</Link></li>
             </ul>
           </div>
           <div>

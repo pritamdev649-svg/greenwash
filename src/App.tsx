@@ -11,6 +11,7 @@ import Home from './pages/Home';
 import Pricing from './pages/Pricing';
 import PublicReceipt from './pages/PublicReceipt';
 import PrivacyPolicy from './pages/PrivacyPolicy';
+import DeleteAccountRequest from './pages/DeleteAccountRequest';
 
 // Customer
 import CustomerLogin from './pages/customer/CustomerLogin';
@@ -46,6 +47,7 @@ import AdminDashboard from './pages/admin/AdminDashboard';
 import MyVendors from './pages/admin/MyVendors';
 import AdminOrders from './pages/admin/AdminOrders';
 import AdminReports from './pages/admin/AdminReports';
+import DeletionRequests from './pages/admin/DeletionRequests';
 
 const wrap = (role: Parameters<typeof RoleRoute>[0]['allowedRoles'], Page: React.ReactNode) => (
   <RoleRoute allowedRoles={role}>
@@ -70,6 +72,7 @@ const App: React.FC = () => {
             <Route path="/pricing" element={<Pricing />} />
             <Route path="/receipt/:id" element={<PublicReceipt />} />
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+            <Route path="/request-delete-account" element={<DeleteAccountRequest />} />
 
             {/* ─── Customer ─── */}
             <Route path="/customer/login"      element={<CustomerLogin />} />
@@ -105,6 +108,7 @@ const App: React.FC = () => {
             <Route path="/admin/vendors"   element={wrap(['admin', 'super_admin'], <MyVendors />)} />
             <Route path="/admin/orders"    element={wrap(['admin', 'super_admin'], <AdminOrders />)} />
             <Route path="/admin/reports"   element={wrap(['admin', 'super_admin'], <AdminReports />)} />
+            <Route path="/admin/deletion-requests" element={wrap(['admin', 'super_admin'], <DeletionRequests />)} />
 
             {/* ─── Fallback ─── */}
             <Route path="*" element={<Navigate to="/" replace />} />

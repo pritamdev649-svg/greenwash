@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '@backend/config/supabase';
 import { User, Phone, Mail, MapPin, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const CustomerProfile: React.FC = () => {
   const { userProfile } = useAuth();
@@ -179,6 +180,12 @@ const CustomerProfile: React.FC = () => {
             )}
           </button>
         </form>
+      </div>
+
+      <div className="text-center pt-4">
+        <Link to="/request-delete-account" className="text-xs text-slate-400 hover:text-red-500 transition-colors font-bold uppercase tracking-wider">
+          Request Account Deletion
+        </Link>
       </div>
     </div>
   );
