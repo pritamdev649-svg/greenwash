@@ -216,7 +216,7 @@ const Home: React.FC = () => {
               onClick={() => setIsLoginModalOpen(true)}
               className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2 rounded-full text-xs font-bold active:scale-95 transition-all"
             >
-              Admin Login
+              Partner Login
             </button>
           </div>
 
@@ -246,7 +246,7 @@ const Home: React.FC = () => {
               }}
               className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-3 rounded-xl text-center text-sm font-bold shadow-lg shadow-emerald-600/20 active:scale-95 transition-all"
             >
-              Admin Login
+              Partner Login
             </button>
           </div>
         )}
@@ -806,7 +806,7 @@ const Home: React.FC = () => {
             <div className="p-8 sm:p-12">
               <div className="flex justify-between items-center mb-10">
                 <div>
-                  <h2 className="text-3xl font-black text-slate-900 mb-2">Admin Login</h2>
+                  <h2 className="text-3xl font-black text-slate-900 mb-2">Partner Login</h2>
                   <p className="text-slate-400 text-sm font-medium">Manage your laundry ecosystem.</p>
                 </div>
                 <button onClick={() => setIsLoginModalOpen(false)} className="p-2 hover:bg-slate-100 rounded-full text-slate-400 transition-colors">
