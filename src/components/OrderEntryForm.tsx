@@ -39,6 +39,13 @@ const formatDateSafe = (dateStr: any) => {
   return parts.reverse().join('/');
 };
 
+interface OrderEntryFormProps {
+  onClose: () => void;
+  onSuccess: () => void;
+  onPrintSuccess?: (orderId: string) => void;
+  editOrderId?: string;
+}
+
 export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSuccess, onPrintSuccess, editOrderId }) => {
   const navigate = useNavigate();
   const { t } = useLanguage();

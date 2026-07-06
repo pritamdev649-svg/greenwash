@@ -467,7 +467,7 @@ export default function Orders() {
           }}
           editOrderId={editingOrderId || undefined}
           onSuccess={handleOrderSuccess}
-          onPrintSuccess={(orderId) => {
+          onPrintSuccess={(orderId: string) => {
             setIsModalOpen(false);
             fetchData();
             handlePrintOrder(orderId);
