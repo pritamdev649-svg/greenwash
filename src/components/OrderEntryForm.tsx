@@ -32,12 +32,12 @@ interface SaleRow {
   amount: number;
 }
 
-interface OrderEntryFormProps {
-  onClose: () => void;
-  onSuccess: () => void;
-  onPrintSuccess?: (orderId: string) => void;
-  editOrderId?: string;
-}
+const formatDateSafe = (dateStr: any) => {
+  if (!dateStr || typeof dateStr !== 'string') return '';
+  const parts = dateStr.split('-');
+  if (parts.length < 3) return dateStr;
+  return parts.reverse().join('/');
+};
 
 export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSuccess, onPrintSuccess, editOrderId }) => {
   const navigate = useNavigate();
@@ -368,7 +368,7 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
           const orderRef = currentOrderNo ? `GWC${currentOrderNo}` : 'GWC' + currentOrderId.slice(0, 4).toUpperCase();
 
           // Generate and Upload PDF
-          const url = await receiptService.generateAndUploadReceipt('receipt-print-content', orderRef);
+          const url = await receiptService.generateAndUploadReceipt('hidden-receipt-capture', orderRef);
           setPdfUrl(url);
 
           const balance = (grandTotal - advanceAmount).toLocaleString();
@@ -376,8 +376,8 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
             `We are pleased to have you as a valuable customer. Please find the details of your transaction.\n` +
             `Invoice No:-${orderRef}\n\n` +
             `Sale Order :\n` +
-            `Order Date: ${orderDate.split('-').reverse().join('/')}\n` +
-            `Due Date: ${dueDate.split('-').reverse().join('/')}\n\n` +
+            `Order Date: ${formatDateSafe(orderDate)}\n` +
+            `Due Date: ${formatDateSafe(dueDate)}\n\n` +
             `Invoice Amount: ₹${grandTotal.toLocaleString()}\n` +
             `Balance: ₹${balance}\n\n` +
             (url ? `Download Digital Receipt (PDF): ${url}\n\n` : '') +
@@ -409,8 +409,8 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
       `We are pleased to have you as a valuable customer. Please find the details of your transaction.\n` +
       `Invoice No:-${orderRef}\n\n` +
       `Sale Order :\n` +
-      `Order Date: ${orderDate.split('-').reverse().join('/')}\n` +
-      `Due Date: ${dueDate.split('-').reverse().join('/')}\n\n` +
+      `Order Date: ${formatDateSafe(orderDate)}\n` +
+      `Due Date: ${formatDateSafe(dueDate)}\n\n` +
       `Invoice Amount: ₹${total}\n` +
       `Balance: ₹${balance}\n\n` +
       (pdfUrl ? `Download Digital Receipt (PDF): ${pdfUrl}\n\n` : '') +
@@ -850,10 +850,10 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
         {isSuccess && (
           <div style={{ position: 'absolute', left: '-9999px', top: 0, width: '800px' }}>
             <div id="hidden-receipt-capture" style={{ background: 'white', padding: '20px' }}>
-              <PrintReceipt orderData={{
+              <PrintReceipt isCapture={true} orderData={{
                 orderNo: createdOrder?.order_number ? `GWC${createdOrder.order_number}` : 'GWC' + createdOrderId.slice(0, 4).toUpperCase(),
                 date: new Date(createdOrder?.created_at || Date.now()).toLocaleDateString('en-GB'),
-                dueDate: dueDate.split('-').reverse().join('/'),
+                dueDate: formatDateSafe(dueDate),
                 customerName: selectedCustomer?.name || 'Customer',
                 customerAddress: selectedCustomer?.address || '',
                 customerPhone: selectedCustomer?.mobile || '',

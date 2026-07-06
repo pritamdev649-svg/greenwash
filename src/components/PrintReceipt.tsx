@@ -3,6 +3,7 @@ import toWords from 'number-to-words';
 import { QRCodeSVG } from 'qrcode.react';
 
 export interface PrintReceiptProps {
+  isCapture?: boolean;
   orderData: {
     status?: string;
     orderNo: string;
@@ -34,7 +35,7 @@ export interface PrintReceiptProps {
   };
 }
 
-export const PrintReceipt: React.FC<PrintReceiptProps> = ({ orderData }) => {
+export const PrintReceipt: React.FC<PrintReceiptProps> = ({ orderData, isCapture }) => {
   // Convert number to words, handle decimal roughly or just round
   const roundedTotal = Math.round(orderData.total);
   const words = orderData.total > 0 ? toWords.toWords(roundedTotal) : 'Zero';
@@ -88,7 +89,9 @@ export const PrintReceipt: React.FC<PrintReceiptProps> = ({ orderData }) => {
     <div
       id="receipt-print-content"
       // Use absolute positioning off-screen instead of hidden so html2canvas can capture it
-      className="absolute -left-[9999px] top-0 print:static print:left-0 font-sans text-black p-8 w-full bg-white printable-area relative overflow-hidden"
+      className={isCapture 
+        ? "font-sans text-black p-8 w-full bg-white relative overflow-hidden"
+        : "absolute -left-[9999px] top-0 print:static print:left-0 font-sans text-black p-8 w-full bg-white printable-area relative overflow-hidden"}
       style={{ fontFamily: 'Arial, sans-serif', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' } as React.CSSProperties}
     >
       {/* Cancelled Watermark */}
