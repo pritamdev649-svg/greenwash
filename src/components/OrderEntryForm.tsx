@@ -368,7 +368,7 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
           const orderRef = currentOrderNo ? `GWC${currentOrderNo}` : 'GWC' + currentOrderId.slice(0, 4).toUpperCase();
 
           // Generate and Upload PDF
-          const url = await receiptService.generateAndUploadReceipt('hidden-receipt-capture', orderRef);
+          const url = await receiptService.generateAndUploadReceipt('receipt-print-content', orderRef);
           setPdfUrl(url);
 
           const balance = (grandTotal - advanceAmount).toLocaleString();
