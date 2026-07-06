@@ -755,7 +755,7 @@ const Home: React.FC = () => {
               </div>
               <div className="flex items-center gap-3">
                 <Mail size={18} className="text-emerald-500" />
-                <span>ask003683@gmail.com</span>
+                <span>info.greenwashco@gmail.com</span>
               </div>
             </div>
             <div className="flex gap-3">

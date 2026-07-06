@@ -40,6 +40,7 @@ interface Customer {
   branch?: { name: string };
   total_orders?: number;
   pending_amount?: number;
+  coins?: number;
 }
 
 interface Order {
@@ -48,6 +49,8 @@ interface Order {
   payment_status: string;
   balance_amount?: number;
   created_at: string;
+  order_number?: string | number;
+  order_items?: any[];
 }
 
 const Customers: React.FC = () => {
@@ -522,45 +525,96 @@ const Customers: React.FC = () => {
                     <button onClick={() => navigate('/sale-order')} className="text-primary-600 font-bold hover:underline py-2">Create First Order</button>
                   </div>
                 ) : (
-                  <div className="space-y-4">
-                    {customerOrders.map(order => (
-                      <div key={order.id} className="group flex items-center justify-between p-5 rounded-2xl border border-slate-100 hover:border-primary-200 hover:bg-slate-50/50 transition-all">
-                        <div className="flex items-center gap-6">
-                          <div className="text-center w-12 shrink-0">
-                            <div className="text-[10px] font-bold text-slate-400 uppercase">{new Date(order.created_at).toLocaleDateString('en-US', { month: 'short' })}</div>
-                            <div className="text-xl font-extrabold text-slate-800 leading-none">{new Date(order.created_at).getDate()}</div>
-                          </div>
-                          <div className="h-10 w-[1px] bg-slate-100" />
-                          <div>
-                            <div className="text-sm font-bold text-slate-700 uppercase tracking-tighter mb-1">Order Ref: {order.id.slice(0, 8).toUpperCase()}</div>
-                            <div className="flex items-center gap-3">
-                              <div className={cn(
-                                "text-[10px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-tighter",
-                                order.payment_status === 'paid' ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-700"
-                              )}>
-                                {order.payment_status}
+                  <div className="space-y-6">
+                    {/* Header Stats Cards */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      <div className="bg-slate-50 border border-slate-100 p-4 rounded-2xl">
+                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-1">Total Orders</span>
+                        <span className="text-2xl font-black text-slate-800">{customerOrders.length}</span>
+                      </div>
+                      <div className="bg-emerald-50 border border-emerald-100 p-4 rounded-2xl">
+                        <span className="text-[10px] font-black text-emerald-600 uppercase tracking-wider block mb-1">Total Transactions</span>
+                        <span className="text-2xl font-black text-emerald-600">₹{customerOrders.reduce((s, o) => s + Number(o.total_amount || 0), 0).toLocaleString()}</span>
+                      </div>
+                      <div className="bg-rose-50 border border-rose-100 p-4 rounded-2xl">
+                        <span className="text-[10px] font-black text-rose-600 uppercase tracking-wider block mb-1">Total Pending</span>
+                        <span className="text-2xl font-black text-rose-600">₹{customerOrders.reduce((s, o) => s + Number(o.balance_amount || 0), 0).toLocaleString()}</span>
+                      </div>
+                      <div className="bg-amber-50 border border-amber-100 p-4 rounded-2xl flex items-center justify-between">
+                        <div>
+                          <span className="text-[10px] font-black text-amber-600 uppercase tracking-wider block mb-1">Available Coins</span>
+                          <span className="text-2xl font-black text-amber-600">{selectedCustomer.coins || 0}</span>
+                        </div>
+                        <span className="text-2xl">💰</span>
+                      </div>
+                    </div>
+
+                    {/* Order List */}
+                    <div className="space-y-4">
+                      {customerOrders.map(order => (
+                        <div key={order.id} className="group p-5 rounded-2xl border border-slate-100 hover:border-primary-200 hover:bg-slate-50/50 transition-all space-y-3">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-6">
+                              <div className="text-center w-12 shrink-0">
+                                <div className="text-[9px] font-bold text-slate-400 uppercase">{new Date(order.created_at).toLocaleDateString('en-US', { month: 'short' })}</div>
+                                <div className="text-xl font-extrabold text-slate-800 leading-none">{new Date(order.created_at).getDate()}</div>
+                                <div className="text-[9px] font-bold text-slate-400 mt-1">{new Date(order.created_at).getFullYear()}</div>
                               </div>
-                              <span className="text-xs font-medium text-slate-400">{new Date(order.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                              <div className="h-10 w-[1px] bg-slate-100" />
+                              <div>
+                                <div className="text-sm font-bold text-slate-700 uppercase tracking-tighter mb-1">
+                                  Order Ref: {order.order_number ? `GWC${order.order_number}` : 'GWC' + order.id.slice(0, 4).toUpperCase()}
+                                </div>
+                                <div className="flex items-center gap-3">
+                                  <div className={cn(
+                                    "text-[10px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-tighter",
+                                    order.payment_status === 'paid' ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-700"
+                                  )}>
+                                    {order.payment_status}
+                                  </div>
+                                  <span className="text-xs font-medium text-slate-400">{new Date(order.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                </div>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <div className="text-lg font-extrabold text-slate-900 tracking-tight">₹{Number(order.total_amount).toLocaleString()}</div>
+                              <div className={cn(
+                                "text-[10px] font-bold uppercase",
+                                (order.balance_amount || 0) > 0 ? "text-rose-500" : "text-emerald-500"
+                              )}>
+                                {(order.balance_amount || 0) > 0 ? `Balance: ₹${(order.balance_amount ?? 0).toLocaleString()}` : "Fully Paid"}
+                              </div>
                             </div>
                           </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-lg font-extrabold text-slate-900 tracking-tight">₹{Number(order.total_amount).toLocaleString()}</div>
-                          <div className={cn(
-                            "text-[10px] font-bold uppercase",
-                            (order.balance_amount || 0) > 0 ? "text-rose-500" : "text-emerald-500"
-                          )}>
-                            {(order.balance_amount || 0) > 0 ? `Balance: ₹${(order.balance_amount ?? 0).toLocaleString()}` : "Fully Paid"}
+
+                          {/* Services Taken (Items) */}
+                          {order.order_items && order.order_items.length > 0 && (
+                            <div className="pt-3 border-t border-slate-100">
+                              <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-2">Services Taken:</span>
+                              <div className="flex flex-wrap gap-1.5">
+                                {order.order_items.map((item: any, idx: number) => {
+                                  const name = item.custom_item_name || item.cloth_type?.name || 'Item';
+                                  return (
+                                    <span key={idx} className="text-[10px] font-bold text-slate-600 bg-white border border-slate-200 px-3 py-1 rounded-full uppercase">
+                                      {item.quantity} x {name}
+                                    </span>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          )}
+
+                          <div className="flex justify-end pt-1">
+                            <button
+                              onClick={() => handlePrintOrder(order.id)}
+                              className="text-[10px] font-bold text-primary-600 uppercase tracking-widest flex items-center gap-1 hover:text-primary-700"
+                            >
+                              View Receipt <ArrowRight size={10} />
+                            </button>
                           </div>
-                          <button
-                            onClick={() => handlePrintOrder(order.id)}
-                            className="mt-1 text-[10px] font-bold text-primary-600 uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 ml-auto"
-                          >
-                            View Receipt <ArrowRight size={10} />
-                          </button>
                         </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
@@ -568,9 +622,11 @@ const Customers: React.FC = () => {
               <div className="p-6 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
                 <div className="flex items-center gap-2 text-rose-600 bg-rose-50 px-3 py-1.5 rounded-xl border border-rose-100">
                   <AlertCircle size={16} />
-                  <span className="text-xs font-bold uppercase tracking-tight">Total Pending: ₹{selectedCustomer.pending_amount?.toLocaleString()}</span>
+                  <span className="text-xs font-bold uppercase tracking-tight">
+                    Total Pending: ₹{customerOrders.reduce((s, o) => s + Number(o.balance_amount || 0), 0).toLocaleString()}
+                  </span>
                 </div>
-                <button onClick={() => setIsHistoryModalOpen(false)} className="btn-primary h-11 px-6 rounded-xl font-bold text-sm">Close Record</button>
+                <button onClick={() => setIsHistoryModalOpen(false)} className="h-11 px-6 rounded-xl font-bold text-sm bg-emerald-600 text-white hover:bg-emerald-700 active:scale-95 transition-all shadow-md shadow-emerald-600/10">Close Record</button>
               </div>
             </div>
           </div>

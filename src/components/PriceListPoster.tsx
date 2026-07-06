@@ -49,7 +49,7 @@ export const PriceListPoster: React.FC = () => {
         {/* Contact Info (Minimal) */}
         <div className="mt-14 text-center">
           <p className="text-xl font-black text-slate-900 tracking-tight">+91 9451034909</p>
-          <p className="text-xs font-black text-emerald-600/40 uppercase tracking-[0.5em] mt-2">ask003683@gmail.com</p>
+          <p className="text-xs font-black text-emerald-600/40 uppercase tracking-[0.5em] mt-2">info.greenwashco@gmail.com</p>
         </div>
       </div>
 

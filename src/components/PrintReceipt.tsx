@@ -26,6 +26,7 @@ export interface PrintReceiptProps {
     total: number;
     advance: number;
     balance: number;
+    coinsRedeemed?: number | null;
     paymentInfo?: {
       upiId?: string | null;
       qrCodeUrl?: string | null;
@@ -109,7 +110,7 @@ export const PrintReceipt: React.FC<PrintReceiptProps> = ({ orderData, isCapture
           <h1 className="text-xl font-bold tracking-tight" style={{ color: '#2FA84B' }}>Green Wash Co.</h1>
           <p className="text-[11px] text-gray-700 mt-1">Hari Nagar Colony , Ayodhya Road Chinhat Lucknow</p>
           <p className="text-[11px] text-gray-700">Phone no. : 9451034909</p>
-          <p className="text-[11px] text-gray-700">Email : ask003683@gmail.com</p>
+          <p className="text-[11px] text-gray-700">Email : info.greenwashco@gmail.com</p>
         </div>
         <div>
           <img src="/assets/logo.jpeg" alt="Green Wash Co Logo" className="h-20 object-contain" />
@@ -243,6 +244,12 @@ export const PrintReceipt: React.FC<PrintReceiptProps> = ({ orderData, isCapture
                   <td className="py-1 text-right">+ ₹ {charge.amount.toFixed(1)}</td>
                 </tr>
               ))}
+              {orderData.coinsRedeemed && orderData.coinsRedeemed > 0 && (
+                <tr className="text-amber-800 font-bold bg-amber-50">
+                  <td className="py-1 pl-2">Coins Redeemed</td>
+                  <td className="py-1 pr-2 text-right text-amber-700 font-extrabold">- ₹ {orderData.coinsRedeemed.toFixed(1)}</td>
+                </tr>
+              )}
               <tr className="bg-gray-500 text-white font-bold">
                 <td className="py-1.5 pl-2">Grand Total</td>
                 <td className="py-1.5 pr-2 text-right">₹ {(orderData.total || 0).toFixed(1)}</td>

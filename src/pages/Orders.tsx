@@ -13,9 +13,11 @@ import {
   CreditCard,
   Share2,
   Edit2,
-  Ban
+  Ban,
+  X
 } from 'lucide-react';
 import { orderService } from '@backend/services/orderService';
+import { customerService } from '@backend/services/customerService';
 import { notificationService } from '@backend/services/notificationService';
 import { OrderEntryForm } from '../components/OrderEntryForm';
 import { PrintReceipt } from '../components/PrintReceipt';
@@ -34,6 +36,44 @@ export default function Orders() {
   const [statusFilter] = useState('all');
   const [printingOrderData, setPrintingOrderData] = useState<PrintReceiptProps['orderData'] | null>(null);
   const [editingOrderId, setEditingOrderId] = useState<string | null>(null);
+
+  // Damage Refund State
+  const [isDamageModalOpen, setIsDamageModalOpen] = useState(false);
+  const [selectedOrderForDamage, setSelectedOrderForDamage] = useState<any>(null);
+  const [damageDescription, setDamageDescription] = useState('');
+  const [damageRefundAmount, setDamageRefundAmount] = useState<number>(0);
+  const [submittingDamage, setSubmittingDamage] = useState(false);
+
+  const handleReportDamageClick = (order: any) => {
+    setSelectedOrderForDamage(order);
+    setDamageDescription('');
+    setDamageRefundAmount(0);
+    setIsDamageModalOpen(true);
+  };
+
+  const handleReportDamageSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedOrderForDamage || !selectedOrderForDamage.customer_id) return;
+    if (damageRefundAmount <= 0) {
+      alert("Please enter a valid refund amount.");
+      return;
+    }
+    try {
+      setSubmittingDamage(true);
+      await customerService.updateCustomerCoins(selectedOrderForDamage.customer_id, damageRefundAmount);
+      alert(`Successfully reported damage. Refunded ${damageRefundAmount} coins to customer.`);
+      setIsDamageModalOpen(false);
+      setSelectedOrderForDamage(null);
+      setDamageDescription('');
+      setDamageRefundAmount(0);
+      fetchData();
+    } catch (err) {
+      console.error(err);
+      alert("Failed to report damage.");
+    } finally {
+      setSubmittingDamage(false);
+    }
+  };
 
   useEffect(() => {
     fetchData();
@@ -91,7 +131,6 @@ export default function Orders() {
           const orderRef = order.order_number ? `GWC${order.order_number}` : 'GWC' + order.id.slice(0, 4).toUpperCase();
           const customerName = order.customers?.name || 'Valued Customer';
           const mobile = order.customers?.mobile || '';
-          const branchName = order.branches?.name || 'Green Wash Co.';
           const totalAmount = Number(order.total_amount).toLocaleString();
           const balanceAmount = (order.balance_amount || 0).toLocaleString();
 
@@ -100,7 +139,7 @@ export default function Orders() {
           if (nextPhase === 'Processing') {
             alertMsg = `Hello ${customerName}, your order *${orderRef}* is now under Processing at Green Wash Co. We'll alert you once it's clean and ready! 🧺`;
           } else if (nextPhase === 'Ready') {
-            alertMsg = `Good news ${customerName}! ✨\n\nYour clothes for order *${orderRef}* are Cleaned, Ironed, and **READY** for pickup at ${branchName}.\n\n` +
+            alertMsg = `Good news ${customerName}! ✨\n\nYour clothes for order *${orderRef}* are Cleaned, Ironed, and **READY** for pickup at Green Wash Co.\n\n` +
               `Invoice Total: ₹${totalAmount}\n` +
               `Remaining Balance: ₹${balanceAmount}\n\n` +
               `See you soon! 🙏`;
@@ -443,12 +482,19 @@ export default function Orders() {
                       {order.order_status !== 'Cancelled' && (
                         <button
                           onClick={() => handleCancelOrder(order.id)}
-                          className="w-9 h-9 flex items-center justify-center bg-slate-200 hover:bg-red-100 text-slate-600 hover:text-red-600 rounded-xl transition-all active:scale-90"
+                          className="w-9 h-9 flex items-center justify-center bg-slate-200 hover:bg-red-100 text-slate-600 hover:text-red-600 rounded-xl transition-all active:scale-95"
                           title="Cancel Order"
                         >
                           <Ban size={16} strokeWidth={2.5} />
                         </button>
                       )}
+                      <button
+                        onClick={() => handleReportDamageClick(order)}
+                        className="w-9 h-9 flex items-center justify-center bg-amber-100 hover:bg-amber-200 text-amber-700 rounded-xl transition-all active:scale-95"
+                        title="Report Damage"
+                      >
+                        <AlertCircle size={16} strokeWidth={2.5} />
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -473,6 +519,59 @@ export default function Orders() {
             handlePrintOrder(orderId);
           }}
         />
+      )}
+      {/* Report Damage Modal */}
+      {isDamageModalOpen && selectedOrderForDamage && (
+        <div className="fixed inset-0 z-[150] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setIsDamageModalOpen(false)} />
+          <div className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl p-8 overflow-hidden animate-slide-up flex flex-col">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">Report Clothes Damage</h3>
+              <button onClick={() => setIsDamageModalOpen(false)} className="p-2 bg-slate-50 hover:bg-slate-100 rounded-full text-slate-400 transition-colors"><X size={20} /></button>
+            </div>
+            <form onSubmit={handleReportDamageSubmit} className="space-y-5">
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block ml-1">Damage Description</label>
+                <textarea
+                  required
+                  rows={3}
+                  className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:bg-white focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 outline-none transition-all resize-none"
+                  placeholder="Describe the clothes damage..."
+                  value={damageDescription}
+                  onChange={(e) => setDamageDescription(e.target.value)}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block ml-1">Refund Amount (Coins)</label>
+                <input
+                  required
+                  type="number"
+                  min="1"
+                  className="w-full h-12 px-4 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:bg-white focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 outline-none transition-all"
+                  placeholder="Enter coin refund value..."
+                  value={damageRefundAmount || ''}
+                  onChange={(e) => setDamageRefundAmount(parseInt(e.target.value) || 0)}
+                />
+              </div>
+              <div className="flex gap-4 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setIsDamageModalOpen(false)}
+                  className="flex-1 h-12 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-2xl font-bold transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={submittingDamage}
+                  className="flex-1 h-12 bg-rose-600 hover:bg-rose-700 text-white rounded-2xl font-bold transition-all disabled:opacity-50"
+                >
+                  {submittingDamage ? "Submitting..." : "Issue Refund"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
     </div>
   );

@@ -302,7 +302,6 @@ export const orderService = {
 
     // 2. Automate Notification if status is 'Ready'
     if (status === 'Ready' && order?.customers?.mobile) {
-      const branchName = order.branches?.name || 'our branch';
       const orderRef = order.order_number ? `GWC${order.order_number}` : 'GWC' + order.id.slice(0, 4).toUpperCase();
       const mobile = order.customers.mobile;
 
@@ -310,7 +309,7 @@ export const orderService = {
       const dueDate = order.due_date ? order.due_date.split('-').reverse().join('/') : orderDate;
 
       const message = `Greetings from Green Wash Co.\n` +
-        `We are pleased to have you as a valuable customer. Your laundry order ${orderRef} is cleaned and ready for pickup at our ${branchName}!\n\n` +
+        `We are pleased to have you as a valuable customer. Your laundry order ${orderRef} is cleaned and ready for pickup at Green Wash Co.!\n\n` +
         `Invoice No:-${orderRef}\n` +
         `Order Date: ${orderDate}\n` +
         `Due Date: ${dueDate}\n\n` +

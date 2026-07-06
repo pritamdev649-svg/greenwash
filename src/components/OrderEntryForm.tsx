@@ -101,6 +101,10 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
   const [discount, setDiscount] = useState(0);
   const [discountType, setDiscountType] = useState<'amount' | 'percentage'>('amount');
 
+  // Coin Redemption State
+  const [redeemCoinsChecked, setRedeemCoinsChecked] = useState(false);
+  const [coinsToRedeem, setCoinsToRedeem] = useState(0);
+
   // Additional Charges State
   const [additionalCharges, setAdditionalCharges] = useState<{ label: string, amount: number }[]>([]);
   const [showCustomCharge, setShowCustomCharge] = useState(false);
@@ -295,7 +299,7 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
   const subtotal = rows.reduce((sum, row) => sum + row.amount, 0);
   const chargesTotal = additionalCharges.reduce((sum, c) => sum + c.amount, 0);
   const discountAmount = discountType === 'amount' ? discount : (subtotal * discount) / 100;
-  const grandTotal = Math.round(subtotal - discountAmount + chargesTotal);
+  const grandTotal = Math.max(0, Math.round(subtotal - discountAmount - coinsToRedeem + chargesTotal));
 
   const handleSave = async () => {
     if (!selectedCustomerId) {
@@ -364,6 +368,11 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
         setCreatedOrderId(order.id);
         setCreatedOrder(order);
         setIsSuccess(true);
+        
+        // Deduct redeemed coins from customer profile
+        if (coinsToRedeem > 0) {
+          await customerService.updateCustomerCoins(selectedCustomerId, -coinsToRedeem);
+        }
       }
 
       // --- NEW: PDF GENERATION & AUTOMATED WHATSAPP SEND ---
@@ -567,6 +576,61 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
                   </div>
                 </div>
               </div>
+
+              {selectedCustomer && (
+                <div className="mt-4 p-4 bg-amber-50/50 border border-amber-100 rounded-2xl space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="text-base">🪙</span>
+                      <div>
+                        <span className="text-[9px] font-black text-amber-800 uppercase tracking-wider block">Available Coins</span>
+                        <span className="text-xs font-black text-amber-700">{selectedCustomer.coins || 0} Coins</span>
+                      </div>
+                    </div>
+                    {(selectedCustomer.coins || 0) > 0 && (
+                      <div className="flex items-center gap-1.5">
+                        <input
+                          type="checkbox"
+                          id="redeem-coins-checkbox"
+                          className="w-3.5 h-3.5 rounded text-amber-600 focus:ring-amber-500 border-amber-300 cursor-pointer"
+                          checked={redeemCoinsChecked}
+                          onChange={(e) => {
+                            setRedeemCoinsChecked(e.target.checked);
+                            if (e.target.checked) {
+                              const maxRedeem = Math.min(selectedCustomer.coins, subtotal);
+                              setCoinsToRedeem(maxRedeem);
+                            } else {
+                              setCoinsToRedeem(0);
+                            }
+                          }}
+                        />
+                        <label htmlFor="redeem-coins-checkbox" className="text-[10px] font-black text-amber-900 uppercase cursor-pointer">Redeem</label>
+                      </div>
+                    )}
+                  </div>
+
+                  {redeemCoinsChecked && (selectedCustomer.coins || 0) > 0 && (
+                    <div className="space-y-1.5">
+                      <label className="text-[9px] font-black text-amber-800 uppercase tracking-widest block ml-1">Coins to Redeem</label>
+                      <input
+                        type="number"
+                        min="0"
+                        max={Math.min(selectedCustomer.coins, subtotal)}
+                        className="w-full h-9 px-3 bg-white border border-amber-200 rounded-xl text-xs font-bold focus:ring-2 focus:ring-amber-500/20 outline-none text-amber-800"
+                        value={coinsToRedeem}
+                        onChange={(e) => {
+                          const val = Math.min(
+                            selectedCustomer.coins,
+                            subtotal,
+                            Math.max(0, parseInt(e.target.value) || 0)
+                          );
+                          setCoinsToRedeem(val);
+                        }}
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
 
               <div className="bg-slate-50/50 p-6 rounded-3xl border border-slate-100 space-y-4">
                 <div className="flex justify-between items-center text-xs font-bold">
@@ -822,6 +886,12 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
                       </div>
                     ))}
                   </div>
+                  {coinsToRedeem > 0 && (
+                    <div className="flex justify-between items-center text-xs font-bold text-amber-600 bg-amber-50 p-2 rounded-xl border border-amber-100">
+                      <span>Coins Redeemed</span>
+                      <span>- ₹{coinsToRedeem}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between items-center text-xs font-bold text-emerald-600 bg-emerald-50 p-2 rounded-xl border border-emerald-100">
                     <span>Advance Received</span>
                     <input type="number" className="w-20 h-8 text-right bg-white border border-emerald-200 rounded-lg text-[10px] font-black p-2 uppercase focus:ring-2 focus:ring-emerald-500/20" value={advanceAmount} onChange={(e) => setAdvanceAmount(parseFloat(e.target.value) || 0)} />
@@ -878,6 +948,7 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
                 total: grandTotal,
                 advance: advanceAmount,
                 balance: (grandTotal - advanceAmount),
+                coinsRedeemed: coinsToRedeem,
                 paymentInfo: vendorPayment ? {
                   upiId: vendorPayment.upi_id,
                   qrCodeUrl: vendorPayment.qr_code_url,

@@ -57,6 +57,7 @@ export const customerService = {
         order_items:order_items(
           quantity,
           subtotal,
+          custom_item_name,
           cloth_type:cloth_types(name)
         )
       `)
@@ -84,4 +85,24 @@ export const customerService = {
     if (error) throw error;
     return true;
   },
+
+  async updateCustomerCoins(customerId: string, coinsChange: number) {
+    const { data: customer, error: fetchErr } = await supabase
+      .from('customers')
+      .select('coins')
+      .eq('id', customerId)
+      .single();
+    if (fetchErr) throw fetchErr;
+
+    const newCoins = Math.max(0, (customer?.coins || 0) + coinsChange);
+
+    const { data, error } = await supabase
+      .from('customers')
+      .update({ coins: newCoins })
+      .eq('id', customerId)
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  }
 };
