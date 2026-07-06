@@ -14,7 +14,8 @@ import {
   Share2,
   Edit2,
   Ban,
-  X
+  X,
+  MoreVertical
 } from 'lucide-react';
 import { orderService } from '@backend/services/orderService';
 import { customerService } from '@backend/services/customerService';
@@ -43,6 +44,7 @@ export default function Orders() {
   const [damageDescription, setDamageDescription] = useState('');
   const [damageRefundAmount, setDamageRefundAmount] = useState<number>(0);
   const [submittingDamage, setSubmittingDamage] = useState(false);
+  const [activeDropdownId, setActiveDropdownId] = useState<string | null>(null);
 
   const handleReportDamageClick = (order: any) => {
     setSelectedOrderForDamage(order);
@@ -84,6 +86,14 @@ export default function Orders() {
       window.history.replaceState({}, '', window.location.pathname);
     }
   }, [location.search, vendorId]);
+
+  useEffect(() => {
+    const handleOutsideClick = () => {
+      setActiveDropdownId(null);
+    };
+    window.addEventListener('click', handleOutsideClick);
+    return () => window.removeEventListener('click', handleOutsideClick);
+  }, []);
 
   const fetchData = async () => {
     try {
@@ -437,64 +447,94 @@ export default function Orders() {
                       {order.order_status || 'Pending'}
                     </button>
                   </td>
-                  <td className="table-cell px-6 text-right">
-                    <div className="flex justify-end gap-2">
+                  <td className="table-cell px-6 text-right relative">
+                    <div className="flex justify-end">
                       <button
-                        onClick={() => {
-                          setEditingOrderId(order.id);
-                          setIsModalOpen(true);
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setActiveDropdownId(activeDropdownId === order.id ? null : order.id);
                         }}
-                        className="w-9 h-9 flex items-center justify-center bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl transition-all active:scale-90"
-                        title="Edit Order"
+                        className="w-9 h-9 flex items-center justify-center hover:bg-slate-100 text-slate-500 rounded-xl transition-all active:scale-90"
                       >
-                        <Edit2 size={16} strokeWidth={2.5} />
+                        <MoreVertical size={20} />
                       </button>
-                      <button
-                        onClick={() => handlePrintOrder(order.id)}
-                        className="w-9 h-9 flex items-center justify-center bg-slate-800 hover:bg-slate-900 text-white rounded-xl transition-all active:scale-90"
-                        title="Print / Save PDF"
-                      >
-                        <Printer size={16} strokeWidth={2.5} />
-                      </button>
-                      <button
-                        onClick={() => handleShareLink(order)}
-                        className="w-9 h-9 flex items-center justify-center bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl transition-all active:scale-90"
-                        title="Share Digital Receipt"
-                      >
-                        <Share2 size={16} strokeWidth={2.5} />
-                      </button>
-                      {(order.balance_amount || 0) > 0 && (
-                        <button
-                          onClick={() => handleCollectBalance(order.id)}
-                          className="w-9 h-9 flex items-center justify-center bg-amber-500 hover:bg-amber-600 text-white rounded-xl transition-all active:scale-90"
-                          title="Collect Balance"
-                        >
-                          <CreditCard size={16} strokeWidth={2.5} />
-                        </button>
+
+                      {activeDropdownId === order.id && (
+                        <div className="absolute right-6 top-10 bg-white border border-slate-100 rounded-2xl shadow-xl py-2 w-52 z-50 text-left animate-in fade-in slide-in-from-top-2 duration-150">
+                          {/* Preview Receipt Option */}
+                          <button
+                            onClick={() => handlePrintOrder(order.id)}
+                            className="w-full px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-50 flex items-center gap-2.5 transition-colors"
+                          >
+                            <Printer size={14} className="text-slate-400" />
+                            Preview Receipt
+                          </button>
+
+                          {/* Edit Order Option */}
+                          <button
+                            onClick={() => {
+                              setEditingOrderId(order.id);
+                              setIsModalOpen(true);
+                            }}
+                            className="w-full px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-50 flex items-center gap-2.5 transition-colors"
+                          >
+                            <Edit2 size={14} className="text-slate-400" />
+                            Edit Order
+                          </button>
+
+                          {/* Share (WhatsApp) Option */}
+                          <button
+                            onClick={() => handleShareLink(order)}
+                            className="w-full px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-50 flex items-center gap-2.5 transition-colors"
+                          >
+                            <Share2 size={14} className="text-slate-400" />
+                            Share (WhatsApp)
+                          </button>
+
+                          {/* Collect Balance Option */}
+                          {(order.balance_amount || 0) > 0 && (
+                            <button
+                              onClick={() => handleCollectBalance(order.id)}
+                              className="w-full px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-50 flex items-center gap-2.5 transition-colors"
+                            >
+                              <CreditCard size={14} className="text-slate-400" />
+                              Collect Balance
+                            </button>
+                          )}
+
+                          {/* Cancel Order Option */}
+                          {order.order_status !== 'Cancelled' && (
+                            <button
+                              onClick={() => handleCancelOrder(order.id)}
+                              className="w-full px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-50 flex items-center gap-2.5 transition-colors"
+                            >
+                              <Ban size={14} className="text-slate-400" />
+                              Cancel Order
+                            </button>
+                          )}
+
+                          {/* Report Damage Option */}
+                          <button
+                            onClick={() => handleReportDamageClick(order)}
+                            className="w-full px-4 py-2.5 text-xs font-bold text-amber-700 hover:bg-amber-50 flex items-center gap-2.5 transition-colors"
+                          >
+                            <AlertCircle size={14} className="text-amber-500" />
+                            Report Damage
+                          </button>
+
+                          {/* Divider */}
+                          <div className="my-1 border-t border-slate-50" />
+
+                          {/* Delete Permanently Option */}
+                          <button
+                            onClick={() => handleDeleteOrder(order.id)}
+                            className="w-full px-4 py-2.5 text-xs font-bold text-rose-600 hover:bg-rose-50 flex items-center gap-2.5 transition-colors"
+                          >
+                            <Trash2 size={14} className="text-rose-400" />
+                            Delete Permanently
+                          </button>
+                        </div>
                       )}
-                      <button
-                        onClick={() => handleDeleteOrder(order.id)}
-                        className="w-9 h-9 flex items-center justify-center bg-rose-600 hover:bg-rose-700 text-white rounded-xl transition-all active:scale-90"
-                        title="Delete Permanently"
-                      >
-                        <Trash2 size={16} strokeWidth={2.5} />
-                      </button>
-                      {order.order_status !== 'Cancelled' && (
-                        <button
-                          onClick={() => handleCancelOrder(order.id)}
-                          className="w-9 h-9 flex items-center justify-center bg-slate-200 hover:bg-red-100 text-slate-600 hover:text-red-600 rounded-xl transition-all active:scale-95"
-                          title="Cancel Order"
-                        >
-                          <Ban size={16} strokeWidth={2.5} />
-                        </button>
-                      )}
-                      <button
-                        onClick={() => handleReportDamageClick(order)}
-                        className="w-9 h-9 flex items-center justify-center bg-amber-100 hover:bg-amber-200 text-amber-700 rounded-xl transition-all active:scale-95"
-                        title="Report Damage"
-                      >
-                        <AlertCircle size={16} strokeWidth={2.5} />
-                      </button>
                     </div>
                   </td>
                 </tr>

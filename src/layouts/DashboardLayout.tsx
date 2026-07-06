@@ -95,11 +95,6 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
       icon: Store,
     });
     navItems.push({
-      path: '/orders',
-      label: 'Branch Orders',
-      icon: Receipt,
-    });
-    navItems.push({
       path: '/customers',
       label: 'Branch Customers',
       icon: Users,

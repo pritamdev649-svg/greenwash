@@ -29,7 +29,7 @@ interface Offer {
 
 const Offers: React.FC = () => {
   const { t } = useLanguage();
-  const { vendorId } = useAuth();
+  const { vendorId, role } = useAuth();
   const [offers, setOffers] = useState<Offer[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAddingOffer, setIsAddingOffer] = useState(false);
@@ -167,18 +167,20 @@ const Offers: React.FC = () => {
           <p className="text-slate-500 mt-1 font-medium italic">{t('promotions_desc')}</p>
         </div>
 
-        <button
-          onClick={() => isAddingOffer ? resetForm() : setIsAddingOffer(true)}
-          className={cn(
-            "h-12 px-8 rounded-2xl flex items-center gap-3 text-sm font-black uppercase tracking-widest transition-all active:scale-95",
-            isAddingOffer
-              ? "bg-rose-50 text-rose-600 border border-rose-100"
-              : "bg-primary-600 text-white"
-          )}
-        >
-          {isAddingOffer ? <X size={20} /> : <Plus size={20} />}
-          <span>{isAddingOffer ? t('cancel') : t('design_new_offer')}</span>
-        </button>
+        {role !== 'vendor' && (
+          <button
+            onClick={() => isAddingOffer ? resetForm() : setIsAddingOffer(true)}
+            className={cn(
+              "h-12 px-8 rounded-2xl flex items-center gap-3 text-sm font-black uppercase tracking-widest transition-all active:scale-95",
+              isAddingOffer
+                ? "bg-rose-50 text-rose-600 border border-rose-100"
+                : "bg-primary-600 text-white"
+            )}
+          >
+            {isAddingOffer ? <X size={20} /> : <Plus size={20} />}
+            <span>{isAddingOffer ? t('cancel') : t('design_new_offer')}</span>
+          </button>
+        )}
       </div>
 
       {isAddingOffer && (
@@ -375,40 +377,46 @@ const Offers: React.FC = () => {
                   )}
                 </div>
 
-                <div className="flex items-center justify-between mt-8 pt-6 border-t border-slate-50">
-                  <div className="flex items-center gap-1">
-                    <button
-                      onClick={() => handleToggleStatus(offer)}
-                      className={cn(
-                        "p-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all",
-                        offer.is_active
-                          ? "bg-rose-50 text-rose-600 hover:bg-rose-100"
-                          : "bg-emerald-50 text-emerald-600 hover:bg-emerald-100"
-                      )}
-                      title={offer.is_active ? t('deactivate') : t('activate')}
-                    >
-                      {offer.is_active ? <EyeOff size={16} /> : <Eye size={16} />}
-                    </button>
+                {role !== 'vendor' ? (
+                  <div className="flex items-center justify-between mt-8 pt-6 border-t border-slate-50">
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => handleToggleStatus(offer)}
+                        className={cn(
+                          "p-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all",
+                          offer.is_active
+                            ? "bg-rose-50 text-rose-600 hover:bg-rose-100"
+                            : "bg-emerald-50 text-emerald-600 hover:bg-emerald-100"
+                        )}
+                        title={offer.is_active ? t('deactivate') : t('activate')}
+                      >
+                        {offer.is_active ? <EyeOff size={16} /> : <Eye size={16} />}
+                      </button>
 
-                    <button
-                      onClick={() => startEdit(offer)}
-                      className="p-2.5 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded-xl transition-all"
-                      title={t('edit_offer')}
-                    >
-                      <Edit2 size={16} />
-                    </button>
+                      <button
+                        onClick={() => startEdit(offer)}
+                        className="p-2.5 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded-xl transition-all"
+                        title={t('edit_offer')}
+                      >
+                        <Edit2 size={16} />
+                      </button>
 
-                    <button
-                      onClick={() => handleDeleteOffer(offer.id)}
-                      className="p-2.5 bg-rose-50 text-rose-400 hover:bg-rose-600 hover:text-white rounded-xl transition-all"
-                      title={t('delete_offer')}
-                    >
-                      <Trash2 size={16} />
-                    </button>
+                      <button
+                        onClick={() => handleDeleteOffer(offer.id)}
+                        className="p-2.5 bg-rose-50 text-rose-400 hover:bg-rose-600 hover:text-white rounded-xl transition-all"
+                        title={t('delete_offer')}
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+
+                    <p className="text-[9px] text-slate-300 font-bold">{new Date(offer.created_at).toLocaleDateString()}</p>
                   </div>
-
-                  <p className="text-[9px] text-slate-300 font-bold">{new Date(offer.created_at).toLocaleDateString()}</p>
-                </div>
+                ) : (
+                  <div className="flex justify-end mt-8 pt-6 border-t border-slate-50">
+                    <p className="text-[9px] text-slate-300 font-bold">{new Date(offer.created_at).toLocaleDateString()}</p>
+                  </div>
+                )}
               </div>
             </div>
           ))}
