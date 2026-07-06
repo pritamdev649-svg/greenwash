@@ -13,6 +13,7 @@ import { orderService } from '@backend/services/orderService';
 import { cn } from '../lib/utils';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
+import { supabase } from '@backend/config/supabase';
 
 interface Category {
   id: string;
@@ -30,7 +31,7 @@ interface Item {
 
 const Categories: React.FC = () => {
   const { t } = useLanguage();
-  const { vendorId } = useAuth();
+  const { vendorId, role } = useAuth();
   // State
   const [categories, setCategories] = useState<Category[]>([]);
   const [items, setItems] = useState<Item[]>([]);
@@ -70,12 +71,22 @@ const Categories: React.FC = () => {
     fetchData();
   }, [vendorId]);
 
+  const getTargetVendorId = async () => {
+    if (vendorId) return vendorId;
+    const { data } = await supabase.from('vendors').select('id').limit(1);
+    if (data && data.length > 0) {
+      return data[0].id;
+    }
+    return null;
+  };
+
   // Handlers - Categories
   const handleAddCategory = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newCategoryName.trim()) return;
     try {
-      const newCat = await orderService.addCategory(newCategoryName, vendorId);
+      const targetVendorId = await getTargetVendorId();
+      const newCat = await orderService.addCategory(newCategoryName, targetVendorId);
       setNewCategoryName('');
       setIsAddingCategory(false);
       await fetchData();
@@ -90,7 +101,8 @@ const Categories: React.FC = () => {
 
   const handleAddSuggested = async (catName: string) => {
     try {
-      const newCat = await orderService.addCategory(catName);
+      const targetVendorId = await getTargetVendorId();
+      const newCat = await orderService.addCategory(catName, targetVendorId);
       await fetchData();
       setSelectedCategoryId(newCat.id);
     } catch (err: any) {
@@ -119,12 +131,14 @@ const Categories: React.FC = () => {
     if (!selectedCategoryId) return;
     
     try {
+      const targetVendorId = await getTargetVendorId();
       const payload = { 
         name: itemForm.name,
         wash_price: itemForm.price, // Map to wash_price as standard column
         iron_price: itemForm.price,
         dry_clean_price: itemForm.price,
-        category_id: selectedCategoryId 
+        category_id: selectedCategoryId,
+        vendor_id: targetVendorId
       };
       if (editingItemId) {
         await orderService.updateClothType(editingItemId, payload);
@@ -195,16 +209,18 @@ const Categories: React.FC = () => {
           </div>
         </div>
         
-        <button 
-          onClick={() => setIsAddingCategory(!isAddingCategory)}
-          className={cn(
-            "btn h-11 px-6 rounded-xl flex items-center gap-2 text-xs font-bold uppercase transition-all",
-            isAddingCategory ? "bg-rose-50 text-rose-600 border border-rose-100" : "bg-primary-600 text-white active:scale-95"
-          )}
-        >
-          {isAddingCategory ? <X size={18} /> : <Plus size={18} />}
-          <span>{isAddingCategory ? t('cancel') : t('add_category_btn')}</span>
-        </button>
+        {role !== 'vendor' && (
+          <button 
+            onClick={() => setIsAddingCategory(!isAddingCategory)}
+            className={cn(
+              "btn h-11 px-6 rounded-xl flex items-center gap-2 text-xs font-bold uppercase transition-all",
+              isAddingCategory ? "bg-rose-50 text-rose-600 border border-rose-100" : "bg-primary-600 text-white active:scale-95"
+            )}
+          >
+            {isAddingCategory ? <X size={18} /> : <Plus size={18} />}
+            <span>{isAddingCategory ? t('cancel') : t('add_category_btn')}</span>
+          </button>
+        )}
       </div>
 
       <div className="flex-1 flex gap-6 overflow-hidden">
@@ -270,12 +286,14 @@ const Categories: React.FC = () => {
                   </div>
                 </div>
                 <div className="flex items-center gap-1">
-                  <button 
-                    onClick={(e) => deleteCategory(cat.id, e)}
-                    className="p-1.5 rounded-lg text-slate-300 hover:text-rose-500 hover:bg-rose-50 transition-all opacity-0 group-hover:opacity-100"
-                  >
-                    <Trash2 size={12} />
-                  </button>
+                  {role !== 'vendor' && (
+                    <button 
+                      onClick={(e) => deleteCategory(cat.id, e)}
+                      className="p-1.5 rounded-lg text-slate-300 hover:text-rose-500 hover:bg-rose-50 transition-all opacity-0 group-hover:opacity-100"
+                    >
+                      <Trash2 size={12} />
+                    </button>
+                  )}
                   <ChevronRight size={14} className={cn(
                     "transition-transform",
                     selectedCategoryId === cat.id ? "text-primary-500 translate-x-1" : "text-slate-300"
@@ -302,17 +320,19 @@ const Categories: React.FC = () => {
                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Listing items and pricing for this service section</p>
                 </div>
                 
-                <button 
-                  onClick={() => {
-                    setEditingItemId(null);
-                    setItemForm({ name: '', price: 0 });
-                    setIsItemFormOpen(true);
-                  }}
-                  className="btn-primary h-11 px-6 rounded-xl flex items-center gap-2 text-[10px] font-black uppercase tracking-widest active:scale-95 transition-all"
-                >
-                  <Plus size={16} />
-                  <span>New Product</span>
-                </button>
+                {role !== 'vendor' && (
+                  <button 
+                    onClick={() => {
+                      setEditingItemId(null);
+                      setItemForm({ name: '', price: 0 });
+                      setIsItemFormOpen(true);
+                    }}
+                    className="btn-primary h-11 px-6 rounded-xl flex items-center gap-2 text-[10px] font-black uppercase tracking-widest active:scale-95 transition-all"
+                  >
+                    <Plus size={16} />
+                    <span>New Product</span>
+                  </button>
+                )}
               </div>
 
               {/* Form Overlay */}
@@ -385,22 +405,24 @@ const Categories: React.FC = () => {
                               </div>
                            </div>
                         </div>
-                        <div className="flex items-center gap-1 transition-all">
-                           <button 
-                            onClick={() => startEditItem(item)}
-                            className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white transition-all flex items-center justify-center"
-                            title="Edit Product"
-                           >
-                            <Edit2 size={12} />
-                           </button>
-                           <button 
-                            onClick={() => deleteItem(item.id)}
-                            className="w-8 h-8 rounded-lg bg-rose-50 text-rose-500 hover:bg-rose-600 hover:text-white transition-all flex items-center justify-center"
-                            title="Delete Product"
-                           >
-                            <Trash2 size={12} />
-                           </button>
-                        </div>
+                        {role !== 'vendor' && (
+                          <div className="flex items-center gap-1 transition-all">
+                             <button 
+                              onClick={() => startEditItem(item)}
+                              className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white transition-all flex items-center justify-center"
+                              title="Edit Product"
+                             >
+                              <Edit2 size={12} />
+                             </button>
+                             <button 
+                              onClick={() => deleteItem(item.id)}
+                              className="w-8 h-8 rounded-lg bg-rose-50 text-rose-500 hover:bg-rose-600 hover:text-white transition-all flex items-center justify-center"
+                              title="Delete Product"
+                             >
+                              <Trash2 size={12} />
+                             </button>
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
