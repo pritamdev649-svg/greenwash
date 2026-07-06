@@ -8,13 +8,17 @@ export const orderService = {
   async getAllClothTypes(vendorId?: string | null) {
     try {
       let query = supabase.from('cloth_types').select('*, categories(name)').order('name');
-      if (vendorId) query = query.eq('vendor_id', vendorId);
+      if (vendorId) {
+        query = query.or(`vendor_id.eq.${vendorId},vendor_id.is.null`);
+      }
 
       const { data, error } = await query;
       if (error) {
         console.warn("orderService.getAllClothTypes error (likely missing categories table):", error);
         let fallbackQuery = supabase.from('cloth_types').select('*').order('name');
-        if (vendorId) fallbackQuery = fallbackQuery.eq('vendor_id', vendorId);
+        if (vendorId) {
+          fallbackQuery = fallbackQuery.or(`vendor_id.eq.${vendorId},vendor_id.is.null`);
+        }
         const { data: fallbackData, error: fallbackError } = await fallbackQuery;
         if (fallbackError) throw fallbackError;
         return (fallbackData || []).map((x: any) => ({ ...x, categories: { name: 'Uncategorized' } }));
@@ -28,7 +32,9 @@ export const orderService = {
 
   async getAllCategories(vendorId?: string | null) {
     let query = supabase.from('categories').select('*').order('name');
-    if (vendorId) query = query.eq('vendor_id', vendorId);
+    if (vendorId) {
+      query = query.or(`vendor_id.eq.${vendorId},vendor_id.is.null`);
+    }
     const { data, error } = await query;
     if (error) throw error;
     return data || [];

@@ -13,7 +13,6 @@ import { orderService } from '@backend/services/orderService';
 import { cn } from '../lib/utils';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
-import { supabase } from '@backend/config/supabase';
 
 interface Category {
   id: string;
@@ -71,22 +70,12 @@ const Categories: React.FC = () => {
     fetchData();
   }, [vendorId]);
 
-  const getTargetVendorId = async () => {
-    if (vendorId) return vendorId;
-    const { data } = await supabase.from('vendors').select('id').limit(1);
-    if (data && data.length > 0) {
-      return data[0].id;
-    }
-    return null;
-  };
-
   // Handlers - Categories
   const handleAddCategory = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newCategoryName.trim()) return;
     try {
-      const targetVendorId = await getTargetVendorId();
-      const newCat = await orderService.addCategory(newCategoryName, targetVendorId);
+      const newCat = await orderService.addCategory(newCategoryName, vendorId);
       setNewCategoryName('');
       setIsAddingCategory(false);
       await fetchData();
@@ -101,8 +90,7 @@ const Categories: React.FC = () => {
 
   const handleAddSuggested = async (catName: string) => {
     try {
-      const targetVendorId = await getTargetVendorId();
-      const newCat = await orderService.addCategory(catName, targetVendorId);
+      const newCat = await orderService.addCategory(catName, vendorId);
       await fetchData();
       setSelectedCategoryId(newCat.id);
     } catch (err: any) {
@@ -131,14 +119,13 @@ const Categories: React.FC = () => {
     if (!selectedCategoryId) return;
     
     try {
-      const targetVendorId = await getTargetVendorId();
       const payload = { 
         name: itemForm.name,
         wash_price: itemForm.price, // Map to wash_price as standard column
         iron_price: itemForm.price,
         dry_clean_price: itemForm.price,
         category_id: selectedCategoryId,
-        vendor_id: targetVendorId
+        vendor_id: vendorId
       };
       if (editingItemId) {
         await orderService.updateClothType(editingItemId, payload);
