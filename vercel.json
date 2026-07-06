@@ -1,18 +1,9 @@
 {
+  "cleanUrls": true,
   "rewrites": [
     {
       "source": "/(.*)",
       "destination": "/index.html"
     }
-  ],
-  "experimentalServices": {
-    "frontend": {
-      "routePrefix": "/",
-      "framework": "vite"
-    },
-    "backend": {
-      "entrypoint": "Backend",
-      "routePrefix": "/_/backend"
-    }
-  }
+  ]
 }
