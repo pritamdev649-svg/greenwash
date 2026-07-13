@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Greenwash DB Diagnostics</title>
+  <script type="module">
+    import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+    const supabaseUrl = 'https://hdlomaqcpfetmeekujfk.supabase.co';
+    const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhkbG9tYXFjcGZldG1lZWt1amZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5MTgxOTAsImV4cCI6MjA4OTQ5NDE5MH0.tLu913SsjJjISBMNvXKMvr11NSic7ZEn83uHWNSytSU';
+
+    const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+    async function runDiagnostics() {
+      const output = document.getElementById('output');
+      const log = (msg, obj) => {
+        const text = obj ? `${msg}\n${JSON.stringify(obj, null, 2)}` : msg;
+        output.innerText += text + '\n\n';
+        console.log(msg, obj);
+      };
+
+      log('Starting Greenwash DB Diagnostics...');
+
+      // 1. Fetch latest orders
+      try {
+        const { data, error } = await supabase.from('orders').select('*').order('created_at', { ascending: false }).limit(3);
+        if (error) throw error;
+        log('Latest Orders in DB:', data);
+      } catch (err) {
+        log('Error fetching latest orders:', err);
+      }
+
+      // 2. Try inserting a dummy order to see if it causes a duplicate key violation
+      try {
+        log('Attempting to insert test order...');
+        // Let's get a customer and vendor first
+        const { data: customers } = await supabase.from('customers').select('id, vendor_id, branch_id').limit(1);
+        if (!customers || customers.length === 0) {
+          log('No customers found, cannot test order insertion.');
+        } else {
+          const customer = customers[0];
+          log('Using customer for test:', customer);
+
+          const testOrderPayload = {
+            customer_id: customer.id,
+            branch_id: customer.branch_id || null,
+            vendor_id: customer.vendor_id || null,
+            total_amount: 1.00,
+            advance_amount: 0.00,
+            balance_amount: 1.00,
+            discount_amount: 0.00,
+            due_date: new Date().toISOString().split('T')[0],
+            payment_status: 'pending'
+          };
+
+          const { data: newOrder, error: insertErr } = await supabase
+            .from('orders')
+            .insert([testOrderPayload])
+            .select()
+            .single();
+
+          if (insertErr) {
+            log('FAILED to insert order (Error):', insertErr);
+          } else {
+            log('SUCCESSFULLY inserted order:', newOrder);
+            // Clean it up
+            const { error: delErr } = await supabase.from('orders').delete().eq('id', newOrder.id);
+            log('Cleaned up test order. Delete error status:', delErr);
+          }
+        }
+      } catch (err) {
+        log('Unexpected exception during order insert test:', err);
+      }
+
+      // 3. Let's test insert for duplicate customer
+      try {
+        log('Testing duplicate customer insert...');
+        const testMobile = '9876543210'; // A typical mobile number
+        const { data: custInsert, error: custErr } = await supabase.from('customers').insert([{
+          name: 'Test Dup Customer',
+          mobile: testMobile
+        }]).select();
+
+        if (custErr) {
+          log('Customer insert error (check if duplicate mobile fails):', custErr);
+        } else {
+          log('Successfully inserted customer with mobile ' + testMobile, custInsert);
+          // Delete it
+          await supabase.from('customers').delete().eq('id', custInsert[0].id);
+        }
+      } catch (err) {
+        log('Unexpected exception during customer insert test:', err);
+      }
+
+      // 4. Let's test insert for duplicate category name
+      try {
+        log('Testing duplicate category insert...');
+        const { data: catInsert, error: catErr } = await supabase.from('categories').insert([{
+          name: 'Wash & Fold' // already seeded
+        }]).select();
+
+        if (catErr) {
+          log('Category insert error (check if duplicate category name fails):', catErr);
+        } else {
+          log('Successfully inserted category:', catInsert);
+          await supabase.from('categories').delete().eq('id', catInsert[0].id);
+        }
+      } catch (err) {
+        log('Unexpected exception during category insert test:', err);
+      }
+
+      // 5. Let's test insert for duplicate cloth_type name
+      try {
+        log('Testing duplicate cloth_type insert...');
+        const { data: ctInsert, error: ctErr } = await supabase.from('cloth_types').insert([{
+          name: 'Shirt (Cotton)' // already seeded
+        }]).select();
+
+        if (ctErr) {
+          log('Cloth type insert error (check if duplicate cloth_type name fails):', ctErr);
+        } else {
+          log('Successfully inserted cloth type:', ctInsert);
+          await supabase.from('cloth_types').delete().eq('id', ctInsert[0].id);
+        }
+      } catch (err) {
+        log('Unexpected exception during cloth type insert test:', err);
+      }
+    }
+
+    window.onload = runDiagnostics;
+  </script>
+</head>
+<body>
+  <h1>Greenwash DB Diagnostics</h1>
+  <pre id="output" style="background: #f0f0f0; padding: 15px; font-family: monospace; white-space: pre-wrap; word-wrap: break-word;"></pre>
+</body>
+</html>

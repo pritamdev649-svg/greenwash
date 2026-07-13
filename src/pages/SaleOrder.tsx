@@ -334,8 +334,15 @@ const SaleOrder: React.FC = () => {
                                   className="p-3 hover:bg-slate-50 cursor-pointer flex items-center justify-between border-b border-slate-50 last:border-0 transition-colors"
                                >
                                   <div className="flex flex-col">
-                                     <span className="text-xs font-black text-slate-900">{c.name}</span>
-                                     <span className="text-[10px] font-bold text-slate-400">+{c.mobile}</span>
+                                    <div className="flex items-center gap-1.5">
+                                      <span className="text-xs font-black text-slate-900">{c.name}</span>
+                                      {c.branch?.name && (
+                                        <span className="text-[9px] font-black text-primary-600 bg-primary-50 px-1.5 py-0.5 rounded uppercase tracking-wider">
+                                          {c.branch.name}
+                                        </span>
+                                      )}
+                                    </div>
+                                    <span className="text-[10px] font-bold text-slate-400">+{c.mobile}</span>
                                   </div>
                                   <div className="text-[9px] font-black text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full uppercase tracking-tighter">SELECT</div>
                                </div>
@@ -369,6 +376,14 @@ const SaleOrder: React.FC = () => {
                        {selectedCustomer?.mobile || 'N/A'}
                     </div>
                  </div>
+                 {selectedCustomer && (
+                    <div>
+                       <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 block ml-1">Assigned Branch</label>
+                       <div className="w-full h-11 px-4 bg-slate-50 border border-slate-100 rounded-xl flex items-center text-sm font-bold text-slate-600 uppercase">
+                          {selectedCustomer?.branch?.name || 'No Branch'}
+                       </div>
+                    </div>
+                  )}
               </div>
             </div>
           </div>

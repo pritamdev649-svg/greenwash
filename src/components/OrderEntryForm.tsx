@@ -554,7 +554,14 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
                               className="p-3 hover:bg-slate-50 cursor-pointer flex items-center justify-between border-b border-slate-50 last:border-0 transition-colors"
                             >
                               <div className="flex flex-col">
-                                <span className="text-xs font-black text-slate-900">{c.name}</span>
+                                <div className="flex items-center gap-1.5">
+                                  <span className="text-xs font-black text-slate-900">{c.name}</span>
+                                  {c.branch?.name && (
+                                    <span className="text-[9px] font-black text-primary-600 bg-primary-50 px-1.5 py-0.5 rounded uppercase tracking-wider">
+                                      {c.branch.name}
+                                    </span>
+                                  )}
+                                </div>
                                 <span className="text-[10px] font-bold text-slate-400">+{c.mobile}</span>
                               </div>
                               <div className="text-[9px] font-black text-primary-600 bg-primary-50 px-2 py-0.5 rounded-full uppercase tracking-tighter">SELECT</div>
@@ -575,6 +582,14 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
                     {selectedCustomer?.mobile || 'Search party to load mobile...'}
                   </div>
                 </div>
+                {selectedCustomer && (
+                  <div>
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-1.5 block">Assigned Branch</label>
+                    <div className="w-full h-11 px-5 bg-slate-100/50 border border-slate-100 rounded-xl flex items-center text-xs font-bold text-slate-500 uppercase">
+                      {selectedCustomer?.branch?.name || 'No Branch'}
+                    </div>
+                  </div>
+                )}
               </div>
 
               {selectedCustomer && (

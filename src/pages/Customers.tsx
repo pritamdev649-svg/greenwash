@@ -321,7 +321,14 @@ const Customers: React.FC = () => {
                           {customer.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()}
                         </div>
                         <div>
-                          <div className="font-bold text-slate-900 leading-tight">{customer.name}</div>
+                          <div className="flex items-center gap-2">
+                            <span className="font-bold text-slate-900 leading-tight">{customer.name}</span>
+                            {customer.branch?.name && (
+                              <span className="text-[9px] font-black text-primary-600 bg-primary-50 px-1.5 py-0.5 rounded uppercase tracking-wider">
+                                {customer.branch.name}
+                              </span>
+                            )}
+                          </div>
                           <div className="text-xs font-semibold text-slate-400 mt-0.5 flex items-center gap-1 group-hover:text-slate-500 transition-colors">
                             <MapPin size={10} />
                             <span className="truncate max-w-[140px]">{customer.address || 'No address'}</span>
