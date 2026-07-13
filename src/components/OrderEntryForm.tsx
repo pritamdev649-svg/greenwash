@@ -56,6 +56,11 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
   const [vendorPayment, setVendorPayment] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [isPreviewMode, setIsPreviewMode] = useState(false);
+  const [currentEditOrderId, setCurrentEditOrderId] = useState(editOrderId);
+
+  useEffect(() => {
+    setCurrentEditOrderId(editOrderId);
+  }, [editOrderId]);
 
   // Form State
   const [selectedCustomerId, setSelectedCustomerId] = useState('');
@@ -198,10 +203,10 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
   // Fetch Edit Data
   useEffect(() => {
     const fetchEditData = async () => {
-      if (!editOrderId) return;
+      if (!currentEditOrderId) return;
       try {
         setLoading(true);
-        const order = await orderService.getOrderById(editOrderId);
+        const order = await orderService.getOrderById(currentEditOrderId);
         if (order) {
           setSelectedCustomerId(order.customer_id);
           setSelectedCustomer(order.customers);
@@ -246,7 +251,7 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
       }
     };
     fetchEditData();
-  }, [editOrderId]);
+  }, [currentEditOrderId]);
 
   const handleAddRow = () => {
     const newRow: SaleRow = {
@@ -347,12 +352,12 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
         dueDate
       };
 
-      let savedOrder: any = null;
-      if (editOrderId) {
-        await orderService.updateOrder(editOrderId, finalOrderData, finalItems);
-        savedOrder = { id: editOrderId, order_number: orderNo };
+       let savedOrder: any = null;
+      if (currentEditOrderId) {
+        await orderService.updateOrder(currentEditOrderId, finalOrderData, finalItems);
+        savedOrder = { id: currentEditOrderId, order_number: orderNo };
         setIsSuccess(true);
-        setCreatedOrderId(editOrderId);
+        setCreatedOrderId(currentEditOrderId);
         setCreatedOrder(savedOrder);
       } else {
         const order = await orderService.createOrder(
@@ -380,7 +385,7 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
       try {
         // We need to wait a tiny bit for the hidden receipt component to render in the DOM
         setTimeout(async () => {
-          const currentOrderId = savedOrder?.id || editOrderId;
+          const currentOrderId = savedOrder?.id || currentEditOrderId;
           const currentOrderNo = savedOrder?.order_number || orderNo;
           const orderRef = currentOrderNo ? `GWC${currentOrderNo}` : 'GWC' + currentOrderId.slice(0, 4).toUpperCase();
 
@@ -475,6 +480,20 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
                   <MessageCircle size={18} /> {t('whatsapp')}
                 </button>
               </div>
+
+              <button 
+                type="button"
+                onClick={() => {
+                  setIsSuccess(false);
+                  if (createdOrderId) {
+                    setCurrentEditOrderId(createdOrderId);
+                  }
+                }}
+                className="w-full max-w-md h-14 bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 rounded-2xl font-bold transition-all mt-4 text-xs uppercase tracking-wider flex items-center justify-center gap-2"
+              >
+                ◀ Correct / Edit Saved Order
+              </button>
+
               <button onClick={onSuccess} className="w-full max-w-md h-14 bg-primary-600 hover:bg-primary-700 text-white rounded-2xl font-bold transition-all mt-4">
                 {t('done_back')}
               </button>
@@ -488,8 +507,8 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
               <Plus size={24} />
             </div>
             <div>
-              <h3 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight uppercase">{editOrderId ? t('edit_bill') : t('new_sale_entry')}</h3>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mt-0.5">{editOrderId ? 'Update existing transaction' : 'Green Wash Co Ledger System'}</p>
+              <h3 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight uppercase">{currentEditOrderId ? t('edit_bill') : t('new_sale_entry')}</h3>
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mt-0.5">{currentEditOrderId ? 'Update existing transaction' : 'Green Wash Co Ledger System'}</p>
             </div>
           </div>
           <button onClick={onClose} className="p-2 bg-slate-50 hover:bg-slate-100 rounded-full text-slate-400 transition-colors">
@@ -943,8 +962,8 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
                 disabled={loading || !selectedCustomerId || rows.filter(r => r.item_name.trim() !== '').length === 0} 
                 className="w-full h-16 bg-primary-600 hover:bg-primary-700 text-white rounded-[2rem] active:scale-[0.98] transition-all disabled:opacity-50 disabled:grayscale flex flex-col items-center justify-center"
               >
-                <span className="text-sm font-black tracking-widest uppercase">{editOrderId ? t('update_order') : t('save_order')}</span>
-                <span className="text-[8px] font-bold opacity-70 tracking-tighter">{editOrderId ? t('confirm_changes') : t('confirm_transaction')} (Preview)</span>
+                <span className="text-sm font-black tracking-widest uppercase">{currentEditOrderId ? t('update_order') : t('save_order')}</span>
+                <span className="text-[8px] font-bold opacity-70 tracking-tighter">{currentEditOrderId ? t('confirm_changes') : t('confirm_transaction')} (Preview)</span>
               </button>
             </div>
           </div>
