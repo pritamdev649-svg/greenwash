@@ -22,6 +22,7 @@ import { customerService } from '@backend/services/customerService';
 import { branchService } from '@backend/services/branchService';
 import { orderService } from '@backend/services/orderService';
 import { notificationService } from '@backend/services/notificationService';
+import { vendorService } from '@backend/services/vendorService';
 import { PrintReceipt } from '../components/PrintReceipt';
 import type { PrintReceiptProps } from '../components/PrintReceipt';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -73,6 +74,7 @@ const Customers: React.FC = () => {
   const [customerOrders, setCustomerOrders] = useState<Order[]>([]);
   const [ordersLoading, setOrdersLoading] = useState(false);
   const [printingOrderData, setPrintingOrderData] = useState<PrintReceiptProps['orderData'] | null>(null);
+  const [vendorBranch, setVendorBranch] = useState<{ id: string, name: string } | null>(null);
 
   // Form
   const [formData, setFormData] = useState({ name: '', mobile: '', email: '', address: '', branch_id: '' });
@@ -89,6 +91,20 @@ const Customers: React.FC = () => {
 
       setBranches(bData);
       setCustomers(cData as any);
+
+      if (vendorId) {
+        try {
+          const vendor = await vendorService.getVendorById(vendorId);
+          if (vendor && vendor.branch_id) {
+            const matchedBranch = bData.find(b => b.id === vendor.branch_id);
+            if (matchedBranch) {
+              setVendorBranch(matchedBranch);
+            }
+          }
+        } catch (vErr) {
+          console.error("Error fetching vendor details:", vErr);
+        }
+      }
     } catch (err) {
       console.error(err);
     } finally {
@@ -104,12 +120,18 @@ const Customers: React.FC = () => {
     }
   }, [location.search, vendorId]);
 
+  useEffect(() => {
+    if (vendorBranch) {
+      setFormData(prev => ({ ...prev, branch_id: vendorBranch.id }));
+    }
+  }, [vendorBranch]);
+
   const handleAddCustomer = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       await customerService.addCustomer({ ...formData, vendor_id: vendorId });
       setIsAddModalOpen(false);
-      setFormData({ name: '', mobile: '', email: '', address: '', branch_id: '' });
+      setFormData({ name: '', mobile: '', email: '', address: '', branch_id: vendorBranch ? vendorBranch.id : '' });
       await fetchData();
 
       const params = new URLSearchParams(location.search);
@@ -141,7 +163,7 @@ const Customers: React.FC = () => {
       await customerService.updateCustomer(customerToEdit.id, formData);
       setIsEditModalOpen(false);
       setCustomerToEdit(null);
-      setFormData({ name: '', mobile: '', email: '', address: '', branch_id: '' });
+      setFormData({ name: '', mobile: '', email: '', address: '', branch_id: vendorBranch ? vendorBranch.id : '' });
       fetchData();
     } catch (err) {
       alert("Failed to update customer");
@@ -426,10 +448,18 @@ const Customers: React.FC = () => {
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Branch Assignment</label>
-                  <select required className="input h-11 bg-slate-50 focus:bg-white cursor-pointer" value={formData.branch_id} onChange={(e) => setFormData({ ...formData, branch_id: e.target.value })}>
-                    <option value="">Select branch</option>
-                    {branches.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
-                  </select>
+                  {vendorBranch ? (
+                    <input 
+                      disabled 
+                      className="input h-11 bg-slate-100 border border-slate-200 text-slate-500 font-bold" 
+                      value={vendorBranch.name} 
+                    />
+                  ) : (
+                    <select required className="input h-11 bg-slate-50 focus:bg-white cursor-pointer" value={formData.branch_id} onChange={(e) => setFormData({ ...formData, branch_id: e.target.value })}>
+                      <option value="">Select branch</option>
+                      {branches.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
+                    </select>
+                  )}
                 </div>
                 <div className="col-span-2 space-y-1.5">
                   <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Service Address</label>
@@ -470,10 +500,18 @@ const Customers: React.FC = () => {
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Branch Assignment</label>
-                  <select required className="input h-11 bg-slate-50 focus:bg-white cursor-pointer" value={formData.branch_id} onChange={(e) => setFormData({ ...formData, branch_id: e.target.value })}>
-                    <option value="">Select branch</option>
-                    {branches.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
-                  </select>
+                  {vendorBranch ? (
+                    <input 
+                      disabled 
+                      className="input h-11 bg-slate-100 border border-slate-200 text-slate-500 font-bold" 
+                      value={vendorBranch.name} 
+                    />
+                  ) : (
+                    <select required className="input h-11 bg-slate-50 focus:bg-white cursor-pointer" value={formData.branch_id} onChange={(e) => setFormData({ ...formData, branch_id: e.target.value })}>
+                      <option value="">Select branch</option>
+                      {branches.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
+                    </select>
+                  )}
                 </div>
                 <div className="col-span-2 space-y-1.5">
                   <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Service Address</label>
