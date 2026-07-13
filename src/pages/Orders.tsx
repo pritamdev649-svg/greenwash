@@ -15,7 +15,9 @@ import {
   Edit2,
   Ban,
   X,
-  MoreVertical
+  MoreVertical,
+  Search,
+  Filter
 } from 'lucide-react';
 import { orderService } from '@backend/services/orderService';
 import { customerService } from '@backend/services/customerService';
@@ -33,8 +35,8 @@ export default function Orders() {
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [searchTerm] = useState('');
-  const [statusFilter] = useState('all');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
   const [printingOrderData, setPrintingOrderData] = useState<PrintReceiptProps['orderData'] | null>(null);
   const [editingOrderId, setEditingOrderId] = useState<string | null>(null);
 
@@ -308,6 +310,8 @@ export default function Orders() {
   const filteredOrders = orders.filter(o => {
     const matchesSearch =
       o.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (o.order_number && String(o.order_number).includes(searchTerm)) ||
+      (o.order_number && `gwc${o.order_number}`.includes(searchTerm.toLowerCase())) ||
       o.customers?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       o.customers?.mobile?.includes(searchTerm);
 
@@ -364,6 +368,41 @@ export default function Orders() {
             </div>
           </div>
         ))}
+      </div>
+
+      {/* Filters */}
+      <div className="flex flex-col md:flex-row gap-4 print:hidden">
+        <div className="relative flex-1 group">
+          <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-primary-500 transition-colors">
+            <Search size={18} />
+          </div>
+          <input
+            type="text"
+            placeholder={language === 'hi' ? 'नाम, मोबाइल या ऑर्डर नंबर से खोजें...' : 'Search by Name, Mobile or Order Number...'}
+            className="w-full h-11 pl-10 pr-4 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all shadow-sm"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+        <div className="relative w-full md:w-64 group">
+          <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-primary-500 transition-colors">
+            <Filter size={18} />
+          </div>
+          <select
+            className="w-full h-11 pl-10 pr-4 bg-white border border-slate-200 rounded-xl text-sm appearance-none focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent cursor-pointer transition-all shadow-sm text-slate-700"
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+          >
+            <option value="all">{language === 'hi' ? 'सभी स्टेटस' : 'All Status'}</option>
+            <option value="Pending">{language === 'hi' ? 'लंबित (Pending)' : 'Pending'}</option>
+            <option value="Processing">{language === 'hi' ? 'प्रसंस्करण (Processing)' : 'Processing'}</option>
+            <option value="Washing">{language === 'hi' ? 'धुलाई (Washing)' : 'Washing'}</option>
+            <option value="Ironing">{language === 'hi' ? 'इस्त्री (Ironing)' : 'Ironing'}</option>
+            <option value="Ready">{language === 'hi' ? 'तैयार (Ready)' : 'Ready'}</option>
+            <option value="Delivered">{language === 'hi' ? 'डिलिवर किया गया (Delivered)' : 'Delivered'}</option>
+            <option value="Cancelled">{language === 'hi' ? 'रद्द (Cancelled)' : 'Cancelled'}</option>
+          </select>
+        </div>
       </div>
 
       {/* List */}

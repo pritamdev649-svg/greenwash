@@ -37,6 +37,7 @@ const SaleOrder: React.FC = () => {
   const [customers, setCustomers] = useState<any[]>([]);
   const [clothTypes, setClothTypes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isPreviewMode, setIsPreviewMode] = useState(false);
 
   // Form State
   const [selectedCustomerId, setSelectedCustomerId] = useState('');
@@ -455,24 +456,27 @@ const SaleOrder: React.FC = () => {
                        <tr key={row.id} className="group hover:bg-slate-50/50 transition-colors">
                           <td className="p-2 text-center text-xs font-bold text-slate-400">{index + 1}</td>
                           <td className="p-2">
-                             <select 
-                               className="w-full h-10 px-2 bg-transparent border border-transparent focus:border-emerald-200 focus:bg-white rounded-lg text-xs font-semibold appearance-none"
-                               value={row.category}
-                               onChange={(e) => updateRow(row.id, { category: e.target.value })}
-                             >
-                                <option value="ALL">ALL</option>
-                                <option value="Carpet Cleaning">Carpet Cleaning</option>
-                                <option value="Dry Clean">Dry Clean</option>
-                                <option value="Dry Clean with Starch">Dry Clean with Starch</option>
-                                <option value="Dye">Dye</option>
-                                <option value="Iron">Iron</option>
-                                <option value="Premium Laundry">Premium Laundry</option>
-                                <option value="Shoe Clen @ Bag Clen">Shoe Clen @ Bag Clen</option>
-                                <option value="Starch">Starch</option>
-                                <option value="Steam Iron">Steam Iron</option>
-                                <option value="Wash & Fold">Wash & Fold</option>
-                                <option value="Wash & Iron">Wash & Iron</option>
-                             </select>
+                             <div className="relative flex items-center">
+                                <select 
+                                  className="w-full h-10 pl-2 pr-6 bg-transparent border border-transparent focus:border-emerald-200 focus:bg-white rounded-lg text-xs font-semibold appearance-none cursor-pointer"
+                                  value={row.category}
+                                  onChange={(e) => updateRow(row.id, { category: e.target.value })}
+                                >
+                                   <option value="ALL">ALL</option>
+                                   <option value="Carpet Cleaning">Carpet Cleaning</option>
+                                   <option value="Dry Clean">Dry Clean</option>
+                                   <option value="Dry Clean with Starch">Dry Clean with Starch</option>
+                                   <option value="Dye">Dye</option>
+                                   <option value="Iron">Iron</option>
+                                   <option value="Premium Laundry">Premium Laundry</option>
+                                   <option value="Shoe Clen @ Bag Clen">Shoe Clen @ Bag Clen</option>
+                                   <option value="Starch">Starch</option>
+                                   <option value="Steam Iron">Steam Iron</option>
+                                   <option value="Wash & Fold">Wash & Fold</option>
+                                   <option value="Wash & Iron">Wash & Iron</option>
+                                </select>
+                                <ChevronDown size={12} className="absolute right-2 text-slate-400 pointer-events-none stroke-[3]" />
+                             </div>
                           </td>
                           <td className="p-2">
                              <input 
@@ -549,15 +553,18 @@ const SaleOrder: React.FC = () => {
                              />
                           </td>
                           <td className="p-2">
-                             <select 
-                               className="w-full h-10 px-2 bg-transparent border border-transparent focus:border-emerald-200 focus:bg-white rounded-lg text-xs font-semibold text-center appearance-none"
-                               value={row.unit}
-                               onChange={(e) => updateRow(row.id, { unit: e.target.value })}
-                             >
-                                <option value="NONE">NONE</option>
-                                <option value="PCS">Pieces</option>
-                                <option value="KG">Kg</option>
-                             </select>
+                             <div className="relative flex items-center justify-center">
+                                 <select 
+                                   className="w-full h-10 pl-2 pr-6 bg-transparent border border-transparent focus:border-emerald-200 focus:bg-white rounded-lg text-xs font-semibold text-center appearance-none cursor-pointer"
+                                   value={row.unit}
+                                   onChange={(e) => updateRow(row.id, { unit: e.target.value })}
+                                 >
+                                    <option value="NONE">NONE</option>
+                                    <option value="PCS">Pieces</option>
+                                    <option value="KG">Kg</option>
+                                 </select>
+                                 <ChevronDown size={12} className="absolute right-2 text-slate-400 pointer-events-none stroke-[3]" />
+                              </div>
                           </td>
                           <td className="p-2">
                              <div className="flex items-center justify-end gap-1 font-bold text-xs">
@@ -780,10 +787,12 @@ const SaleOrder: React.FC = () => {
                  
                  <div className="pt-6">
                     <button 
-                      onClick={handleSave}
+                      type="button"
+                      onClick={() => setIsPreviewMode(true)}
+                      disabled={loading || !selectedCustomerId || rows.filter(r => r.item_name.trim() !== '').length === 0}
                       className="w-full h-16 bg-slate-900 hover:bg-slate-800 text-white rounded-2xl shadow-xl transition-all active:scale-[0.98] font-black text-lg uppercase tracking-tight"
                     >
-                       Save Order
+                       Preview & Verify Bill
                     </button>
                  </div>
               </div>
@@ -791,6 +800,143 @@ const SaleOrder: React.FC = () => {
         </div>
       </div>
     </div>
+
+    {isPreviewMode && (
+      <div className="fixed inset-0 z-[120] bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-4">
+        <div className="relative w-full max-w-2xl bg-white rounded-3xl shadow-2xl p-6 overflow-y-auto max-h-[90vh] flex flex-col space-y-6 animate-in fade-in zoom-in-95 duration-200">
+          
+          {/* Header */}
+          <div className="flex justify-between items-center border-b border-slate-100 pb-4">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
+                📝
+              </div>
+              <div>
+                <h4 className="text-sm font-black text-slate-900 uppercase tracking-wider">Preview & Verify Bill</h4>
+                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Please check all entries before saving</p>
+              </div>
+            </div>
+            <button 
+              type="button"
+              onClick={() => setIsPreviewMode(false)}
+              className="p-1.5 bg-slate-50 hover:bg-slate-100 rounded-full text-slate-400 transition-colors"
+            >
+              <X size={18} />
+            </button>
+          </div>
+
+          {/* Customer Info */}
+          <div className="grid grid-cols-2 gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-100 text-xs text-left">
+            <div>
+              <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-0.5">Customer Profile</span>
+              <span className="font-bold text-slate-900">{selectedCustomer?.name}</span>
+              <span className="text-slate-500 block">+{selectedCustomer?.mobile}</span>
+              {selectedCustomer?.branch?.name && (
+                <span className="text-[9px] font-black text-primary-600 bg-primary-50 px-1.5 py-0.5 rounded uppercase tracking-wider inline-block mt-1">
+                  {selectedCustomer.branch.name}
+                </span>
+              )}
+            </div>
+            <div className="text-right">
+              <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-0.5">Order Metadata</span>
+              <span className="font-bold text-slate-900 block">Invoice No: GWC {orderNo}</span>
+              <span className="text-slate-500 block">Entry Date: {new Date(orderDate).toLocaleDateString('en-GB')}</span>
+              <span className="text-slate-500 block">Delivery: {new Date(dueDate).toLocaleDateString('en-GB')}</span>
+            </div>
+          </div>
+
+          {/* Items Table */}
+          <div className="border border-slate-100 rounded-2xl overflow-hidden bg-white">
+            <table className="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr className="bg-slate-50 font-black text-slate-500 border-b border-slate-100">
+                  <th className="p-3 w-8 text-center">#</th>
+                  <th className="p-3">Service & Item</th>
+                  <th className="p-3 text-center w-16">Qty</th>
+                  <th className="p-3 text-center w-16">Unit</th>
+                  <th className="p-3 text-right w-20">Rate</th>
+                  <th className="p-3 text-right w-24">Amount</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-50 font-semibold text-slate-700">
+                {rows.filter(r => r.item_name.trim() !== '').map((row, idx) => (
+                  <tr key={row.id}>
+                    <td className="p-3 text-center text-slate-400">{idx + 1}</td>
+                    <td className="p-3">
+                      <span className="font-black text-slate-950 uppercase">{row.category}</span>
+                      <span className="text-slate-400 block uppercase text-[10px]">{row.item_name}</span>
+                    </td>
+                    <td className="p-3 text-center font-bold text-slate-900">{row.qty}</td>
+                    <td className="p-3 text-center">{row.unit}</td>
+                    <td className="p-3 text-right">₹ {row.price}</td>
+                    <td className="p-3 text-right font-bold text-slate-900">₹ {row.amount}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Summary details */}
+          <div className="grid grid-cols-2 gap-6 pt-4 border-t border-slate-100 text-xs font-bold text-slate-600 text-left">
+            <div className="space-y-2">
+              {additionalCharges.length > 0 && (
+                <div>
+                  <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Additional Charges</span>
+                  <div className="space-y-1">
+                    {additionalCharges.map((c, idx) => (
+                      <div key={idx} className="flex justify-between">
+                        <span className="font-medium">{c.label}</span>
+                        <span>+ ₹ {c.amount}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-2 bg-slate-50/50 p-4 rounded-2xl border border-slate-100">
+              <div className="flex justify-between">
+                <span>Subtotal</span>
+                <span>₹ {subtotal}</span>
+              </div>
+              {discount > 0 && (
+                <div className="flex justify-between text-rose-500">
+                  <span>Discount</span>
+                  <span>- ₹ {discount}</span>
+                </div>
+              )}
+              <div className="flex justify-between text-slate-900 font-extrabold text-sm pt-1.5 border-t border-slate-100">
+                <span>Grand Total</span>
+                <span>₹ {grandTotal}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div className="flex gap-4 pt-4 border-t border-slate-100">
+            <button
+              type="button"
+              onClick={() => setIsPreviewMode(false)}
+              className="flex-1 h-12 rounded-2xl border border-slate-200 text-xs font-bold text-slate-500 hover:bg-slate-50 transition-colors uppercase tracking-wider"
+            >
+              ◀ Correct / Edit Entry
+            </button>
+            <button
+              type="button"
+              onClick={async () => {
+                setIsPreviewMode(false);
+                await handleSave();
+              }}
+              disabled={loading}
+              className="flex-[2] h-12 bg-slate-950 hover:bg-slate-800 text-white rounded-2xl text-xs font-black shadow-lg active:scale-95 transition-all uppercase tracking-wider"
+            >
+              {loading ? 'Saving...' : '✔ Confirm & Save Order'}
+            </button>
+          </div>
+
+        </div>
+      </div>
+    )}
     
     <PrintReceipt 
       orderData={{
