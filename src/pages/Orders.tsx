@@ -17,7 +17,12 @@ import {
   X,
   MoreVertical,
   Search,
-  Filter
+  Filter,
+  History,
+  Phone,
+  MapPin,
+  ArrowRight,
+  Receipt
 } from 'lucide-react';
 import { orderService } from '@backend/services/orderService';
 import { customerService } from '@backend/services/customerService';
@@ -47,6 +52,26 @@ export default function Orders() {
   const [damageRefundAmount, setDamageRefundAmount] = useState<number>(0);
   const [submittingDamage, setSubmittingDamage] = useState(false);
   const [activeDropdownId, setActiveDropdownId] = useState<string | null>(null);
+
+  // Customer History Modal State
+  const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
+  const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
+  const [customerOrders, setCustomerOrders] = useState<any[]>([]);
+  const [ordersLoading, setOrdersLoading] = useState(false);
+
+  const handleViewCustomerHistory = async (customer: any) => {
+    setSelectedCustomer(customer);
+    setIsHistoryModalOpen(true);
+    setOrdersLoading(true);
+    try {
+      const data = await customerService.getCustomerOrders(customer.id);
+      setCustomerOrders(data || []);
+    } catch (err) {
+      console.error("Error loading customer orders:", err);
+    } finally {
+      setOrdersLoading(false);
+    }
+  };
 
   const handleReportDamageClick = (order: any) => {
     setSelectedOrderForDamage(order);
@@ -437,15 +462,25 @@ export default function Orders() {
                     </div>
                   </td>
                   <td className="table-cell px-6">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-primary-50 text-primary-600 flex items-center justify-center font-bold text-sm">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (order.customers) handleViewCustomerHistory(order.customers);
+                      }}
+                      className="flex items-center gap-3 text-left hover:opacity-80 active:scale-98 transition-all group/cust"
+                      title={language === 'hi' ? 'ग्राहक का इतिहास देखने के लिए क्लिक करें' : 'Click to view Customer History'}
+                    >
+                      <div className="w-10 h-10 rounded-xl bg-primary-50 text-primary-600 flex items-center justify-center font-bold text-sm group-hover/cust:bg-primary-600 group-hover/cust:text-white transition-colors">
                         {order.customers?.name?.[0].toUpperCase()}
                       </div>
                       <div className="flex flex-col">
-                        <span className="text-sm font-bold text-slate-900">{order.customers?.name}</span>
+                        <span className="text-sm font-bold text-slate-900 group-hover/cust:text-primary-600 transition-colors flex items-center gap-1.5">
+                          {order.customers?.name}
+                          <History size={12} className="text-slate-400 group-hover/cust:text-primary-600 transition-colors" />
+                        </span>
                         <span className="text-xs font-medium text-slate-400">+{order.customers?.mobile}</span>
                       </div>
-                    </div>
+                    </button>
                   </td>
                   <td className="table-cell px-6 text-sm font-black text-slate-900">₹{Number(order.total_amount).toLocaleString()}</td>
                   <td className="table-cell px-6 text-sm font-black text-emerald-600">₹{(order.advance_amount || 0).toLocaleString()}</td>
@@ -533,6 +568,18 @@ export default function Orders() {
 
                         {activeDropdownId === order.id && (
                           <div className="absolute right-0 top-10 bg-white border border-slate-100 rounded-2xl shadow-xl py-2 w-52 z-50 text-left animate-in fade-in slide-in-from-top-2 duration-150">
+                            {/* Customer History Option */}
+                            <button
+                              onClick={() => {
+                                if (order.customers) handleViewCustomerHistory(order.customers);
+                                setActiveDropdownId(null);
+                              }}
+                              className="w-full px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-50 flex items-center gap-2.5 transition-colors"
+                            >
+                              <History size={14} className="text-slate-400" />
+                              Customer History
+                            </button>
+
                             {/* Collect Balance Option */}
                             {(order.balance_amount || 0) > 0 && (
                               <button
@@ -653,6 +700,155 @@ export default function Orders() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+      {/* Customer History Modal */}
+      {isHistoryModalOpen && selectedCustomer && (
+        <div className="fixed inset-0 z-[150] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setIsHistoryModalOpen(false)} />
+          <div className="relative w-full max-w-3xl bg-white rounded-3xl shadow-2xl overflow-hidden animate-slide-up flex flex-col max-h-[90vh]">
+            <div className="p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+              <div className="flex items-center gap-5 text-left">
+                <div className="w-14 h-14 rounded-2xl bg-primary-600 text-white flex items-center justify-center text-xl font-bold shadow-xl shadow-primary-600/20">
+                  {selectedCustomer.name[0].toUpperCase()}
+                </div>
+                <div>
+                  <h3 className="text-2xl font-bold text-slate-900">{selectedCustomer.name}</h3>
+                  <div className="flex items-center gap-3 mt-1 text-sm font-medium text-slate-500">
+                    <span className="flex items-center gap-1"><Phone size={14} className="text-slate-400" /> {selectedCustomer.mobile}</span>
+                    <span className="w-1 h-1 rounded-full bg-slate-300" />
+                    <span className="flex items-center gap-1"><MapPin size={14} className="text-slate-400" /> {selectedCustomer.branch?.name || 'General Branch'}</span>
+                  </div>
+                </div>
+              </div>
+              <button onClick={() => setIsHistoryModalOpen(false)} className="p-2 bg-white rounded-full text-slate-400 hover:text-slate-600 transition-colors shadow-sm"><X size={24} /></button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-8 scrollbar-hide text-left">
+              <div className="mb-6 flex items-center justify-between">
+                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest">Historical Ledger</h4>
+                <div className="text-xs font-bold text-slate-500 bg-slate-100 px-3 py-1 rounded-full uppercase tracking-tight">
+                  {customerOrders.length} Completed Orders
+                </div>
+              </div>
+
+              {ordersLoading ? (
+                <div className="py-20 flex flex-col items-center gap-4">
+                  <div className="w-10 h-10 border-4 border-primary-100 border-t-primary-600 rounded-full animate-spin" />
+                  <p className="text-sm font-medium text-slate-400">Fetching order records...</p>
+                </div>
+              ) : customerOrders.length === 0 ? (
+                <div className="py-32 flex flex-col items-center gap-4 text-center">
+                  <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center text-slate-200">
+                    <Receipt size={32} />
+                  </div>
+                  <p className="text-slate-400 font-medium">This customer hasn't placed any orders yet.</p>
+                </div>
+              ) : (
+                <div className="space-y-6 text-left">
+                  {/* Header Stats Cards */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="bg-slate-50 border border-slate-100 p-4 rounded-2xl">
+                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-1">Total Orders</span>
+                      <span className="text-2xl font-black text-slate-800">{customerOrders.length}</span>
+                    </div>
+                    <div className="bg-emerald-50 border border-emerald-100 p-4 rounded-2xl">
+                      <span className="text-[10px] font-black text-emerald-600 uppercase tracking-wider block mb-1">Total Transactions</span>
+                      <span className="text-2xl font-black text-emerald-600">₹{customerOrders.reduce((s, o) => s + Number(o.total_amount || 0), 0).toLocaleString()}</span>
+                    </div>
+                    <div className="bg-rose-50 border border-rose-100 p-4 rounded-2xl">
+                      <span className="text-[10px] font-black text-rose-600 uppercase tracking-wider block mb-1">Total Pending</span>
+                      <span className="text-2xl font-black text-rose-600">₹{customerOrders.reduce((s, o) => s + Number(o.balance_amount || 0), 0).toLocaleString()}</span>
+                    </div>
+                    <div className="bg-amber-50 border border-amber-100 p-4 rounded-2xl flex items-center justify-between">
+                      <div>
+                        <span className="text-[10px] font-black text-amber-600 uppercase tracking-wider block mb-1">Available Coins</span>
+                        <span className="text-2xl font-black text-amber-600">{selectedCustomer.coins || 0}</span>
+                      </div>
+                      <span className="text-2xl">💰</span>
+                    </div>
+                  </div>
+
+                  {/* Order List */}
+                  <div className="space-y-4">
+                    {customerOrders.map(order => (
+                      <div key={order.id} className="group p-5 rounded-2xl border border-slate-100 hover:border-primary-200 hover:bg-slate-50/50 transition-all space-y-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-6">
+                            <div className="text-center w-12 shrink-0">
+                              <div className="text-[9px] font-bold text-slate-400 uppercase">{new Date(order.created_at).toLocaleDateString('en-US', { month: 'short' })}</div>
+                              <div className="text-xl font-extrabold text-slate-800 leading-none">{new Date(order.created_at).getDate()}</div>
+                              <div className="text-[9px] font-bold text-slate-400 mt-1">{new Date(order.created_at).getFullYear()}</div>
+                            </div>
+                            <div className="h-10 w-[1px] bg-slate-100" />
+                            <div>
+                              <div className="text-sm font-bold text-slate-700 uppercase tracking-tighter mb-1 text-left">
+                                Order Ref: {order.order_number ? `GWC${order.order_number}` : 'GWC' + order.id.slice(0, 4).toUpperCase()}
+                              </div>
+                              <div className="flex items-center gap-3">
+                                <div className={cn(
+                                  "text-[10px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-tighter",
+                                  order.payment_status === 'paid' ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-700"
+                                )}>
+                                  {order.payment_status}
+                                </div>
+                                <span className="text-xs font-medium text-slate-400">{new Date(order.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-lg font-extrabold text-slate-900 tracking-tight">₹{Number(order.total_amount).toLocaleString()}</div>
+                            <div className={cn(
+                              "text-[10px] font-bold uppercase",
+                              (order.balance_amount || 0) > 0 ? "text-rose-500" : "text-emerald-500"
+                            )}>
+                              {(order.balance_amount || 0) > 0 ? `Balance: ₹${(order.balance_amount ?? 0).toLocaleString()}` : "Fully Paid"}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Services Taken (Items) */}
+                        {order.order_items && order.order_items.length > 0 && (
+                          <div className="pt-3 border-t border-slate-100">
+                            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-2 text-left">Services Taken:</span>
+                            <div className="flex flex-wrap gap-1.5">
+                              {order.order_items.map((item: any, idx: number) => {
+                                const name = item.custom_item_name || item.cloth_types?.name || 'Item';
+                                return (
+                                  <span key={idx} className="text-[10px] font-bold text-slate-600 bg-white border border-slate-200 px-3 py-1 rounded-full uppercase">
+                                    {item.quantity} x {name}
+                                  </span>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        )}
+
+                        <div className="flex justify-end pt-1">
+                          <button
+                            onClick={() => handlePrintOrder(order.id)}
+                            className="text-[10px] font-bold text-primary-600 uppercase tracking-widest flex items-center gap-1 hover:text-primary-700"
+                          >
+                            View Receipt <ArrowRight size={10} />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="p-6 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
+              <div className="flex items-center gap-2 text-rose-600 bg-rose-50 px-3 py-1.5 rounded-xl border border-rose-100">
+                <AlertCircle size={16} />
+                <span className="text-xs font-bold uppercase tracking-tight">
+                  Total Pending: ₹{customerOrders.reduce((s, o) => s + Number(o.balance_amount || 0), 0).toLocaleString()}
+                </span>
+              </div>
+              <button onClick={() => setIsHistoryModalOpen(false)} className="h-11 px-6 rounded-xl font-bold text-sm bg-emerald-600 text-white hover:bg-emerald-700 active:scale-95 transition-all shadow-md shadow-emerald-600/10">Close Record</button>
+            </div>
           </div>
         </div>
       )}

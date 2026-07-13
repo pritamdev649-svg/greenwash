@@ -338,25 +338,29 @@ const Customers: React.FC = () => {
                 ) : filteredCustomers.map((customer) => (
                   <tr key={customer.id} className="table-row group">
                     <td className="table-cell">
-                      <div className="flex items-center gap-4">
-                        <div className="w-11 h-11 rounded-full bg-slate-100 flex items-center justify-center font-bold text-slate-600 text-sm border-2 border-white shadow-sm group-hover:bg-primary-50 group-hover:text-primary-600 transition-colors">
+                      <button
+                        onClick={() => fetchCustomerHistory(customer)}
+                        className="flex items-center gap-4 text-left hover:opacity-80 active:scale-98 transition-all group/cust"
+                        title="Click to view Customer History"
+                      >
+                        <div className="w-11 h-11 rounded-full bg-slate-100 flex items-center justify-center font-bold text-slate-600 text-sm border-2 border-white shadow-sm group-hover/cust:bg-primary-600 group-hover/cust:text-white transition-colors">
                           {customer.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()}
                         </div>
                         <div>
                           <div className="flex items-center gap-2">
-                            <span className="font-bold text-slate-900 leading-tight">{customer.name}</span>
+                            <span className="font-bold text-slate-900 leading-tight group-hover/cust:text-primary-600 transition-colors">{customer.name}</span>
                             {customer.branch?.name && (
                               <span className="text-[9px] font-black text-primary-600 bg-primary-50 px-1.5 py-0.5 rounded uppercase tracking-wider">
                                 {customer.branch.name}
                               </span>
                             )}
                           </div>
-                          <div className="text-xs font-semibold text-slate-400 mt-0.5 flex items-center gap-1 group-hover:text-slate-500 transition-colors">
+                          <div className="text-xs font-semibold text-slate-400 mt-0.5 flex items-center gap-1 group-hover/cust:text-slate-500 transition-colors">
                             <MapPin size={10} />
                             <span className="truncate max-w-[140px]">{customer.address || 'No address'}</span>
                           </div>
                         </div>
-                      </div>
+                      </button>
                     </td>
                     <td className="table-cell">
                       <div className="space-y-1">
