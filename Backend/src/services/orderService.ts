@@ -123,7 +123,7 @@ export const orderService = {
       .select(`
         *,
         order_number,
-        customers(name, mobile),
+        customers(id, name, mobile, coins),
         branches(name),
         order_items(count)
       `)
@@ -299,7 +299,7 @@ export const orderService = {
       .eq('id', orderId)
       .select(`
         *,
-        customers(name, mobile),
+        customers(id, name, mobile, coins),
         branches(name)
       `);
 
