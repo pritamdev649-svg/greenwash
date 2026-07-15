@@ -14,7 +14,7 @@ const translations = {
     dashboard: 'Dashboard',
     branches: 'Branches',
     customers: 'Customers',
-    categories: 'Categories',
+    categories: 'Services',
     orders: 'Orders',
     settings: 'Settings',
     logout: 'Log Out',
@@ -115,10 +115,10 @@ const translations = {
     active_status: 'Active Status',
 
     // Categories
-    service_categories: 'Service Categories',
+    service_categories: 'Services',
     manage_services: 'Define laundry services and pricing structure.',
-    add_category_btn: 'Add Category',
-    category_name: 'Category Name',
+    add_category_btn: 'Add Service',
+    category_name: 'Service Name',
     base_price: 'Base Price',
 
     // Settings
@@ -177,7 +177,7 @@ const translations = {
     dashboard: 'डैशबोर्ड',
     branches: 'शाखाएं',
     customers: 'ग्राहक',
-    categories: 'श्रेणियाँ',
+    categories: 'सेवाएँ',
     orders: 'ऑर्डर',
     settings: 'सेटिंग्स',
     logout: 'लॉग आउट',
@@ -277,11 +277,11 @@ const translations = {
     today_orders: 'आज के ऑर्डर',
     active_status: 'सक्रिय स्थिति',
 
-    // Categories
-    service_categories: 'सेवा की श्रेणियाँ',
+    // Services
+    service_categories: 'सेवाएँ',
     manage_services: 'लॉन्ड्री सेवाएँ और मूल्य संरचना निर्धारित करें।',
-    add_category_btn: 'श्रेणी जोड़ें',
-    category_name: 'श्रेणी का नाम',
+    add_category_btn: 'सेवा जोड़ें',
+    category_name: 'सेवा का नाम',
     base_price: 'आधार मूल्य',
 
     // Settings

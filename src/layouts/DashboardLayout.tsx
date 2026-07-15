@@ -19,6 +19,7 @@ import {
   Crown,
   FileText,
   ShieldAlert,
+  Plus,
 } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { clsx, type ClassValue } from 'clsx';
@@ -38,7 +39,7 @@ interface NavItem {
 const VENDOR_NAV: NavItem[] = [
   { path: '/dashboard', label: 'dashboard', icon: LayoutDashboard },
   { path: '/customers', label: 'customers', icon: Users },
-  { path: '/categories', label: 'categories', icon: LayoutGrid },
+  { path: '/services', label: 'categories', icon: LayoutGrid },
   { path: '/orders', label: 'orders', icon: Receipt },
   { path: '/offers', label: 'promotional_offers', icon: Image },
   { path: '/pricing-manager', label: 'rate_list_manager', icon: Tag },
@@ -100,8 +101,8 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
       icon: Users,
     });
     navItems.push({
-      path: '/categories',
-      label: 'Categories',
+      path: '/services',
+      label: 'Services',
       icon: LayoutGrid,
     });
     navItems.push({
@@ -171,6 +172,22 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
               </div>
             )}
           </div>
+
+          {/* New Entry Button */}
+          {(role === 'vendor' || isImpersonating) && (
+            <div className="px-6 py-2">
+              <button
+                onClick={() => {
+                  setIsSidebarOpen(false);
+                  navigate('/orders?openEntry=true');
+                }}
+                className="w-full h-11 bg-primary-600 hover:bg-primary-700 text-white rounded-xl font-black flex items-center justify-center gap-2 active:scale-[0.98] transition-all text-xs uppercase tracking-widest shadow-lg shadow-primary-600/20"
+              >
+                <Plus size={16} className="stroke-[3]" />
+                <span>{t('new_entry')}</span>
+              </button>
+            </div>
+          )}
 
           {/* Nav */}
           <nav className="flex-1 px-4 space-y-1 overflow-y-auto pt-2">

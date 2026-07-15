@@ -86,7 +86,7 @@ const App: React.FC = () => {
             {/* ─── Vendor Routes ─── */}
             <Route path="/dashboard"       element={wrap(['vendor', 'super_admin', 'admin'], <Dashboard />)} />
             <Route path="/customers"       element={wrap(['vendor', 'super_admin', 'admin'], <Customers />)} />
-            <Route path="/categories"      element={wrap(['vendor', 'super_admin', 'admin'], <Categories />)} />
+            <Route path="/services"        element={wrap(['vendor', 'super_admin', 'admin'], <Categories />)} />
             <Route path="/orders"          element={wrap(['vendor', 'super_admin', 'admin'], <Orders />)} />
             <Route path="/sale-order"      element={wrap(['vendor', 'super_admin', 'admin'], <SaleOrder />)} />
             <Route path="/offers"          element={wrap(['vendor', 'super_admin', 'admin'], <Offers />)} />

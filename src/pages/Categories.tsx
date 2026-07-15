@@ -84,7 +84,7 @@ const Categories: React.FC = () => {
        console.error(err);
        const msg = err.message || "Unknown Error";
        const hint = err.hint || "";
-       alert(`Error adding category: ${msg}\n${hint}\n\nIf this says 'relation "categories" does not exist', you need to run the SQL migration in Supabase.`);
+       alert(`Error adding service: ${msg}\n${hint}\n\nIf this says 'relation "categories" does not exist', you need to run the SQL migration in Supabase.`);
     }
   };
 
@@ -97,19 +97,19 @@ const Categories: React.FC = () => {
       console.error(err);
       const msg = err.message || "Unknown Error";
       const hint = err.hint || "";
-      alert(`Error adding category: ${msg}\n${hint}\n\nIf this says 'relation "categories" does not exist', you need to run the SQL migration in Supabase.`);
+      alert(`Error adding service: ${msg}\n${hint}\n\nIf this says 'relation "categories" does not exist', you need to run the SQL migration in Supabase.`);
     }
   };
 
   const deleteCategory = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!window.confirm("Delete this category and all items inside?")) return;
+    if (!window.confirm("Delete this service and all items inside?")) return;
     try {
       await orderService.deleteCategory(id);
       if (selectedCategoryId === id) setSelectedCategoryId(null);
       await fetchData();
     } catch (err) {
-      alert("Error deleting category");
+      alert("Error deleting service");
     }
   };
 
@@ -219,13 +219,13 @@ const Categories: React.FC = () => {
                 <input 
                   autoFocus
                   required
-                  placeholder="CATEGORY NAME..."
+                  placeholder="SERVICE NAME..."
                   className="w-full h-10 px-4 bg-white border border-slate-200 rounded-lg text-xs font-bold uppercase focus:ring-2 focus:ring-primary-500/20"
                   value={newCategoryName}
                   onChange={(e) => setNewCategoryName(e.target.value)}
                 />
                 <button type="submit" className="w-full h-10 bg-primary-600 text-white rounded-lg text-[10px] font-black uppercase tracking-widest active:scale-95 transition-all">
-                  Create Category
+                  Create Service
                 </button>
               </form>
             </div>
@@ -372,7 +372,7 @@ const Categories: React.FC = () => {
                 {filteredItems.length === 0 ? (
                   <div className="flex-1 flex flex-col items-center justify-center py-20 opacity-40">
                      <Shirt size={48} className="text-slate-200 mb-4" />
-                     <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">No products in this category yet.</p>
+                     <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">No products in this service yet.</p>
                   </div>
                 ) : (
                   <div className="grid gap-3">
@@ -421,7 +421,7 @@ const Categories: React.FC = () => {
                 <div className="w-20 h-20 bg-white border-2 border-dashed border-slate-200 rounded-[30%] flex items-center justify-center text-slate-200 mb-6 animate-pulse">
                    <LayoutGrid size={40} />
                 </div>
-                <h3 className="text-sm font-black text-slate-400 uppercase tracking-[0.2em]">Select a Category</h3>
+                <h3 className="text-sm font-black text-slate-400 uppercase tracking-[0.2em]">Select a Service</h3>
                 <p className="text-[10px] font-bold text-slate-300 uppercase mt-2">To view and manage item catalog</p>
              </div>
           )}
