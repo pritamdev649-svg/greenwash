@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useAuth } from '../contexts/AuthContext';
 import {
   Settings as SettingsIcon,
   FileText,
@@ -7,15 +8,27 @@ import {
   Save,
   CheckCircle,
   Plus,
-  Trash2
+  Trash2,
+  ChevronDown
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 
 export default function Settings() {
   const { language, setLanguage, t } = useLanguage();
+  const { vendorId } = useAuth();
   const [terms, setTerms] = useState<string[]>([]);
   const [newTerm, setNewTerm] = useState('');
   const [showSuccess, setShowSuccess] = useState(false);
+  const [weeklyOffDay, setWeeklyOffDay] = useState('none');
+
+  useEffect(() => {
+    if (vendorId) {
+      const savedOffDay = localStorage.getItem(`weekly_off_day_${vendorId}`);
+      if (savedOffDay) {
+        setWeeklyOffDay(savedOffDay);
+      }
+    }
+  }, [vendorId]);
 
   useEffect(() => {
     const savedTerms = localStorage.getItem('app_terms_conditions');
@@ -47,6 +60,9 @@ export default function Settings() {
 
   const handleSave = () => {
     localStorage.setItem('app_terms_conditions', JSON.stringify(terms));
+    if (vendorId) {
+      localStorage.setItem(`weekly_off_day_${vendorId}`, weeklyOffDay);
+    }
     setShowSuccess(true);
     setTimeout(() => setShowSuccess(false), 3000);
   };
@@ -114,7 +130,38 @@ export default function Settings() {
             </div>
           </div>
 
+          {/* Weekly Off Day Card */}
+          <div className="bg-white rounded-3xl p-8 shadow-2xl shadow-slate-200/50 border border-slate-100 ring-1 ring-slate-900/5 animate-in fade-in duration-300">
+            <div className="flex items-center gap-4 mb-6">
+              <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center shrink-0">
+                <SettingsIcon size={24} />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-slate-900">{t('weekly_off')}</h3>
+                <p className="text-xs text-slate-400 font-medium">{t('weekly_off_desc')}</p>
+              </div>
+            </div>
 
+            <div className="relative">
+              <select
+                value={weeklyOffDay}
+                onChange={(e) => setWeeklyOffDay(e.target.value)}
+                className="w-full h-12 pl-4 pr-10 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold text-slate-700 focus:bg-white focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 outline-none transition-all appearance-none cursor-pointer"
+              >
+                <option value="none">{t('none')}</option>
+                <option value="0">{t('sunday')}</option>
+                <option value="1">{t('monday')}</option>
+                <option value="2">{t('tuesday')}</option>
+                <option value="3">{t('wednesday')}</option>
+                <option value="4">{t('thursday')}</option>
+                <option value="5">{t('friday')}</option>
+                <option value="6">{t('saturday')}</option>
+              </select>
+              <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500">
+                <ChevronDown size={18} />
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Right Column: Terms & Conditions */}

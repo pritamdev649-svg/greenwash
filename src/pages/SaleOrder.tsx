@@ -16,6 +16,7 @@ import { useNavigate } from 'react-router-dom';
 import { customerService } from '@backend/services/customerService';
 import { orderService } from '@backend/services/orderService';
 import { useAuth } from '../contexts/AuthContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import { PrintReceipt } from '../components/PrintReceipt';
 
 
@@ -34,10 +35,62 @@ interface SaleRow {
 const SaleOrder: React.FC = () => {
   const navigate = useNavigate();
   const { vendorId } = useAuth();
+  const { t } = useLanguage();
   const [customers, setCustomers] = useState<any[]>([]);
   const [clothTypes, setClothTypes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isPreviewMode, setIsPreviewMode] = useState(false);
+
+  // Weekly Off Day Helper
+  const getValidDueDate = (baseDateStr: string, vId: string): string => {
+    if (!vId) return baseDateStr;
+    const offDayConfig = localStorage.getItem(`weekly_off_day_${vId}`);
+    if (!offDayConfig || offDayConfig === 'none') return baseDateStr;
+    
+    const offDayIndex = parseInt(offDayConfig, 10);
+    let date = new Date(baseDateStr);
+    
+    for (let i = 0; i < 10; i++) {
+      if (date.getDay() === offDayIndex) {
+        date.setDate(date.getDate() + 1);
+      } else {
+        break;
+      }
+    }
+    return date.toISOString().split('T')[0];
+  };
+
+  useEffect(() => {
+    if (vendorId) {
+      setDueDate(prev => getValidDueDate(prev, vendorId));
+    }
+  }, [vendorId]);
+
+  const handleDueDateChange = (val: string) => {
+    if (!val) return;
+    
+    if (vendorId) {
+      const offDayConfig = localStorage.getItem(`weekly_off_day_${vendorId}`);
+      if (offDayConfig && offDayConfig !== 'none') {
+        const offDayIndex = parseInt(offDayConfig, 10);
+        const selectedDate = new Date(val);
+        if (selectedDate.getDay() === offDayIndex) {
+          const daysOfWeek = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+          const dayNameKey = daysOfWeek[offDayIndex];
+          const localizedDay = t(dayNameKey);
+          
+          const warningTemplate = t('shop_closed_warning');
+          const finalMsg = warningTemplate.replace('{day}', localizedDay);
+          alert(finalMsg);
+          
+          const adjustedVal = getValidDueDate(val, vendorId);
+          setDueDate(adjustedVal);
+          return;
+        }
+      }
+    }
+    setDueDate(val);
+  };
 
   // Form State
   const [selectedCustomerId, setSelectedCustomerId] = useState('');
@@ -414,7 +467,7 @@ const SaleOrder: React.FC = () => {
                     type="date" 
                     className="bg-transparent border-none text-right focus:outline-none cursor-pointer" 
                     value={dueDate}
-                    onChange={(e) => setDueDate(e.target.value)}
+                    onChange={(e) => handleDueDateChange(e.target.value)}
                   />
                   <Calendar size={14} className="inline ml-2 text-slate-300" />
                 </div>

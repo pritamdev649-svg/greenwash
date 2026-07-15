@@ -200,6 +200,57 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
     fetchData();
   }, [vendorId]);
 
+  // Weekly Off Day Helper
+  const getValidDueDate = (baseDateStr: string, vId: string): string => {
+    if (!vId) return baseDateStr;
+    const offDayConfig = localStorage.getItem(`weekly_off_day_${vId}`);
+    if (!offDayConfig || offDayConfig === 'none') return baseDateStr;
+    
+    const offDayIndex = parseInt(offDayConfig, 10);
+    let date = new Date(baseDateStr);
+    
+    for (let i = 0; i < 10; i++) {
+      if (date.getDay() === offDayIndex) {
+        date.setDate(date.getDate() + 1);
+      } else {
+        break;
+      }
+    }
+    return date.toISOString().split('T')[0];
+  };
+
+  useEffect(() => {
+    if (vendorId) {
+      setDueDate(prev => getValidDueDate(prev, vendorId));
+    }
+  }, [vendorId]);
+
+  const handleDueDateChange = (val: string) => {
+    if (!val) return;
+    
+    if (vendorId) {
+      const offDayConfig = localStorage.getItem(`weekly_off_day_${vendorId}`);
+      if (offDayConfig && offDayConfig !== 'none') {
+        const offDayIndex = parseInt(offDayConfig, 10);
+        const selectedDate = new Date(val);
+        if (selectedDate.getDay() === offDayIndex) {
+          const daysOfWeek = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+          const dayNameKey = daysOfWeek[offDayIndex];
+          const localizedDay = t(dayNameKey);
+          
+          const warningTemplate = t('shop_closed_warning');
+          const finalMsg = warningTemplate.replace('{day}', localizedDay);
+          alert(finalMsg);
+          
+          const adjustedVal = getValidDueDate(val, vendorId);
+          setDueDate(adjustedVal);
+          return;
+        }
+      }
+    }
+    setDueDate(val);
+  };
+
   // Fetch Edit Data
   useEffect(() => {
     const fetchEditData = async () => {
@@ -678,7 +729,7 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
                 </div>
                 <div className="flex justify-between items-center text-xs font-bold">
                   <span className="text-slate-400 uppercase tracking-tight">Delivery Date</span>
-                  <input type="date" className="bg-transparent border-none text-right font-black focus:ring-0 p-0 text-primary-600 uppercase" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
+                  <input type="date" className="bg-transparent border-none text-right font-black focus:ring-0 p-0 text-primary-600 uppercase" value={dueDate} onChange={(e) => handleDueDateChange(e.target.value)} />
                 </div>
               </div>
             </div>

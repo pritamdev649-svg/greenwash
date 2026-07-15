@@ -44,7 +44,7 @@ const translations = {
     // Orders Page
     order_ledger: 'Order Ledger',
     manage_track: 'Manage, Track, and Fulfill laundry transactions.',
-    new_entry: 'New Entry',
+    new_entry: 'New Order',
     search_placeholder: 'Search orders, customers...',
     id: 'ID',
     timestamp: 'Timestamp',
@@ -169,8 +169,18 @@ const translations = {
     error_upload: 'Error uploading image:',
     error_save: 'Error saving offer. Please check your database connection.',
     error_delete: 'Error deleting offer',
-    error_status: 'Error updating status',
-    required_fields: 'Headline and Image are required!'
+    required_fields: 'Headline and Image are required!',
+    weekly_off: 'Weekly Off Day',
+    weekly_off_desc: 'Choose which day the shop is closed.',
+    none: 'None (Open 7 Days)',
+    sunday: 'Sunday',
+    monday: 'Monday',
+    tuesday: 'Tuesday',
+    wednesday: 'Wednesday',
+    thursday: 'Thursday',
+    friday: 'Friday',
+    saturday: 'Saturday',
+    shop_closed_warning: 'The shop is closed on {day}! Delivery date adjusted.'
   },
   hi: {
     // Nav & General
@@ -207,7 +217,7 @@ const translations = {
     // Orders Page
     order_ledger: 'ऑर्डर लेज़र',
     manage_track: 'लॉन्ड्री लेनदेन को प्रबंधित और ट्रैक करें।',
-    new_entry: 'नई एंट्री',
+    new_entry: 'नया ऑर्डर',
     search_placeholder: 'ऑर्डर, ग्राहक खोजें...',
     id: 'आईडी',
     timestamp: 'समय',
@@ -332,8 +342,18 @@ const translations = {
     error_upload: 'इमेज अपलोड करने में त्रुटि:',
     error_save: 'ऑफर सहेजने में त्रुटि। कृपया अपना डेटाबेस कनेक्शन जांचें।',
     error_delete: 'ऑफर हटाने में त्रुटि',
-    error_status: 'स्थिति अपडेट करने में त्रुटि',
-    required_fields: 'हेडलाइन और इमेज अनिवार्य हैं!'
+    required_fields: 'हेडलाइन और इमेज अनिवार्य हैं!',
+    weekly_off: 'साप्ताहिक अवकाश',
+    weekly_off_desc: 'चुनें कि किस दिन दुकान बंद रहती है।',
+    none: 'कोई नहीं (7 दिन खुली)',
+    sunday: 'रविवार',
+    monday: 'सोमवार',
+    tuesday: 'मंगलवार',
+    wednesday: 'बुधवार',
+    thursday: 'गुरुवार',
+    friday: 'शुक्रवार',
+    saturday: 'शनिवार',
+    shop_closed_warning: '{day} को दुकान बंद रहती है! डिलीवरी की तारीख को अगले कार्यदिवस पर सेट कर दिया गया है।'
   }
 };
 
