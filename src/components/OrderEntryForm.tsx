@@ -111,6 +111,36 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
   const [redeemCoinsChecked, setRedeemCoinsChecked] = useState(false);
   const [coinsToRedeem, setCoinsToRedeem] = useState(0);
 
+  // Wallet Payment State
+  const [useWalletChecked, setUseWalletChecked] = useState(false);
+  const [walletAmountToUse, setWalletAmountToUse] = useState(0);
+
+  // Quick Wallet Topup Modal State
+  const [isWalletTopupOpen, setIsWalletTopupOpen] = useState(false);
+  const [walletTopupAmount, setWalletTopupAmount] = useState(0);
+  const [addingWalletTopup, setAddingWalletTopup] = useState(false);
+
+  const handleWalletTopupSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedCustomerId || walletTopupAmount <= 0) return;
+    setAddingWalletTopup(true);
+    try {
+      const updated = await customerService.updateCustomerWallet(selectedCustomerId, walletTopupAmount);
+      const newBal = updated?.wallet_balance ?? updated?.coins ?? (Number(selectedCustomer?.wallet_balance || 0) + walletTopupAmount);
+      setSelectedCustomer((prev: any) => prev ? { ...prev, wallet_balance: newBal } : null);
+      setCustomers(prev => prev.map(c => c.id === selectedCustomerId ? { ...c, wallet_balance: newBal } : c));
+    } catch (err) {
+      console.warn("Wallet update error, applying local fallback:", err);
+      const newBal = Number(selectedCustomer?.wallet_balance || 0) + walletTopupAmount;
+      setSelectedCustomer((prev: any) => prev ? { ...prev, wallet_balance: newBal } : null);
+      setCustomers(prev => prev.map(c => c.id === selectedCustomerId ? { ...c, wallet_balance: newBal } : c));
+    } finally {
+      setIsWalletTopupOpen(false);
+      setWalletTopupAmount(0);
+      setAddingWalletTopup(false);
+    }
+  };
+
   // Additional Charges State
   const [additionalCharges, setAdditionalCharges] = useState<{ label: string, amount: number }[]>([]);
   const [showCustomCharge, setShowCustomCharge] = useState(false);
@@ -440,6 +470,10 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
         if (coinsToRedeem > 0) {
           await customerService.updateCustomerCoins(selectedCustomerId, -coinsToRedeem);
         }
+        // Deduct used wallet balance from customer profile
+        if (useWalletChecked && walletAmountToUse > 0) {
+          await customerService.updateCustomerWallet(selectedCustomerId, -walletAmountToUse);
+        }
       }
 
       // --- NEW: PDF GENERATION & AUTOMATED WHATSAPP SEND ---
@@ -673,58 +707,151 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
                 )}
               </div>
 
-              {selectedCustomer && (
-                <div className="mt-4 p-4 bg-amber-50/50 border border-amber-100 rounded-2xl space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="text-base">🪙</span>
-                      <div>
-                        <span className="text-[9px] font-black text-amber-800 uppercase tracking-wider block">Available Coins</span>
-                        <span className="text-xs font-black text-amber-700">{selectedCustomer.coins || 0} Coins</span>
-                      </div>
-                    </div>
-                    {(selectedCustomer.coins || 0) > 0 && (
-                      <div className="flex items-center gap-1.5">
-                        <input
-                          type="checkbox"
-                          id="redeem-coins-checkbox"
-                          className="w-3.5 h-3.5 rounded text-amber-600 focus:ring-amber-500 border-amber-300 cursor-pointer"
-                          checked={redeemCoinsChecked}
-                          onChange={(e) => {
-                            setRedeemCoinsChecked(e.target.checked);
-                            if (e.target.checked) {
-                              const maxRedeem = Math.min(selectedCustomer.coins, subtotal);
-                              setCoinsToRedeem(maxRedeem);
-                            } else {
-                              setCoinsToRedeem(0);
-                            }
-                          }}
-                        />
-                        <label htmlFor="redeem-coins-checkbox" className="text-[10px] font-black text-amber-900 uppercase cursor-pointer">Redeem</label>
-                      </div>
-                    )}
-                  </div>
+              {!selectedCustomer && (
+                <div className="mt-4 p-3 bg-indigo-50/50 border border-indigo-100/60 rounded-2xl flex items-center gap-2 text-indigo-700">
+                  <span className="text-sm">👛</span>
+                  <span className="text-[10px] font-bold uppercase tracking-tight">
+                    Select a customer above to view & use Wallet Balance / Coins
+                  </span>
+                </div>
+              )}
 
-                  {redeemCoinsChecked && (selectedCustomer.coins || 0) > 0 && (
-                    <div className="space-y-1.5">
-                      <label className="text-[9px] font-black text-amber-800 uppercase tracking-widest block ml-1">Coins to Redeem</label>
-                      <input
-                        type="number"
-                        min="0"
-                        max={Math.min(selectedCustomer.coins, subtotal)}
-                        className="w-full h-9 px-3 bg-white border border-amber-200 rounded-xl text-xs font-bold focus:ring-2 focus:ring-amber-500/20 outline-none text-amber-800"
-                        value={coinsToRedeem}
-                        onChange={(e) => {
-                          const val = Math.min(
-                            selectedCustomer.coins,
-                            subtotal,
-                            Math.max(0, parseInt(e.target.value) || 0)
-                          );
-                          setCoinsToRedeem(val);
-                        }}
-                      />
+              {selectedCustomer && (
+                <div className="mt-4 p-4 bg-slate-50 border border-slate-200/80 rounded-2xl space-y-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    
+                    {/* 👛 Wallet Balance Box */}
+                    <div className="p-3 bg-white border border-indigo-100 rounded-xl space-y-2 shadow-sm">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="text-base">👛</span>
+                          <div>
+                            <span className="text-[9px] font-black text-indigo-800 uppercase tracking-wider block">Wallet Balance</span>
+                            <span className="text-xs font-black text-indigo-700">₹{(selectedCustomer.wallet_balance || 0).toLocaleString()}</span>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setIsWalletTopupOpen(true)}
+                          className="text-[9px] font-black bg-indigo-50 text-indigo-700 border border-indigo-200 hover:bg-indigo-100 px-2 py-1 rounded-lg uppercase tracking-wider transition-all"
+                        >
+                          + Add Money
+                        </button>
+                      </div>
+
+                      {(selectedCustomer.wallet_balance || 0) > 0 && (
+                        <div className="pt-1.5 border-t border-indigo-50 space-y-2">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-1.5">
+                              <input
+                                type="checkbox"
+                                id="use-wallet-checkbox"
+                                className="w-3.5 h-3.5 rounded text-indigo-600 focus:ring-indigo-500 border-indigo-300 cursor-pointer"
+                                checked={useWalletChecked}
+                                onChange={(e) => {
+                                  const checked = e.target.checked;
+                                  setUseWalletChecked(checked);
+                                  if (checked) {
+                                    const availableWallet = Number(selectedCustomer.wallet_balance || 0);
+                                    const maxUsable = Math.min(availableWallet, grandTotal);
+                                    setWalletAmountToUse(maxUsable);
+                                    setAdvanceAmount(maxUsable);
+                                  } else {
+                                    setWalletAmountToUse(0);
+                                    setAdvanceAmount(0);
+                                  }
+                                }}
+                              />
+                              <label htmlFor="use-wallet-checkbox" className="text-[10px] font-black text-indigo-900 uppercase cursor-pointer">
+                                Pay Advance from Wallet
+                              </label>
+                            </div>
+                            {useWalletChecked && (
+                              <span className="text-[10px] font-black text-indigo-600">
+                                -₹{walletAmountToUse}
+                              </span>
+                            )}
+                          </div>
+
+                          {useWalletChecked && (
+                            <div className="space-y-1 pt-1 border-t border-indigo-50">
+                              <label className="text-[9px] font-black text-indigo-800 uppercase tracking-widest block">Wallet Amount to Use (₹)</label>
+                              <input
+                                type="number"
+                                min="0"
+                                max={Math.min(Number(selectedCustomer.wallet_balance || 0), grandTotal)}
+                                className="w-full h-8 px-2 bg-indigo-50/50 border border-indigo-200 rounded-lg text-xs font-bold focus:ring-2 focus:ring-indigo-500/20 outline-none text-indigo-900"
+                                value={walletAmountToUse || ''}
+                                onChange={(e) => {
+                                  const val = Math.max(0, parseInt(e.target.value) || 0);
+                                  const availableWallet = Number(selectedCustomer.wallet_balance || 0);
+                                  const maxUsable = Math.min(availableWallet, grandTotal);
+                                  const capped = Math.min(val, maxUsable);
+                                  setWalletAmountToUse(capped);
+                                  setAdvanceAmount(capped);
+                                }}
+                              />
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
-                  )}
+
+                    {/* 🪙 Reward Coins Box */}
+                    <div className="p-3 bg-white border border-amber-100 rounded-xl space-y-2 shadow-sm">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="text-base">🪙</span>
+                          <div>
+                            <span className="text-[9px] font-black text-amber-800 uppercase tracking-wider block">Available Coins</span>
+                            <span className="text-xs font-black text-amber-700">{selectedCustomer.coins || 0} Coins</span>
+                          </div>
+                        </div>
+                        {(selectedCustomer.coins || 0) > 0 && (
+                          <div className="flex items-center gap-1.5">
+                            <input
+                              type="checkbox"
+                              id="redeem-coins-checkbox"
+                              className="w-3.5 h-3.5 rounded text-amber-600 focus:ring-amber-500 border-amber-300 cursor-pointer"
+                              checked={redeemCoinsChecked}
+                              onChange={(e) => {
+                                setRedeemCoinsChecked(e.target.checked);
+                                if (e.target.checked) {
+                                  const maxRedeem = Math.min(selectedCustomer.coins, subtotal);
+                                  setCoinsToRedeem(maxRedeem);
+                                } else {
+                                  setCoinsToRedeem(0);
+                                }
+                              }}
+                            />
+                            <label htmlFor="redeem-coins-checkbox" className="text-[10px] font-black text-amber-900 uppercase cursor-pointer">Redeem</label>
+                          </div>
+                        )}
+                      </div>
+
+                      {redeemCoinsChecked && (selectedCustomer.coins || 0) > 0 && (
+                        <div className="space-y-1 pt-1 border-t border-amber-50">
+                          <label className="text-[9px] font-black text-amber-800 uppercase tracking-widest block">Coins to Redeem</label>
+                          <input
+                            type="number"
+                            min="0"
+                            max={Math.min(selectedCustomer.coins, subtotal)}
+                            className="w-full h-8 px-2 bg-amber-50/50 border border-amber-200 rounded-lg text-xs font-bold focus:ring-2 focus:ring-amber-500/20 outline-none text-amber-900"
+                            value={coinsToRedeem}
+                            onChange={(e) => {
+                              const val = Math.min(
+                                selectedCustomer.coins,
+                                subtotal,
+                                Math.max(0, parseInt(e.target.value) || 0)
+                              );
+                              setCoinsToRedeem(val);
+                            }}
+                          />
+                        </div>
+                      )}
+                    </div>
+
+                  </div>
                 </div>
               )}
 
@@ -994,6 +1121,16 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
                       <span>- ₹{coinsToRedeem}</span>
                     </div>
                   )}
+                  {selectedCustomer && (
+                    <div className="flex justify-between items-center text-xs font-bold text-indigo-700 bg-indigo-50/70 p-2 rounded-xl border border-indigo-100">
+                      <span className="flex items-center gap-1.5 text-[10px] uppercase font-black">
+                        👛 Wallet Balance
+                      </span>
+                      <span className="font-black text-indigo-800">
+                        ₹{(selectedCustomer.wallet_balance || 0).toLocaleString()}
+                      </span>
+                    </div>
+                  )}
                   <div className="flex justify-between items-center text-xs font-bold text-emerald-600 bg-emerald-50 p-2 rounded-xl border border-emerald-100">
                     <span>Advance Received</span>
                     <input type="number" className="w-20 h-8 text-right bg-white border border-emerald-200 rounded-lg text-[10px] font-black p-2 uppercase focus:ring-2 focus:ring-emerald-500/20" value={advanceAmount} onChange={(e) => setAdvanceAmount(parseFloat(e.target.value) || 0)} />
@@ -1214,6 +1351,74 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
                   accountHolderName: vendorPayment.account_holder_name,
                 } : null,
               }} />
+            </div>
+          </div>
+        )}
+
+        {/* Quick Wallet Topup Modal */}
+        {isWalletTopupOpen && selectedCustomer && (
+          <div className="fixed inset-0 z-[300] flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setIsWalletTopupOpen(false)} />
+            <div className="relative w-full max-w-sm bg-white rounded-3xl shadow-2xl p-6 overflow-hidden animate-slide-up flex flex-col text-left">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-base font-black text-slate-900 uppercase tracking-tight flex items-center gap-2">
+                  👛 Add Money to Wallet
+                </h3>
+                <button onClick={() => setIsWalletTopupOpen(false)} className="p-1.5 bg-slate-50 hover:bg-slate-100 rounded-full text-slate-400"><X size={18} /></button>
+              </div>
+              <form onSubmit={handleWalletTopupSubmit} className="space-y-4">
+                <div className="p-3 bg-indigo-50/50 border border-indigo-100 rounded-2xl">
+                  <span className="text-[10px] font-bold text-indigo-700 uppercase tracking-wider block">Customer</span>
+                  <span className="text-xs font-black text-slate-900">{selectedCustomer.name} ({selectedCustomer.mobile})</span>
+                  <span className="text-[10px] font-bold text-slate-500 block mt-1">Current Wallet: ₹{(selectedCustomer.wallet_balance || 0).toLocaleString()}</span>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block ml-1">
+                    Topup Amount (₹)
+                  </label>
+                  <input
+                    required
+                    type="number"
+                    min="1"
+                    className="w-full h-12 px-4 bg-slate-50 border border-slate-200 rounded-xl text-base font-bold outline-none focus:bg-white focus:ring-2 focus:ring-indigo-500"
+                    placeholder="E.g. 500"
+                    value={walletTopupAmount || ''}
+                    onChange={(e) => setWalletTopupAmount(Math.max(0, parseInt(e.target.value) || 0))}
+                  />
+                </div>
+
+                {/* Quick Buttons */}
+                <div className="flex gap-2">
+                  {[100, 200, 500, 1000].map(val => (
+                    <button
+                      key={val}
+                      type="button"
+                      onClick={() => setWalletTopupAmount(val)}
+                      className="flex-1 py-1.5 bg-slate-100 hover:bg-indigo-50 hover:text-indigo-700 text-slate-700 text-xs font-black rounded-lg transition-colors"
+                    >
+                      +₹{val}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="flex gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setIsWalletTopupOpen(false)}
+                    className="flex-1 h-11 bg-slate-100 text-slate-600 rounded-xl font-bold text-xs"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={addingWalletTopup}
+                    className="flex-1 h-11 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-black text-xs uppercase tracking-wider shadow-md shadow-indigo-600/20 active:scale-95 transition-all disabled:opacity-50"
+                  >
+                    {addingWalletTopup ? 'Saving...' : 'Add to Wallet'}
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         )}

@@ -48,7 +48,7 @@ const VENDOR_NAV: NavItem[] = [
 const ADMIN_NAV: NavItem[] = [
   { path: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { path: '/admin/vendors', label: 'My Vendors', icon: Store },
-  { path: '/admin/orders', label: 'Orders', icon: Receipt },
+  { path: '/admin/orders', label: 'Order History', icon: Receipt },
   { path: '/admin/reports', label: 'Reports', icon: BarChart2 },
   { path: '/admin/deletion-requests', label: 'Deletion Requests', icon: ShieldAlert },
 ];

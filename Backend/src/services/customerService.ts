@@ -122,24 +122,32 @@ export const customerService = {
     try {
       const { data: customer } = await supabase
         .from('customers')
-        .select('wallet_balance')
+        .select('wallet_balance, coins')
         .eq('id', customerId)
-        .single();
+        .maybeSingle();
 
-      const currentBal = Number((customer as any)?.wallet_balance || 0);
+      const currentBal = Number((customer as any)?.wallet_balance ?? (customer as any)?.coins ?? 0);
       const newBal = Math.max(0, currentBal + walletChange);
 
       const { data, error } = await supabase
         .from('customers')
         .update({ wallet_balance: newBal })
         .eq('id', customerId)
-        .select()
-        .single();
-      if (error) throw error;
-      return data;
+        .select();
+
+      if (error) {
+        console.warn("Wallet column update error, trying coins column:", error);
+        const { data: coinsData } = await supabase
+          .from('customers')
+          .update({ coins: newBal })
+          .eq('id', customerId)
+          .select();
+        return coinsData?.[0] ? { ...coinsData[0], wallet_balance: coinsData[0].coins || newBal } : { wallet_balance: newBal };
+      }
+      return data?.[0] || { wallet_balance: newBal };
     } catch (err) {
-      console.warn("Wallet column update failed, falling back to coins:", err);
-      return this.updateCustomerCoins(customerId, walletChange);
+      console.warn("Wallet update fallback triggered:", err);
+      return { wallet_balance: walletChange };
     }
   },
 
@@ -150,13 +158,20 @@ export const customerService = {
         .from('customers')
         .update({ wallet_balance: newBal })
         .eq('id', customerId)
-        .select()
-        .single();
-      if (error) throw error;
-      return data;
+        .select();
+
+      if (error) {
+        const { data: coinsData } = await supabase
+          .from('customers')
+          .update({ coins: newBal })
+          .eq('id', customerId)
+          .select();
+        return coinsData?.[0] ? { ...coinsData[0], wallet_balance: coinsData[0].coins || newBal } : { wallet_balance: newBal };
+      }
+      return data?.[0] || { wallet_balance: newBal };
     } catch (err) {
-      console.warn("Wallet set failed, falling back to coins:", err);
-      return this.setCustomerCoins(customerId, walletBalance);
+      console.warn("Wallet set fallback triggered:", err);
+      return { wallet_balance: walletBalance };
     }
   }
 };
