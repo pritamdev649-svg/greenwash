@@ -23,12 +23,23 @@ const CustomerDashboard: React.FC = () => {
   const { userProfile } = useAuth();
   const navigate = useNavigate();
   const [orders, setOrders] = useState<any[]>([]);
+  const [customerData, setCustomerData] = useState<{ wallet_balance?: number; coins?: number } | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!userProfile?.customer_id) { setLoading(false); return; }
     fetchOrders();
+    fetchCustomerProfile();
   }, [userProfile?.customer_id]);
+
+  const fetchCustomerProfile = async () => {
+    const { data } = await supabase
+      .from('customers')
+      .select('wallet_balance, coins')
+      .eq('id', userProfile!.customer_id)
+      .maybeSingle();
+    if (data) setCustomerData(data);
+  };
 
   const fetchOrders = async () => {
     const { data } = await supabase
@@ -51,6 +62,37 @@ const CustomerDashboard: React.FC = () => {
         <p className="text-xs font-black text-emerald-500 uppercase tracking-widest">Good day</p>
         <h1 className="text-2xl font-black text-slate-900 mt-1">Hello, {name}! 👋</h1>
         <p className="text-slate-400 text-sm font-medium mt-1">Here's a summary of your laundry.</p>
+      </div>
+
+      {/* Wallet & Coins Card */}
+      <div className="grid grid-cols-2 gap-3">
+        <div className="bg-gradient-to-br from-indigo-600 to-indigo-700 rounded-2xl p-4 text-white shadow-lg shadow-indigo-600/20 relative overflow-hidden flex flex-col justify-between">
+          <div className="flex items-center justify-between">
+            <span className="text-xl">👛</span>
+            <span className="text-[9px] font-black uppercase tracking-widest text-indigo-200 bg-white/10 px-2 py-0.5 rounded-full">Wallet</span>
+          </div>
+          <div className="mt-3">
+            <p className="text-[10px] font-bold text-indigo-200 uppercase tracking-wider">Available Balance</p>
+            <p className="text-2xl font-black text-white tracking-tight mt-0.5">
+              ₹{Number(customerData?.wallet_balance || 0).toLocaleString('en-IN')}
+            </p>
+          </div>
+          <div className="absolute -right-4 -bottom-4 w-20 h-20 bg-white/5 rounded-full blur-xl pointer-events-none" />
+        </div>
+
+        <div className="bg-gradient-to-br from-amber-500 to-amber-600 rounded-2xl p-4 text-white shadow-lg shadow-amber-500/20 relative overflow-hidden flex flex-col justify-between">
+          <div className="flex items-center justify-between">
+            <span className="text-xl">🪙</span>
+            <span className="text-[9px] font-black uppercase tracking-widest text-amber-100 bg-white/10 px-2 py-0.5 rounded-full">Rewards</span>
+          </div>
+          <div className="mt-3">
+            <p className="text-[10px] font-bold text-amber-100 uppercase tracking-wider">Reward Coins</p>
+            <p className="text-2xl font-black text-white tracking-tight mt-0.5">
+              {Number(customerData?.coins || 0).toLocaleString('en-IN')} Coins
+            </p>
+          </div>
+          <div className="absolute -right-4 -bottom-4 w-20 h-20 bg-white/5 rounded-full blur-xl pointer-events-none" />
+        </div>
       </div>
 
       {/* Quick stats */}

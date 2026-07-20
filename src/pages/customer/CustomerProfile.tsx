@@ -15,6 +15,8 @@ const CustomerProfile: React.FC = () => {
   const [mobile, setMobile] = useState('');
   const [email, setEmail] = useState('');
   const [address, setAddress] = useState('');
+  const [walletBalance, setWalletBalance] = useState(0);
+  const [coins, setCoins] = useState(0);
 
   useEffect(() => {
     if (!userProfile?.customer_id) return;
@@ -35,6 +37,8 @@ const CustomerProfile: React.FC = () => {
         setMobile(data.mobile || '');
         setEmail(data.email || '');
         setAddress(data.address || '');
+        setWalletBalance(data.wallet_balance || 0);
+        setCoins(data.coins || 0);
       }
     } catch (e: any) {
       setError(e.message || 'Failed to load profile details.');
@@ -96,6 +100,31 @@ const CustomerProfile: React.FC = () => {
           {error}
         </div>
       )}
+
+      {/* Wallet & Coins Balance Overview */}
+      <div className="grid grid-cols-2 gap-4">
+        <div className="bg-gradient-to-r from-indigo-600 to-indigo-700 text-white rounded-3xl p-5 shadow-lg shadow-indigo-600/20 flex flex-col justify-between">
+          <div className="flex justify-between items-center">
+            <span className="text-xl">👛</span>
+            <span className="text-[10px] font-black uppercase tracking-widest bg-white/20 px-2.5 py-0.5 rounded-full">Wallet</span>
+          </div>
+          <div className="mt-3">
+            <span className="text-[10px] font-extrabold uppercase tracking-wider text-indigo-200 block">Available Balance</span>
+            <span className="text-2xl font-black text-white">₹{walletBalance.toLocaleString('en-IN')}</span>
+          </div>
+        </div>
+
+        <div className="bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-3xl p-5 shadow-lg shadow-amber-500/20 flex flex-col justify-between">
+          <div className="flex justify-between items-center">
+            <span className="text-xl">🪙</span>
+            <span className="text-[10px] font-black uppercase tracking-widest bg-white/20 px-2.5 py-0.5 rounded-full">Coins</span>
+          </div>
+          <div className="mt-3">
+            <span className="text-[10px] font-extrabold uppercase tracking-wider text-amber-100 block">Reward Coins</span>
+            <span className="text-2xl font-black text-white">{coins.toLocaleString('en-IN')} Coins</span>
+          </div>
+        </div>
+      </div>
 
       <div className="bg-white border border-slate-100 rounded-3xl p-6 sm:p-8 shadow-sm">
         <form onSubmit={handleSave} className="space-y-5">
