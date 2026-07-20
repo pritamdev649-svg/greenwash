@@ -42,7 +42,6 @@ const VENDOR_NAV: NavItem[] = [
   { path: '/services', label: 'categories', icon: LayoutGrid },
   { path: '/orders', label: 'orders', icon: Receipt },
   { path: '/offers', label: 'promotional_offers', icon: Image },
-  { path: '/pricing-manager', label: 'rate_list_manager', icon: Tag },
   { path: '/settings', label: 'settings', icon: Settings },
 ];
 

@@ -393,80 +393,32 @@ const Dashboard: React.FC = () => {
         ))}
       </div>
 
-      <div className="grid lg:grid-cols-3 gap-8">
-         <div className="lg:col-span-2 card p-8 group relative flex flex-col">
-            <div className="flex items-center justify-between mb-2">
-              <div>
-                <h3 className="font-extrabold text-slate-500 text-xs tracking-widest uppercase">{language === 'hi' ? 'बिक्री विश्लेषण' : 'Total Sale'}</h3>
-              </div>
-              <div className="relative group/select">
-                <select 
-                  className="appearance-none bg-slate-50 border border-slate-100 text-[9px] font-black uppercase tracking-[0.2em] text-slate-500 rounded-full px-6 pr-10 h-9 transition-all hover:bg-white hover:shadow-md cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary-100"
-                  value={timeframe}
-                  onChange={(e) => setTimeframe(e.target.value as any)}
-                >
-                  <option value="last-month">{t('last_month')}</option>
-                  <option value="this-week">{t('this_week')}</option>
-                  <option value="this-month">{t('this_month')}</option>
-                  <option value="this-quarter">{t('this_quarter')}</option>
-                  <option value="half-year">{t('half_year')}</option>
-                  <option value="this-year">{t('this_year')}</option>
-                  <option value="7d">{language === 'hi' ? 'पिछले 7 दिन' : 'Last 7 Days'}</option>
-                </select>
-                <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none group-hover/select:text-primary-500 transition-colors" />
-              </div>
-            </div>
-            <div className="flex-1 w-full flex items-center justify-center min-h-[250px] p-2">
-               <SalesTrendChart data={stats.salesTrend} timeframe={timeframe} />
-            </div>
-         </div>
-
-         {/* Branch Performance */}
-         <div className="card h-full flex flex-col overflow-hidden">
-            <div className="p-8 border-b border-slate-50">
-              <h3 className="font-black text-slate-900 text-xl tracking-tight uppercase">{t('branches')}</h3>
-              <p className="text-xs text-slate-400 font-bold tracking-widest uppercase mt-1">{t('live_efficiency_metrics')}</p>
-            </div>
-            <div className="flex-1 p-5 space-y-3 overflow-y-auto max-h-[400px] scrollbar-hide">
-               {stats.branchPerformance.length === 0 ? (
-                 <div className="p-12 text-center text-slate-400 flex flex-col items-center gap-4">
-                    <div className="w-12 h-12 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center">
-                      <Receipt size={24} />
-                    </div>
-                    <p className="text-[10px] font-black uppercase tracking-widest">No active branches</p>
-                 </div>
-               ) : stats.branchPerformance.map((branch, i) => (
-                 <div key={i} 
-                   onClick={() => navigate('/branches')}
-                   className="flex items-center justify-between p-4 rounded-2xl bg-white border border-slate-50 hover:border-primary-100 hover:shadow-xl hover:shadow-primary-600/5 transition-all duration-500 cursor-pointer group/branch"
-                 >
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center text-slate-400 group-hover/branch:bg-primary-500 group-hover/branch:text-white transition-all duration-500 font-black text-xs">
-                        B{i+1}
-                      </div>
-                      <div>
-                        <p className="text-sm font-black text-slate-900 group-hover/branch:text-primary-600 transition-colors uppercase tracking-tight">{branch.name}</p>
-                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{branch.todayOrders} orders today</p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-sm font-black text-slate-900 tracking-tighter">₹{branch.todaySales.toLocaleString()}</p>
-                      <div className={cn(
-                        "text-[10px] font-black px-2 py-0.5 rounded-full mt-1 uppercase tracking-widest",
-                        branch.todaySales > 0 ? "text-emerald-500" : "text-slate-300"
-                      )}>
-                        {branch.todaySales > 0 ? 'ACTIVE' : 'IDLE'}
-                      </div>
-                    </div>
-                 </div>
-               ))}
-            </div>
-            <div className="p-6 bg-slate-50/50 border-t border-slate-100 text-center">
-               <button onClick={() => navigate('/branches')} className="text-primary-600 font-black text-[10px] uppercase tracking-[0.2em] hover:text-primary-700 transition-colors">
-                  Synchronize Branches
-               </button>
-            </div>
-         </div>
+      {/* Total Sale Trend Chart */}
+      <div className="card p-8 group relative flex flex-col w-full">
+        <div className="flex items-center justify-between mb-2">
+          <div>
+            <h3 className="font-extrabold text-slate-500 text-xs tracking-widest uppercase">{language === 'hi' ? 'बिक्री विश्लेषण' : 'Total Sale'}</h3>
+          </div>
+          <div className="relative group/select">
+            <select 
+              className="appearance-none bg-slate-50 border border-slate-100 text-[9px] font-black uppercase tracking-[0.2em] text-slate-500 rounded-full px-6 pr-10 h-9 transition-all hover:bg-white hover:shadow-md cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary-100"
+              value={timeframe}
+              onChange={(e) => setTimeframe(e.target.value as any)}
+            >
+              <option value="last-month">{t('last_month')}</option>
+              <option value="this-week">{t('this_week')}</option>
+              <option value="this-month">{t('this_month')}</option>
+              <option value="this-quarter">{t('this_quarter')}</option>
+              <option value="half-year">{t('half_year')}</option>
+              <option value="this-year">{t('this_year')}</option>
+              <option value="7d">{language === 'hi' ? 'पिछले 7 दिन' : 'Last 7 Days'}</option>
+            </select>
+            <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none group-hover/select:text-primary-500 transition-colors" />
+          </div>
+        </div>
+        <div className="flex-1 w-full flex items-center justify-center min-h-[250px] p-2">
+           <SalesTrendChart data={stats.salesTrend} timeframe={timeframe} />
+        </div>
       </div>
 
       {/* Recent Ledger Activity */}

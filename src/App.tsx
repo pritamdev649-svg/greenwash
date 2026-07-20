@@ -90,7 +90,7 @@ const App: React.FC = () => {
             <Route path="/orders"          element={wrap(['vendor', 'super_admin', 'admin'], <Orders />)} />
             <Route path="/sale-order"      element={wrap(['vendor', 'super_admin', 'admin'], <SaleOrder />)} />
             <Route path="/offers"          element={wrap(['vendor', 'super_admin', 'admin'], <Offers />)} />
-            <Route path="/pricing-manager" element={wrap(['vendor', 'super_admin', 'admin'], <PricingManager />)} />
+            <Route path="/pricing-manager" element={wrap(['super_admin', 'admin'], <PricingManager />)} />
             <Route path="/settings"        element={wrap(['vendor', 'super_admin', 'admin'], <Settings />)} />
             <Route path="/branches"        element={wrap(['vendor', 'super_admin', 'admin'], <Branches />)} />
 

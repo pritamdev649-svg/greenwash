@@ -92,7 +92,7 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
     setIsCustomerDropdownOpen(false);
   };
   const [orderDate, setOrderDate] = useState(new Date().toISOString().split('T')[0]);
-  const [dueDate, setDueDate] = useState(new Date(Date.now() + 86400000 * 2).toISOString().split('T')[0]);
+  const [dueDate, setDueDate] = useState(new Date(Date.now() + 86400000 * 3).toISOString().split('T')[0]);
   const [orderNo, setOrderNo] = useState(() => Math.floor(1000 + Math.random() * 9000).toString());
   const [isSuccess, setIsSuccess] = useState(false);
   const [createdOrderId, setCreatedOrderId] = useState('');
@@ -249,6 +249,16 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
       }
     }
     setDueDate(val);
+  };
+
+  const handleOrderDateChange = (val: string) => {
+    setOrderDate(val);
+    if (val) {
+      const baseDate = new Date(val);
+      const calculatedDue = new Date(baseDate.getTime() + 86400000 * 3).toISOString().split('T')[0];
+      const validDue = getValidDueDate(calculatedDue, vendorId || '');
+      setDueDate(validDue);
+    }
   };
 
   // Fetch Edit Data
@@ -725,7 +735,7 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
                 </div>
                 <div className="flex justify-between items-center text-xs font-bold">
                   <span className="text-slate-400 uppercase tracking-tight">Entry Date</span>
-                  <input type="date" className="bg-transparent border-none text-right font-black focus:ring-0 p-0 text-slate-800 uppercase" value={orderDate} onChange={(e) => setOrderDate(e.target.value)} />
+                  <input type="date" className="bg-transparent border-none text-right font-black focus:ring-0 p-0 text-slate-800 uppercase" value={orderDate} onChange={(e) => handleOrderDateChange(e.target.value)} />
                 </div>
                 <div className="flex justify-between items-center text-xs font-bold">
                   <span className="text-slate-400 uppercase tracking-tight">Delivery Date</span>

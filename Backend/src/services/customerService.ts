@@ -86,6 +86,18 @@ export const customerService = {
     return true;
   },
 
+  async setCustomerCoins(customerId: string, coins: number) {
+    const newCoins = Math.max(0, coins);
+    const { data, error } = await supabase
+      .from('customers')
+      .update({ coins: newCoins })
+      .eq('id', customerId)
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  },
+
   async updateCustomerCoins(customerId: string, coinsChange: number) {
     const { data: customer, error: fetchErr } = await supabase
       .from('customers')
@@ -104,5 +116,47 @@ export const customerService = {
       .single();
     if (error) throw error;
     return data;
+  },
+
+  async updateCustomerWallet(customerId: string, walletChange: number) {
+    try {
+      const { data: customer } = await supabase
+        .from('customers')
+        .select('wallet_balance')
+        .eq('id', customerId)
+        .single();
+
+      const currentBal = Number((customer as any)?.wallet_balance || 0);
+      const newBal = Math.max(0, currentBal + walletChange);
+
+      const { data, error } = await supabase
+        .from('customers')
+        .update({ wallet_balance: newBal })
+        .eq('id', customerId)
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    } catch (err) {
+      console.warn("Wallet column update failed, falling back to coins:", err);
+      return this.updateCustomerCoins(customerId, walletChange);
+    }
+  },
+
+  async setCustomerWallet(customerId: string, walletBalance: number) {
+    try {
+      const newBal = Math.max(0, walletBalance);
+      const { data, error } = await supabase
+        .from('customers')
+        .update({ wallet_balance: newBal })
+        .eq('id', customerId)
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    } catch (err) {
+      console.warn("Wallet set failed, falling back to coins:", err);
+      return this.setCustomerCoins(customerId, walletBalance);
+    }
   }
 };

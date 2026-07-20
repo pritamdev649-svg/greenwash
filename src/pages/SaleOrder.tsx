@@ -92,6 +92,16 @@ const SaleOrder: React.FC = () => {
     setDueDate(val);
   };
 
+  const handleOrderDateChange = (val: string) => {
+    setOrderDate(val);
+    if (val) {
+      const baseDate = new Date(val);
+      const calculatedDue = new Date(baseDate.getTime() + 86400000 * 3).toISOString().split('T')[0];
+      const validDue = getValidDueDate(calculatedDue, vendorId || '');
+      setDueDate(validDue);
+    }
+  };
+
   // Form State
   const [selectedCustomerId, setSelectedCustomerId] = useState('');
   const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
@@ -122,7 +132,7 @@ const SaleOrder: React.FC = () => {
     setIsCustomerDropdownOpen(false);
   };
   const [orderDate, setOrderDate] = useState(new Date().toISOString().split('T')[0]);
-  const [dueDate, setDueDate] = useState(new Date(Date.now() + 86400000 * 2).toISOString().split('T')[0]);
+  const [dueDate, setDueDate] = useState(new Date(Date.now() + 86400000 * 3).toISOString().split('T')[0]);
   const [orderNo] = useState(() => Math.floor(100 + Math.random() * 900).toString());
   const [stateOfSupply, setStateOfSupply] = useState('Delhi');
 
@@ -455,7 +465,7 @@ const SaleOrder: React.FC = () => {
                     type="date" 
                     className="bg-transparent border-none text-right focus:outline-none cursor-pointer" 
                     value={orderDate}
-                    onChange={(e) => setOrderDate(e.target.value)}
+                    onChange={(e) => handleOrderDateChange(e.target.value)}
                   />
                   <Calendar size={14} className="inline ml-2 text-slate-300" />
                 </div>

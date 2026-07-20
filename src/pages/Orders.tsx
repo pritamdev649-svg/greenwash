@@ -59,6 +59,56 @@ export default function Orders() {
   const [customerOrders, setCustomerOrders] = useState<any[]>([]);
   const [ordersLoading, setOrdersLoading] = useState(false);
 
+  // Coins & Wallet Adjustment State
+  const [isCoinsWalletModalOpen, setIsCoinsWalletModalOpen] = useState(false);
+  const [coinsWalletMode, setCoinsWalletMode] = useState<'coins' | 'wallet'>('coins');
+  const [coinsWalletAction, setCoinsWalletAction] = useState<'add' | 'deduct'>('add');
+  const [coinsWalletAmount, setCoinsWalletAmount] = useState<number>(0);
+  const [updatingCoinsWallet, setUpdatingCoinsWallet] = useState(false);
+
+  const handleUpdateCoinsWallet = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedCustomer || coinsWalletAmount <= 0) return;
+    setUpdatingCoinsWallet(true);
+    try {
+      const change = coinsWalletAction === 'add' ? coinsWalletAmount : -coinsWalletAmount;
+      if (coinsWalletMode === 'coins') {
+        const updated = await customerService.updateCustomerCoins(selectedCustomer.id, change);
+        setSelectedCustomer((prev: any) => prev ? { ...prev, coins: updated?.coins ?? Math.max(0, (prev.coins || 0) + change) } : null);
+      } else {
+        const updated = await customerService.updateCustomerWallet(selectedCustomer.id, change);
+        setSelectedCustomer((prev: any) => prev ? { ...prev, wallet_balance: updated?.wallet_balance ?? Math.max(0, (prev.wallet_balance || 0) + change) } : null);
+      }
+      setIsCoinsWalletModalOpen(false);
+      setCoinsWalletAmount(0);
+    } catch (err) {
+      console.error(err);
+      alert("Error updating customer record");
+    } finally {
+      setUpdatingCoinsWallet(false);
+    }
+  };
+
+  const handleQuickCoinsChange = async (change: number) => {
+    if (!selectedCustomer) return;
+    try {
+      const updated = await customerService.updateCustomerCoins(selectedCustomer.id, change);
+      setSelectedCustomer((prev: any) => prev ? { ...prev, coins: updated?.coins ?? Math.max(0, (prev.coins || 0) + change) } : null);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleQuickWalletChange = async (change: number) => {
+    if (!selectedCustomer) return;
+    try {
+      const updated = await customerService.updateCustomerWallet(selectedCustomer.id, change);
+      setSelectedCustomer((prev: any) => prev ? { ...prev, wallet_balance: updated?.wallet_balance ?? Math.max(0, (prev.wallet_balance || 0) + change) } : null);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   const handleViewCustomerHistory = async (customer: any) => {
     setSelectedCustomer(customer);
     setIsHistoryModalOpen(true);
@@ -748,7 +798,7 @@ export default function Orders() {
               ) : (
                 <div className="space-y-6 text-left">
                   {/* Header Stats Cards */}
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
                     <div className="bg-slate-50 border border-slate-100 p-4 rounded-2xl">
                       <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-1">Total Orders</span>
                       <span className="text-2xl font-black text-slate-800">{customerOrders.length}</span>
@@ -761,12 +811,57 @@ export default function Orders() {
                       <span className="text-[10px] font-black text-rose-600 uppercase tracking-wider block mb-1">Total Pending</span>
                       <span className="text-2xl font-black text-rose-600">₹{customerOrders.reduce((s, o) => s + Number(o.balance_amount || 0), 0).toLocaleString()}</span>
                     </div>
-                    <div className="bg-amber-50 border border-amber-100 p-4 rounded-2xl flex items-center justify-between">
+                    <div className="bg-indigo-50 border border-indigo-100 p-4 rounded-2xl flex flex-col justify-between">
+                      <div>
+                        <span className="text-[10px] font-black text-indigo-600 uppercase tracking-wider block mb-1">Wallet Balance</span>
+                        <span className="text-2xl font-black text-indigo-600">₹{(selectedCustomer.wallet_balance || 0).toLocaleString()}</span>
+                      </div>
+                      <div className="flex items-center gap-1 mt-2">
+                        <button
+                          onClick={() => handleQuickWalletChange(100)}
+                          className="text-[9px] font-black bg-indigo-200 text-indigo-800 hover:bg-indigo-300 px-2 py-0.5 rounded-md transition-colors"
+                          title="Add ₹100 to wallet"
+                        >
+                          +₹100
+                        </button>
+                        <button
+                          onClick={() => {
+                            setCoinsWalletMode('wallet');
+                            setCoinsWalletAction('add');
+                            setCoinsWalletAmount(0);
+                            setIsCoinsWalletModalOpen(true);
+                          }}
+                          className="text-[9px] font-black bg-indigo-600 text-white hover:bg-indigo-700 px-2 py-0.5 rounded-md transition-colors ml-auto"
+                        >
+                          Manage
+                        </button>
+                      </div>
+                    </div>
+                    <div className="bg-amber-50 border border-amber-100 p-4 rounded-2xl flex flex-col justify-between">
                       <div>
                         <span className="text-[10px] font-black text-amber-600 uppercase tracking-wider block mb-1">Available Coins</span>
-                        <span className="text-2xl font-black text-amber-600">{selectedCustomer.coins || 0}</span>
+                        <span className="text-2xl font-black text-amber-600">{selectedCustomer.coins || 0} 💰</span>
                       </div>
-                      <span className="text-2xl">💰</span>
+                      <div className="flex items-center gap-1 mt-2">
+                        <button
+                          onClick={() => handleQuickCoinsChange(50)}
+                          className="text-[9px] font-black bg-amber-200 text-amber-800 hover:bg-amber-300 px-2 py-0.5 rounded-md transition-colors"
+                          title="Add 50 coins"
+                        >
+                          +50
+                        </button>
+                        <button
+                          onClick={() => {
+                            setCoinsWalletMode('coins');
+                            setCoinsWalletAction('add');
+                            setCoinsWalletAmount(0);
+                            setIsCoinsWalletModalOpen(true);
+                          }}
+                          className="text-[9px] font-black bg-amber-600 text-white hover:bg-amber-700 px-2 py-0.5 rounded-md transition-colors ml-auto"
+                        >
+                          Manage
+                        </button>
+                      </div>
                     </div>
                   </div>
 
@@ -849,6 +944,90 @@ export default function Orders() {
               </div>
               <button onClick={() => setIsHistoryModalOpen(false)} className="h-11 px-6 rounded-xl font-bold text-sm bg-emerald-600 text-white hover:bg-emerald-700 active:scale-95 transition-all shadow-md shadow-emerald-600/10">Close Record</button>
             </div>
+          </div>
+        </div>
+      )}
+      {/* Coins & Wallet Adjustment Modal */}
+      {isCoinsWalletModalOpen && selectedCustomer && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setIsCoinsWalletModalOpen(false)} />
+          <div className="relative w-full max-w-sm bg-white rounded-3xl shadow-2xl p-6 overflow-hidden animate-slide-up flex flex-col text-left">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-base font-black text-slate-900 uppercase tracking-tight flex items-center gap-2">
+                {coinsWalletMode === 'coins' ? '🪙 Manage Reward Coins' : '👛 Manage Wallet Balance'}
+              </h3>
+              <button onClick={() => setIsCoinsWalletModalOpen(false)} className="p-1.5 bg-slate-50 hover:bg-slate-100 rounded-full text-slate-400"><X size={18} /></button>
+            </div>
+            <form onSubmit={handleUpdateCoinsWallet} className="space-y-4">
+              <div className="flex bg-slate-100 p-1 rounded-xl">
+                <button
+                  type="button"
+                  onClick={() => setCoinsWalletAction('add')}
+                  className={cn(
+                    "flex-1 py-2 rounded-lg text-xs font-black uppercase tracking-wider transition-all",
+                    coinsWalletAction === 'add' ? "bg-emerald-600 text-white shadow-sm" : "text-slate-500 hover:text-slate-900"
+                  )}
+                >
+                  + Add {coinsWalletMode === 'coins' ? 'Coins' : 'Funds (₹)'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCoinsWalletAction('deduct')}
+                  className={cn(
+                    "flex-1 py-2 rounded-lg text-xs font-black uppercase tracking-wider transition-all",
+                    coinsWalletAction === 'deduct' ? "bg-rose-600 text-white shadow-sm" : "text-slate-500 hover:text-slate-900"
+                  )}
+                >
+                  - Deduct {coinsWalletMode === 'coins' ? 'Coins' : 'Funds (₹)'}
+                </button>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block ml-1">
+                  {`Amount (${coinsWalletMode === 'coins' ? 'Coins' : 'Rupees ₹'})`}
+                </label>
+                <input
+                  required
+                  type="number"
+                  min="1"
+                  className="w-full h-12 px-4 bg-slate-50 border border-slate-200 rounded-xl text-base font-bold outline-none focus:bg-white focus:ring-2 focus:ring-primary-500"
+                  placeholder={coinsWalletMode === 'coins' ? "E.g. 50" : "E.g. 200"}
+                  value={coinsWalletAmount || ''}
+                  onChange={(e) => setCoinsWalletAmount(Math.max(0, parseInt(e.target.value) || 0))}
+                />
+              </div>
+
+              {/* Quick Amount Selection */}
+              <div className="flex gap-2">
+                {(coinsWalletMode === 'coins' ? [10, 50, 100, 500] : [50, 100, 200, 500]).map(val => (
+                  <button
+                    key={val}
+                    type="button"
+                    onClick={() => setCoinsWalletAmount(val)}
+                    className="flex-1 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-black rounded-lg transition-colors"
+                  >
+                    {coinsWalletMode === 'coins' ? `+${val}` : `₹${val}`}
+                  </button>
+                ))}
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setIsCoinsWalletModalOpen(false)}
+                  className="flex-1 h-11 bg-slate-100 text-slate-600 rounded-xl font-bold text-xs"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={updatingCoinsWallet}
+                  className="flex-1 h-11 bg-primary-600 hover:bg-primary-700 text-white rounded-xl font-black text-xs uppercase tracking-wider shadow-md shadow-primary-600/20 active:scale-95 transition-all disabled:opacity-50"
+                >
+                  {updatingCoinsWallet ? 'Saving...' : 'Confirm'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

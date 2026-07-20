@@ -380,20 +380,28 @@ export const orderService = {
       .neq('order_status', 'Cancelled');
     if (vendorId) ordersQuery = ordersQuery.eq('vendor_id', vendorId);
 
-    let branchQuery = supabase.from('branches').select(`
-      id,
-      name,
-      orders:orders(total_amount, created_at, order_status)
-    `);
+    let recentOrdersQuery = supabase
+      .from('orders')
+      .select(`
+        id,
+        order_number,
+        created_at,
+        total_amount,
+        customers (name)
+      `)
+      .neq('order_status', 'Cancelled')
+      .order('created_at', { ascending: false })
+      .limit(5);
+    if (vendorId) recentOrdersQuery = recentOrdersQuery.eq('vendor_id', vendorId);
 
     const [
       { count: customerCount },
       { data: orders },
-      { data: branchStats }
+      { data: recentOrdersData }
     ] = await Promise.all([
       customersQuery,
       ordersQuery,
-      branchQuery,
+      recentOrdersQuery,
     ]);
 
     // Calculate sales trend for a longer period (365 days) to support various timeframes
@@ -434,31 +442,11 @@ export const orderService = {
         .reduce((sum, o) => sum + Number(o.total_amount), 0) || 0,
       todayOrders: orders?.filter(o => new Date(o.created_at) >= today).length || 0,
       salesTrend,
-      branchPerformance: (branchStats || []).map(b => {
-        const branchOrders = ((b as any).orders || []).filter((o: any) => o.order_status !== 'Cancelled');
-        const todayBranchOrders = branchOrders.filter((o: any) => new Date(o.created_at) >= today);
-        return {
-          name: b.name,
-          todayOrders: todayBranchOrders.length,
-          todaySales: todayBranchOrders.reduce((sum: number, o: any) => sum + Number(o.total_amount), 0),
-          totalSales: branchOrders.reduce((sum: number, o: any) => sum + Number(o.total_amount), 0)
-        };
-      }),
-      recentOrders: ((await supabase
-        .from('orders')
-        .select(`
-          id,
-          order_number,
-          created_at,
-          total_amount,
-          customers (name)
-        `)
-        .neq('order_status', 'Cancelled')
-        .order('created_at', { ascending: false })
-        .limit(5)).data || []).map((o: any) => ({
-          ...o,
-          customer: Array.isArray(o.customers) ? o.customers[0] : o.customers
-        }))
+      branchPerformance: [],
+      recentOrders: (recentOrdersData || []).map((o: any) => ({
+        ...o,
+        customer: Array.isArray(o.customers) ? o.customers[0] : o.customers
+      }))
     };
 
     return stats;
