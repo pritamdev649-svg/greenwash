@@ -161,15 +161,6 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
                 className="w-full h-auto max-h-24 object-contain"
               />
             </div>
-            {badge && (
-              <div className={cn(
-                "mt-2 mx-2 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest text-center border",
-                badge.cls
-              )}>
-                {badge.label}
-                {userProfile?.name && <span className="ml-1 font-medium normal-case">· {userProfile.name}</span>}
-              </div>
-            )}
           </div>
 
           {/* New Entry Button */}
@@ -229,13 +220,34 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
       {/* Main content */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 shrink-0 z-10">
-          <button
-            className="lg:hidden p-2 text-slate-500 hover:bg-slate-100 rounded-lg"
-            onClick={() => setIsSidebarOpen(true)}
-          >
-            <Menu size={24} />
-          </button>
-          <div className="flex items-center gap-4" />
+          <div className="flex items-center gap-4">
+            <button
+              className="lg:hidden p-2 text-slate-500 hover:bg-slate-100 rounded-lg"
+              onClick={() => setIsSidebarOpen(true)}
+            >
+              <Menu size={24} />
+            </button>
+            <div className="flex items-center gap-2">
+              <h1 className="text-sm md:text-base font-extrabold text-slate-800 tracking-tight">
+                Operational Overview
+              </h1>
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse hidden sm:inline-block" />
+              <span className="text-[9px] font-black uppercase tracking-widest text-emerald-600 bg-emerald-50/50 px-2 py-0.5 rounded border border-emerald-100 hidden sm:inline-block">
+                Live Ledger
+              </span>
+            </div>
+          </div>
+          <div className="flex items-center gap-4">
+            {badge && (
+              <div className={cn(
+                "px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border shadow-sm",
+                badge.cls
+              )}>
+                {badge.label}
+                {userProfile?.name && <span className="ml-1 font-medium normal-case">· {userProfile.name}</span>}
+              </div>
+            )}
+          </div>
         </header>
 
         {isImpersonating && (

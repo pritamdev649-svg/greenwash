@@ -15,6 +15,7 @@ import { twMerge } from 'tailwind-merge';
 import { orderService } from '@backend/services/orderService';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
+import cleanClothes3d from '../assets/clean_clothes_3d.png';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -263,7 +264,7 @@ const SalesTrendChart: React.FC<{ data: Stats['salesTrend'], timeframe: Timefram
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const { t, language } = useLanguage();
-  const { vendorId } = useAuth();
+  const { vendorId, userProfile } = useAuth();
   const [stats, setStats] = useState<Stats>({
     totalCustomers: 0,
     totalOrders: 0,
@@ -293,6 +294,13 @@ const Dashboard: React.FC = () => {
 
     fetchStats();
   }, [vendorId]);
+
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good morning';
+    if (hour < 17) return 'Good afternoon';
+    return 'Good evening';
+  };
 
   const statCards = [
     { 
@@ -343,15 +351,30 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
-      {/* Welcome Section */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-3xl font-black font-sans text-slate-900 tracking-tight">Operational Overview</h2>
-          <p className="text-slate-500 mt-1 font-medium italic">Empower your laundry ecosystem with real-time intelligence.</p>
+      <div className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-950 rounded-3xl p-5 md:p-6 text-white shadow-xl flex flex-row items-center justify-between gap-6 min-h-[160px] md:min-h-[180px]">
+        {/* Glow effect */}
+        <div className="absolute top-0 right-0 -mt-4 -mr-4 w-96 h-96 bg-primary-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-10 -left-10 w-72 h-72 bg-indigo-500/10 rounded-full blur-2xl pointer-events-none" />
+        
+        <div className="relative z-10 max-w-xl space-y-2 text-left">
+          <div>
+            <span className="text-[9px] font-bold tracking-widest text-slate-400 uppercase block mb-0.5">Welcome back</span>
+            <h2 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight">
+              {getGreeting()}, <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-indigo-400">{userProfile?.name || 'Partner'}</span> 👋
+            </h2>
+            <p className="text-slate-300 text-xs mt-2 font-medium leading-relaxed max-w-lg">
+              Welcome back to Green Wash Co. Monitor laundry operations, track customer orders, analyze sales performance, and manage your business from your centralized dashboard.
+            </p>
+          </div>
         </div>
-        <div className="flex items-center gap-3 text-xs font-black uppercase tracking-widest text-emerald-600 bg-emerald-50 px-5 py-2.5 rounded-full border border-emerald-100 shadow-sm">
-          <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse ring-4 ring-emerald-500/20" />
-          Live Ledger Tracking
+
+        {/* 3D clean clothes image with mix-blend-screen to remove background */}
+        <div className="relative w-full max-w-[140px] md:max-w-[180px] flex items-center justify-center hidden sm:flex">
+          <img 
+            src={cleanClothes3d} 
+            alt="Clean Clothes 3D" 
+            className="w-full h-auto object-contain select-none pointer-events-none drop-shadow-2xl mix-blend-screen scale-110"
+          />
         </div>
       </div>
 
@@ -360,121 +383,120 @@ const Dashboard: React.FC = () => {
         {statCards.map((stat, i) => (
           <div 
             key={i} 
-            className="card p-7 flex flex-col justify-between group hover:-translate-y-1 hover:shadow-2xl hover:shadow-slate-200 transition-all duration-500 relative overflow-hidden bg-white border-slate-100"
+            onClick={() => navigate(stat.path)}
+            className="card p-4 md:p-5 flex flex-col justify-between group hover:-translate-y-1 hover:shadow-xl hover:shadow-slate-200 transition-all duration-500 relative overflow-hidden bg-white border-slate-100 cursor-pointer"
           >
-            <div className="flex justify-between items-start mb-6">
-              <div className={cn("p-4 rounded-[1.25rem] transition-all duration-500 group-hover:scale-110 group-hover:rotate-6", stat.color)}>
-                <stat.icon size={24} strokeWidth={2.5} />
+            <div className="flex justify-between items-start mb-3">
+              <div className={cn("p-2.5 rounded-xl transition-all duration-500 group-hover:scale-110 group-hover:rotate-6", stat.color)}>
+                <stat.icon size={18} strokeWidth={2.5} />
               </div>
               <div className={cn(
-                "flex items-center gap-1 text-[10px] font-black px-3 py-1.5 rounded-full shadow-sm uppercase tracking-wider",
+                "flex items-center gap-1 text-[9px] font-black px-2 py-1 rounded-full shadow-sm uppercase tracking-wider",
                 stat.positive ? "text-emerald-700 bg-emerald-50 border border-emerald-100" : "text-rose-700 bg-rose-50 border border-rose-100"
               )}>
-                {stat.positive ? <ArrowUpRight size={14} /> : <ArrowDownRight size={14} />}
+                {stat.positive ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
                 {stat.trend}
               </div>
             </div>
             
-            <div className="relative z-10">
-              <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1.5">{stat.label}</p>
-              <p className="text-3xl font-black text-slate-900 tracking-tighter">{stat.value}</p>
+            <div className="relative z-10 mt-1">
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">{stat.label}</p>
+              <div className="flex items-baseline justify-between">
+                <p className="text-2xl font-black text-slate-900 tracking-tighter">{stat.value}</p>
+                <ChevronRight size={14} className="text-slate-300 group-hover:text-primary-500 group-hover:translate-x-0.5 transition-all" />
+              </div>
             </div>
-            
-            <button 
-              onClick={() => navigate(stat.path)}
-              className="mt-6 pt-6 border-t border-slate-50 flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-primary-600 cursor-pointer group-hover:text-primary-700 transition-colors"
-            >
-              <span>Explore detail</span>
-              <ChevronRight size={14} strokeWidth={3} className="group-hover:translate-x-1 transition-transform" />
-            </button>
 
-            <div className="absolute top-0 right-0 -mr-10 -mt-10 w-32 h-32 bg-slate-50/30 rounded-full group-hover:bg-primary-50/40 transition-all duration-700 blur-2xl" />
+            <div className="absolute top-0 right-0 -mr-10 -mt-10 w-32 h-32 bg-slate-50/30 rounded-full group-hover:bg-primary-50/40 transition-all duration-700 blur-2xl pointer-events-none" />
           </div>
         ))}
       </div>
 
-      {/* Total Sale Trend Chart */}
-      <div className="card p-8 group relative flex flex-col w-full">
-        <div className="flex items-center justify-between mb-2">
-          <div>
-            <h3 className="font-extrabold text-slate-500 text-xs tracking-widest uppercase">{language === 'hi' ? 'बिक्री विश्लेषण' : 'Total Sale'}</h3>
-          </div>
-          <div className="relative group/select">
-            <select 
-              className="appearance-none bg-slate-50 border border-slate-100 text-[9px] font-black uppercase tracking-[0.2em] text-slate-500 rounded-full px-6 pr-10 h-9 transition-all hover:bg-white hover:shadow-md cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary-100"
-              value={timeframe}
-              onChange={(e) => setTimeframe(e.target.value as any)}
-            >
-              <option value="last-month">{t('last_month')}</option>
-              <option value="this-week">{t('this_week')}</option>
-              <option value="this-month">{t('this_month')}</option>
-              <option value="this-quarter">{t('this_quarter')}</option>
-              <option value="half-year">{t('half_year')}</option>
-              <option value="this-year">{t('this_year')}</option>
-              <option value="7d">{language === 'hi' ? 'पिछले 7 दिन' : 'Last 7 Days'}</option>
-            </select>
-            <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none group-hover/select:text-primary-500 transition-colors" />
-          </div>
-        </div>
-        <div className="flex-1 w-full flex items-center justify-center min-h-[250px] p-2">
-           <SalesTrendChart data={stats.salesTrend} timeframe={timeframe} />
-        </div>
-      </div>
-
-      {/* Recent Ledger Activity */}
-      <div className="card p-0 overflow-hidden group">
-         <div className="p-8 border-b border-slate-50 flex items-center justify-between">
-            <div>
-              <h3 className="font-black text-slate-900 text-xl tracking-tight uppercase">Recent Ledger Entries</h3>
-              <p className="text-xs text-slate-400 font-bold tracking-widest uppercase mt-1">Live Feed of Transaction Data</p>
+      <div className="grid lg:grid-cols-3 gap-8">
+         {/* Total Sale Chart */}
+         <div className="lg:col-span-2 card p-5 md:p-6 group relative flex flex-col">
+            <div className="flex items-center justify-between mb-2">
+              <div>
+                <h3 className="font-extrabold text-slate-500 text-xs tracking-widest uppercase">{language === 'hi' ? 'बिक्री विश्लेषण' : 'Total Sale'}</h3>
+              </div>
+              <div className="relative group/select">
+                <select 
+                  className="appearance-none bg-slate-50 border border-slate-100 text-[9px] font-black uppercase tracking-[0.2em] text-slate-500 rounded-full px-6 pr-10 h-9 transition-all hover:bg-white hover:shadow-md cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary-100"
+                  value={timeframe}
+                  onChange={(e) => setTimeframe(e.target.value as any)}
+                >
+                  <option value="last-month">{t('last_month')}</option>
+                  <option value="this-week">{t('this_week')}</option>
+                  <option value="this-month">{t('this_month')}</option>
+                  <option value="this-quarter">{t('this_quarter')}</option>
+                  <option value="half-year">{t('half_year')}</option>
+                  <option value="this-year">{t('this_year')}</option>
+                  <option value="7d">{language === 'hi' ? 'पिछले 7 दिन' : 'Last 7 Days'}</option>
+                </select>
+                <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none group-hover/select:text-primary-500 transition-colors" />
+              </div>
             </div>
-            <button onClick={() => navigate('/orders')} className="bg-slate-50 hover:bg-primary-500 hover:text-white text-slate-400 p-3 rounded-2xl transition-all duration-500 shadow-sm border border-slate-100">
-               <ChevronRight size={20} strokeWidth={2.5} />
-            </button>
+            <div className="flex-1 w-full flex items-center justify-center min-h-[250px] p-2">
+               <SalesTrendChart data={stats.salesTrend} timeframe={timeframe} />
+            </div>
          </div>
-         <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-               <thead>
-                  <tr className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] bg-slate-50/50">
-                     <th className="py-4 px-8 border-b border-slate-50">Transaction Entry</th>
-                     <th className="py-4 px-4 border-b border-slate-50">Temporal Data</th>
-                     <th className="py-4 px-8 border-b border-slate-50 text-right">Value</th>
-                  </tr>
-               </thead>
-               <tbody className="divide-y divide-slate-50">
-                  {stats.recentOrders.length === 0 ? (
-                    <tr><td colSpan={3} className="py-20 text-center text-slate-300 uppercase tracking-widest text-[10px] font-black">Waiting for transactions...</td></tr>
-                  ) : stats.recentOrders.map((order) => (
-                    <tr key={order.id} className="group/row hover:bg-slate-50/50 transition-colors">
-                      <td className="py-5 px-8">
-                         <div className="flex items-center gap-4">
-                            <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-black text-[10px] group-hover/row:scale-110 transition-transform">
-                               TX
-                            </div>
-                            <div className="flex flex-col">
-                               <span className="text-sm font-black text-slate-900 tracking-tight">#{order.id.slice(0, 8).toUpperCase()}</span>
-                               <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">{order.customer?.name || 'Anonymous Client'}</span>
-                            </div>
-                         </div>
-                      </td>
-                      <td className="py-5 px-4">
-                         <div className="flex items-center gap-2 group-hover/row:translate-x-1 transition-transform duration-500">
-                            <div className="p-1.5 rounded-lg bg-indigo-50 text-indigo-400">
-                               <Clock size={14} />
-                            </div>
-                            <div className="flex flex-col text-[10px] font-black uppercase tracking-widest">
-                               <span className="text-slate-900">{new Date(order.created_at).toLocaleDateString('en-GB')}</span>
-                               <span className="text-slate-400">{new Date(order.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                            </div>
-                         </div>
-                      </td>
-                      <td className="py-5 px-8 text-right font-black text-slate-900 text-lg tracking-tighter">
-                         ₹{Number(order.total_amount).toLocaleString()}
-                      </td>
-                    </tr>
-                  ))}
-               </tbody>
-            </table>
+
+         {/* Compact Recent Ledger Activity */}
+         <div className="card h-full flex flex-col overflow-hidden">
+            <div className="p-5 md:p-6 border-b border-slate-50 flex items-center justify-between">
+              <div>
+                <h3 className="font-black text-slate-900 text-lg tracking-tight uppercase">Recent Activity</h3>
+                <p className="text-[9px] text-slate-400 font-bold tracking-widest uppercase mt-0.5">Live Feed of Transactions</p>
+              </div>
+              <button 
+                onClick={() => navigate('/orders')} 
+                className="bg-slate-50 hover:bg-primary-500 hover:text-white text-slate-400 p-2 rounded-xl transition-all duration-500 shadow-sm border border-slate-100 cursor-pointer"
+              >
+                 <ChevronRight size={14} strokeWidth={3} />
+              </button>
+            </div>
+            
+            <div className="flex-1 p-4 space-y-2 overflow-y-auto max-h-[300px] scrollbar-hide">
+               {stats.recentOrders.length === 0 ? (
+                 <div className="p-12 text-center text-slate-400 flex flex-col items-center gap-4">
+                    <div className="w-12 h-12 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center">
+                      <Receipt size={24} />
+                    </div>
+                    <p className="text-[10px] font-black uppercase tracking-widest">Waiting for transactions...</p>
+                 </div>
+               ) : stats.recentOrders.slice(0, 5).map((order) => (
+                 <div key={order.id} 
+                   onClick={() => navigate('/orders')}
+                   className="flex items-center justify-between p-3 rounded-xl bg-white border border-slate-50 hover:border-primary-100 hover:shadow-xl hover:shadow-primary-600/5 transition-all duration-500 cursor-pointer group/order"
+                 >
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center font-black text-[10px] group-hover/order:bg-emerald-500 group-hover/order:text-white transition-all duration-500">
+                        TX
+                      </div>
+                      <div>
+                        <p className="text-xs font-black text-slate-900 group-hover/order:text-primary-600 transition-colors uppercase tracking-tight">
+                          #{order.id.slice(0, 8).toUpperCase()}
+                        </p>
+                        <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">
+                          {order.customer?.name || 'Anonymous'}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xs font-black text-slate-900 tracking-tighter">₹{Number(order.total_amount).toLocaleString()}</p>
+                      <p className="text-[8px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">
+                        {new Date(order.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </p>
+                    </div>
+                 </div>
+               ))}
+            </div>
+            
+            <div className="p-4 bg-slate-50/50 border-t border-slate-100 text-center">
+               <button onClick={() => navigate('/orders')} className="text-primary-600 font-black text-[10px] uppercase tracking-[0.2em] hover:text-primary-700 transition-colors cursor-pointer">
+                  View All Transactions
+               </button>
+            </div>
          </div>
       </div>
     </div>
