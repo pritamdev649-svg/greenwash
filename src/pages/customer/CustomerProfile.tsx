@@ -37,8 +37,8 @@ const CustomerProfile: React.FC = () => {
         setMobile(data.mobile || '');
         setEmail(data.email || '');
         setAddress(data.address || '');
-        setWalletBalance(data.wallet_balance || 0);
-        setCoins(data.coins || 0);
+        setWalletBalance(Number(data.wallet_balance ?? data.coins ?? 0));
+        setCoins(Number(data.coins || 0));
       }
     } catch (e: any) {
       setError(e.message || 'Failed to load profile details.');

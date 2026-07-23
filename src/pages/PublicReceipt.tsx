@@ -70,6 +70,9 @@ const PublicReceipt: React.FC = () => {
     customerName: order.customers?.name || 'Customer',
     customerAddress: order.customers?.address || '',
     customerPhone: order.customers?.mobile || '',
+    vendorName: order.vendors?.name || order.branches?.name,
+    vendorPhone: order.vendors?.phone || order.branches?.phone,
+    vendorAddress: order.vendors?.address || order.branches?.address,
     items: order.order_items?.map((item: any) => ({
       id: item.id,
       name: item.custom_item_name || item.cloth_types?.name || 'Custom Item',

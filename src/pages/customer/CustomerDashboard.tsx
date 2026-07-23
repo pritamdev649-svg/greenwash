@@ -38,7 +38,12 @@ const CustomerDashboard: React.FC = () => {
       .select('wallet_balance, coins')
       .eq('id', userProfile!.customer_id)
       .maybeSingle();
-    if (data) setCustomerData(data);
+    if (data) {
+      setCustomerData({
+        wallet_balance: Number(data.wallet_balance ?? data.coins ?? 0),
+        coins: Number(data.coins ?? 0)
+      });
+    }
   };
 
   const fetchOrders = async () => {

@@ -54,6 +54,7 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
   const [clothTypes, setClothTypes] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [vendorPayment, setVendorPayment] = useState<any>(null);
+  const [vendorData, setVendorData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [isPreviewMode, setIsPreviewMode] = useState(false);
   const [currentEditOrderId, setCurrentEditOrderId] = useState(editOrderId);
@@ -126,14 +127,12 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
     setAddingWalletTopup(true);
     try {
       const updated = await customerService.updateCustomerWallet(selectedCustomerId, walletTopupAmount);
-      const newBal = updated?.wallet_balance ?? updated?.coins ?? (Number(selectedCustomer?.wallet_balance || 0) + walletTopupAmount);
+      const newBal = Number(updated?.wallet_balance ?? updated?.coins ?? 0);
       setSelectedCustomer((prev: any) => prev ? { ...prev, wallet_balance: newBal } : null);
       setCustomers(prev => prev.map(c => c.id === selectedCustomerId ? { ...c, wallet_balance: newBal } : c));
-    } catch (err) {
-      console.warn("Wallet update error, applying local fallback:", err);
-      const newBal = Number(selectedCustomer?.wallet_balance || 0) + walletTopupAmount;
-      setSelectedCustomer((prev: any) => prev ? { ...prev, wallet_balance: newBal } : null);
-      setCustomers(prev => prev.map(c => c.id === selectedCustomerId ? { ...c, wallet_balance: newBal } : c));
+    } catch (err: any) {
+      console.error("Wallet topup error:", err);
+      alert("Wallet top-up failed: " + (err.message || "Could not update balance in database. Check Supabase connection/columns."));
     } finally {
       setIsWalletTopupOpen(false);
       setWalletTopupAmount(0);
@@ -211,14 +210,28 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
           setCategories([]);
         }
 
-        // Fetch vendor payment info for QR on receipt
+        // Fetch vendor info & payment info for receipt header and QR
         try {
           if (vendorId) {
-            const payment = await vendorService.getVendorPayment(vendorId);
+            const [payment, vData] = await Promise.all([
+              vendorService.getVendorPayment(vendorId).catch(() => null),
+              vendorService.getVendorById(vendorId).catch(() => null)
+            ]);
             setVendorPayment(payment);
+            setVendorData(vData);
           }
         } catch (payErr) {
-          console.error("Error loading vendor payment:", payErr);
+          console.error("Error loading vendor info:", payErr);
+        }
+
+        // Fetch next order number if creating a new order
+        try {
+          if (!editOrderId) {
+            const nextNum = await orderService.getNextOrderNumber(vendorId);
+            setOrderNo(nextNum.toString());
+          }
+        } catch (noErr) {
+          console.error("Error loading next order number:", noErr);
         }
 
       } catch (err) {
@@ -228,7 +241,7 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
       }
     };
     fetchData();
-  }, [vendorId]);
+  }, [vendorId, editOrderId]);
 
   // Weekly Off Day Helper
   const getValidDueDate = (baseDateStr: string, vId: string): string => {
@@ -1329,6 +1342,9 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
                 customerName: selectedCustomer?.name || 'Customer',
                 customerAddress: selectedCustomer?.address || '',
                 customerPhone: selectedCustomer?.mobile || '',
+                vendorName: vendorData?.name,
+                vendorPhone: vendorData?.phone,
+                vendorAddress: vendorData?.address,
                 items: rows.filter(r => r.item_name.trim() !== '').map((r, idx) => ({
                   id: idx.toString(),
                   name: r.item_name,

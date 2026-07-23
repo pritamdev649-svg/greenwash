@@ -12,6 +12,9 @@ export interface PrintReceiptProps {
     customerName: string;
     customerAddress: string;
     customerPhone: string;
+    vendorName?: string;
+    vendorPhone?: string;
+    vendorAddress?: string;
     items: Array<{
       id: string;
       name: string;
@@ -107,9 +110,9 @@ export const PrintReceipt: React.FC<PrintReceiptProps> = ({ orderData, isCapture
       {/* Header */}
       <div className="flex justify-between items-start border-b-2 border-slate-400 pb-2 mb-4">
         <div>
-          <h1 className="text-xl font-bold tracking-tight" style={{ color: '#2FA84B' }}>Green Wash Co.</h1>
-          <p className="text-[11px] text-gray-700 mt-1">Hari Nagar Colony , Ayodhya Road Chinhat Lucknow</p>
-          <p className="text-[11px] text-gray-700">Phone no. : 9451034909</p>
+          <h1 className="text-xl font-bold tracking-tight" style={{ color: '#2FA84B' }}>{orderData.vendorName || 'Green Wash Co.'}</h1>
+          <p className="text-[11px] text-gray-700 mt-1">{orderData.vendorAddress || 'Hari Nagar Colony , Ayodhya Road Chinhat Lucknow'}</p>
+          <p className="text-[11px] text-gray-700">Phone no. : {orderData.vendorPhone || '9451034909'}</p>
           <p className="text-[11px] text-gray-700">Email : info.greenwashco@gmail.com</p>
         </div>
         <div>

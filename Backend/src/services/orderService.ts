@@ -31,13 +31,65 @@ export const orderService = {
   },
 
   async getAllCategories(vendorId?: string | null) {
-    let query = supabase.from('categories').select('*').order('name');
-    if (vendorId) {
-      query = query.or(`vendor_id.eq.${vendorId},vendor_id.is.null`);
+    try {
+      let query = supabase.from('categories').select('*').order('name');
+      if (vendorId) {
+        query = query.or(`vendor_id.eq.${vendorId},vendor_id.is.null`);
+      }
+      const { data } = await query;
+      let categories = data || [];
+
+      // If scoped query returned nothing, try fetching all categories globally
+      if (categories.length === 0 && vendorId) {
+        const { data: allData } = await supabase.from('categories').select('*').order('name');
+        if (allData && allData.length > 0) {
+          categories = allData;
+        }
+      }
+
+      // If still empty, return standard default categories so new vendors always see options
+      if (categories.length === 0) {
+        const defaultNames = ['Wash & Fold', 'Wash & Iron', 'Ironing Only', 'Dry Clean', 'Premium Laundry', 'Steam Iron'];
+        categories = defaultNames.map((name, index) => ({
+          id: `def-cat-${index + 1}`,
+          name,
+          vendor_id: vendorId ?? null
+        }));
+      }
+
+      return categories;
+    } catch (err) {
+      console.warn("orderService.getAllCategories error:", err);
+      const defaultNames = ['Wash & Fold', 'Wash & Iron', 'Ironing Only', 'Dry Clean', 'Premium Laundry', 'Steam Iron'];
+      return defaultNames.map((name, index) => ({
+        id: `def-cat-${index + 1}`,
+        name,
+        vendor_id: vendorId ?? null
+      }));
     }
-    const { data, error } = await query;
-    if (error) throw error;
-    return data || [];
+  },
+
+  async getNextOrderNumber(vendorId?: string | null): Promise<number> {
+    try {
+      let query = supabase
+        .from('orders')
+        .select('order_number')
+        .order('order_number', { ascending: false })
+        .limit(1);
+
+      if (vendorId) {
+        query = query.eq('vendor_id', vendorId);
+      }
+
+      const { data } = await query;
+      if (data && data.length > 0 && data[0].order_number != null) {
+        return Number(data[0].order_number) + 1;
+      }
+    } catch (err) {
+      console.warn("Error calculating next order number:", err);
+    }
+    // For a new vendor (no existing orders), order number starts from 1
+    return 1;
   },
 
   async addCategory(name: string, vendorId?: string | null) {
@@ -163,6 +215,8 @@ export const orderService = {
         *,
         order_number,
         customers (name, mobile, address),
+        vendors (name, phone, address),
+        branches (name, phone, address),
         order_items (
           id, quantity, wash_price, iron_price, subtotal, custom_item_name,
           cloth_types (name)
@@ -179,16 +233,17 @@ export const orderService = {
    */
   async createOrder(customerId: string, branchId: string, totalAmount: number, items: any[], advanceAmount: number = 0, discountAmount: number = 0, dueDate: string | null = null, vendorId?: string | null) {
     const netAmount = totalAmount; // Total amount passed already has discount subtract if was using grandTotal
-    // Let's assume totalAmount passed is THE FINAL BILL total.
-    // If we want to store SUB-TOTAL and DISCOUNT, we should.
-
     const balanceAmount = netAmount - advanceAmount;
     const paymentStatus = (advanceAmount >= netAmount && netAmount > 0) ? 'paid' : (advanceAmount > 0 ? 'partially_paid' : 'pending');
+
+    // Calculate vendor-specific order number starting from 1 for new vendors
+    const nextOrderNumber = await this.getNextOrderNumber(vendorId);
 
     // 1. Create the order
     const { data: order, error: orderError } = await supabase
       .from('orders')
       .insert([{
+        order_number: nextOrderNumber,
         customer_id: customerId,
         branch_id: branchId,
         vendor_id: vendorId ?? null,

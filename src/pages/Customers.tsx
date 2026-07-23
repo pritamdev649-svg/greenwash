@@ -267,6 +267,9 @@ const Customers: React.FC = () => {
         customerName: detailedOrder.customers?.name || selectedCustomer?.name || 'Customer',
         customerAddress: detailedOrder.customers?.address || selectedCustomer?.address || '',
         customerPhone: detailedOrder.customers?.mobile || selectedCustomer?.mobile || '',
+        vendorName: detailedOrder.vendors?.name || detailedOrder.branches?.name,
+        vendorPhone: detailedOrder.vendors?.phone || detailedOrder.branches?.phone,
+        vendorAddress: detailedOrder.vendors?.address || detailedOrder.branches?.address,
         items: detailedOrder.order_items?.map((item: any) => ({
           id: item.id,
           name: item.custom_item_name || item.cloth_types?.name || 'Custom Item',

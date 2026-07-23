@@ -23,6 +23,8 @@ export const customerService = {
         const orders = customer.orders || [];
         return {
           ...customer,
+          wallet_balance: Number(customer.wallet_balance ?? customer.coins ?? 0),
+          coins: Number(customer.coins ?? 0),
           total_orders: orders.length,
           pending_amount: orders.reduce((sum: number, o: any) => sum + Number(o.balance_amount || 0), 0),
         };
@@ -120,58 +122,80 @@ export const customerService = {
 
   async updateCustomerWallet(customerId: string, walletChange: number) {
     try {
-      const { data: customer } = await supabase
+      let currentBal = 0;
+      const { data: customer, error: fetchErr } = await supabase
         .from('customers')
-        .select('wallet_balance, coins')
+        .select('*')
         .eq('id', customerId)
         .maybeSingle();
 
-      const currentBal = Number((customer as any)?.wallet_balance ?? (customer as any)?.coins ?? 0);
+      if (customer) {
+        currentBal = Number(customer.wallet_balance ?? customer.coins ?? 0);
+      } else if (fetchErr) {
+        console.warn("Error fetching customer for wallet update:", fetchErr);
+      }
+
       const newBal = Math.max(0, currentBal + walletChange);
 
+      // Try updating wallet_balance column
       const { data, error } = await supabase
         .from('customers')
         .update({ wallet_balance: newBal })
         .eq('id', customerId)
         .select();
 
-      if (error) {
-        console.warn("Wallet column update error, trying coins column:", error);
-        const { data: coinsData } = await supabase
-          .from('customers')
-          .update({ coins: newBal })
-          .eq('id', customerId)
-          .select();
-        return coinsData?.[0] ? { ...coinsData[0], wallet_balance: coinsData[0].coins || newBal } : { wallet_balance: newBal };
+      if (!error && data && data.length > 0) {
+        return { ...data[0], wallet_balance: newBal };
       }
-      return data?.[0] || { wallet_balance: newBal };
+
+      // Fallback: update coins column if wallet_balance fails or column does not exist
+      console.warn("wallet_balance update error or 0 rows, updating coins column:", error);
+      const { data: coinsData, error: coinsErr } = await supabase
+        .from('customers')
+        .update({ coins: newBal })
+        .eq('id', customerId)
+        .select();
+
+      if (!coinsErr && coinsData && coinsData.length > 0) {
+        return { ...coinsData[0], wallet_balance: newBal, coins: newBal };
+      }
+
+      throw error || coinsErr || new Error("Failed to update wallet balance in database");
     } catch (err) {
-      console.warn("Wallet update fallback triggered:", err);
-      return { wallet_balance: walletChange };
+      console.error("updateCustomerWallet error:", err);
+      throw err;
     }
   },
 
   async setCustomerWallet(customerId: string, walletBalance: number) {
     try {
       const newBal = Math.max(0, walletBalance);
+
       const { data, error } = await supabase
         .from('customers')
         .update({ wallet_balance: newBal })
         .eq('id', customerId)
         .select();
 
-      if (error) {
-        const { data: coinsData } = await supabase
-          .from('customers')
-          .update({ coins: newBal })
-          .eq('id', customerId)
-          .select();
-        return coinsData?.[0] ? { ...coinsData[0], wallet_balance: coinsData[0].coins || newBal } : { wallet_balance: newBal };
+      if (!error && data && data.length > 0) {
+        return { ...data[0], wallet_balance: newBal };
       }
-      return data?.[0] || { wallet_balance: newBal };
+
+      const { data: coinsData, error: coinsErr } = await supabase
+        .from('customers')
+        .update({ coins: newBal })
+        .eq('id', customerId)
+        .select();
+
+      if (!coinsErr && coinsData && coinsData.length > 0) {
+        return { ...coinsData[0], wallet_balance: newBal, coins: newBal };
+      }
+
+      throw error || coinsErr || new Error("Failed to set customer wallet balance in database");
     } catch (err) {
-      console.warn("Wallet set fallback triggered:", err);
-      return { wallet_balance: walletBalance };
+      console.error("setCustomerWallet error:", err);
+      throw err;
     }
   }
 };
+
