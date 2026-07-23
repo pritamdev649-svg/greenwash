@@ -182,7 +182,9 @@ const Customers: React.FC = () => {
 
   const handleAddCustomer = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (loading) return;
     try {
+      setLoading(true);
       await customerService.addCustomer({ ...formData, vendor_id: vendorId });
       setIsAddModalOpen(false);
       setFormData({ name: '', mobile: '', email: '', address: '', branch_id: vendorBranch ? vendorBranch.id : '' });
@@ -193,8 +195,10 @@ const Customers: React.FC = () => {
       if (returnTo) {
         navigate(returnTo);
       }
-    } catch (err) {
-      alert("Failed to add customer");
+    } catch (err: any) {
+      alert(err.message || "Failed to add customer");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -212,15 +216,18 @@ const Customers: React.FC = () => {
 
   const handleUpdateCustomer = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!customerToEdit) return;
+    if (!customerToEdit || loading) return;
     try {
+      setLoading(true);
       await customerService.updateCustomer(customerToEdit.id, formData);
       setIsEditModalOpen(false);
       setCustomerToEdit(null);
       setFormData({ name: '', mobile: '', email: '', address: '', branch_id: vendorBranch ? vendorBranch.id : '' });
-      fetchData();
-    } catch (err) {
-      alert("Failed to update customer");
+      await fetchData();
+    } catch (err: any) {
+      alert(err.message || "Failed to update customer");
+    } finally {
+      setLoading(false);
     }
   };
 

@@ -37,6 +37,7 @@ export const customerService = {
 
   /**
    * Add a new customer. Optionally link vendor_id.
+   * Checks for duplicate mobile numbers to prevent duplicate customer entries.
    */
   async addCustomer(customer: {
     name: string;
@@ -46,7 +47,32 @@ export const customerService = {
     branch_id?: string;
     vendor_id?: string | null;
   }) {
-    const { data, error } = await supabase.from('customers').insert([customer]).select();
+    const cleanMobile = customer.mobile ? customer.mobile.trim() : '';
+    if (!cleanMobile) {
+      throw new Error("Mobile number is required.");
+    }
+
+    // Check if customer with same mobile already exists for this vendor
+    let query = supabase.from('customers').select('id, name, mobile').eq('mobile', cleanMobile);
+    if (customer.vendor_id) {
+      query = query.eq('vendor_id', customer.vendor_id);
+    }
+
+    const { data: existing, error: checkErr } = await query;
+    if (checkErr) {
+      console.warn("Mobile duplicate check warning:", checkErr);
+    }
+    if (existing && existing.length > 0) {
+      throw new Error(`Customer with mobile number "${cleanMobile}" already exists (${existing[0].name}).`);
+    }
+
+    const payload = {
+      ...customer,
+      name: customer.name ? customer.name.trim() : '',
+      mobile: cleanMobile
+    };
+
+    const { data, error } = await supabase.from('customers').insert([payload]).select();
     if (error) throw error;
     return data[0];
   },
@@ -77,6 +103,23 @@ export const customerService = {
     branch_id: string;
     vendor_id: string | null;
   }>) {
+    if (updates.mobile) {
+      const cleanMobile = updates.mobile.trim();
+      let query = supabase.from('customers').select('id, name').eq('mobile', cleanMobile).neq('id', id);
+      if (updates.vendor_id) {
+        query = query.eq('vendor_id', updates.vendor_id);
+      }
+      const { data: existing } = await query;
+      if (existing && existing.length > 0) {
+        throw new Error(`Another customer with mobile number "${cleanMobile}" already exists (${existing[0].name}).`);
+      }
+      updates.mobile = cleanMobile;
+    }
+
+    if (updates.name) {
+      updates.name = updates.name.trim();
+    }
+
     const { data, error } = await supabase.from('customers').update(updates).eq('id', id).select();
     if (error) throw error;
     return data[0];
