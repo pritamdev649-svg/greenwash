@@ -1,5 +1,11 @@
 import { supabase } from '../config/supabase';
 
+export const normalizePhone = (phone: string): string => {
+  if (!phone) return '';
+  const digits = phone.replace(/\D/g, ''); // keep only digits
+  return digits.length >= 10 ? digits.slice(-10) : digits;
+};
+
 export const customerService = {
   /**
    * Fetch customers. Pass vendorId to scope to a specific vendor.
@@ -9,18 +15,33 @@ export const customerService = {
       const selectStr = withDetails ? `
           *,
           branch:branches(name),
-          orders:orders(total_amount, balance_amount, payment_status)
+          orders:orders(total_amount, balance_amount, payment_status, vendor_id)
         ` : '*';
 
       let query = supabase.from('customers').select(selectStr).order('name');
-      if (vendorId) query = query.eq('vendor_id', vendorId);
+      
+      if (vendorId) {
+        // Fetch unique customer IDs that have orders under this vendor
+        const { data: orderCustomers } = await supabase
+          .from('orders')
+          .select('customer_id')
+          .eq('vendor_id', vendorId);
+          
+        const customerIds = Array.from(new Set((orderCustomers || []).map((o: any) => o.customer_id)));
+        
+        if (customerIds.length > 0) {
+          query = query.or(`vendor_id.eq.${vendorId},id.in.(${customerIds.join(',')})`);
+        } else {
+          query = query.eq('vendor_id', vendorId);
+        }
+      }
 
       const { data, error } = await query;
       if (error) throw error;
       if (!withDetails) return data || [];
 
       return (data || []).map((customer: any) => {
-        const orders = customer.orders || [];
+        const orders = (customer.orders || []).filter((o: any) => !vendorId || o.vendor_id === vendorId);
         return {
           ...customer,
           wallet_balance: Number(customer.wallet_balance ?? customer.coins ?? 0),
@@ -47,23 +68,22 @@ export const customerService = {
     branch_id?: string;
     vendor_id?: string | null;
   }) {
-    const cleanMobile = customer.mobile ? customer.mobile.trim() : '';
+    const cleanMobile = normalizePhone(customer.mobile);
     if (!cleanMobile) {
       throw new Error("Mobile number is required.");
     }
 
-    // Check if customer with same mobile already exists for this vendor
-    let query = supabase.from('customers').select('id, name, mobile').eq('mobile', cleanMobile);
-    if (customer.vendor_id) {
-      query = query.eq('vendor_id', customer.vendor_id);
-    }
+    // Check if customer with same mobile already exists globally (across any vendor / website)
+    const { data: existing, error: checkErr } = await supabase
+      .from('customers')
+      .select('id, name, mobile')
+      .eq('mobile', cleanMobile);
 
-    const { data: existing, error: checkErr } = await query;
     if (checkErr) {
       console.warn("Mobile duplicate check warning:", checkErr);
     }
     if (existing && existing.length > 0) {
-      throw new Error(`Customer with mobile number "${cleanMobile}" already exists (${existing[0].name}).`);
+      throw new Error(`Customer with mobile number "${customer.mobile}" already exists as "${existing[0].name}". Please search and select them.`);
     }
 
     const payload = {
@@ -104,14 +124,20 @@ export const customerService = {
     vendor_id: string | null;
   }>) {
     if (updates.mobile) {
-      const cleanMobile = updates.mobile.trim();
-      let query = supabase.from('customers').select('id, name').eq('mobile', cleanMobile).neq('id', id);
-      if (updates.vendor_id) {
-        query = query.eq('vendor_id', updates.vendor_id);
+      const cleanMobile = normalizePhone(updates.mobile);
+      if (!cleanMobile) {
+        throw new Error("Mobile number is required.");
       }
-      const { data: existing } = await query;
+
+      // Check if another customer with the same mobile already exists globally
+      const { data: existing } = await supabase
+        .from('customers')
+        .select('id, name')
+        .eq('mobile', cleanMobile)
+        .neq('id', id);
+
       if (existing && existing.length > 0) {
-        throw new Error(`Another customer with mobile number "${cleanMobile}" already exists (${existing[0].name}).`);
+        throw new Error(`Another customer with mobile number "${updates.mobile}" already exists as "${existing[0].name}".`);
       }
       updates.mobile = cleanMobile;
     }

@@ -81,10 +81,18 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const filteredCustomers = customers.filter(c =>
-    c.name?.toLowerCase().includes(customerSearch.toLowerCase()) ||
-    c.mobile?.includes(customerSearch)
-  );
+  const cleanSearch = customerSearch.replace(/\D/g, '');
+  const last10Search = cleanSearch.length >= 10 ? cleanSearch.slice(-10) : cleanSearch;
+
+  const filteredCustomers = customers.filter(c => {
+    const nameMatch = c.name?.toLowerCase().includes(customerSearch.toLowerCase());
+    const mobileMatch = c.mobile && (
+      c.mobile.includes(customerSearch) || 
+      (cleanSearch && c.mobile.replace(/\D/g, '').includes(cleanSearch)) ||
+      (last10Search && c.mobile.replace(/\D/g, '').includes(last10Search))
+    );
+    return nameMatch || mobileMatch;
+  });
 
   const handleSelectCustomer = (c: any) => {
     setSelectedCustomerId(c.id);
@@ -184,7 +192,7 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
 
         // Fetch customers
         try {
-          const cData = await customerService.getAllCustomers(true, vendorId);
+          const cData = await customerService.getAllCustomers(true, null); // Load all customers globally
           console.log("Customers loaded:", cData?.length || 0);
           setCustomers(cData || []);
         } catch (cErr) {

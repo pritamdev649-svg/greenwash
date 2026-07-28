@@ -1,6 +1,12 @@
 import { supabase } from '../config/supabase';
 import type { UserRole, UserProfile } from '../../../src/types/hierarchy';
 
+const normalizePhone = (phone: string): string => {
+  if (!phone) return '';
+  const digits = phone.replace(/\D/g, ''); // keep only digits
+  return digits.length >= 10 ? digits.slice(-10) : digits;
+};
+
 export const authService = {
   async signIn(email: string, password: string) {
     console.log("=========================================");
@@ -125,7 +131,7 @@ export const authService = {
     vendorId?: string;
   }) {
     const authEmail = data.email?.trim() || this.phoneToEmail(data.phone);
-    const mobile = data.phone.replace(/\D/g, '');
+    const mobile = normalizePhone(data.phone);
 
     // Check if phone already registered
     const { data: existing } = await supabase

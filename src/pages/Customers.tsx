@@ -306,9 +306,17 @@ const Customers: React.FC = () => {
     }
   };
 
+  const cleanSearch = searchTerm.replace(/\D/g, '');
+  const last10Search = cleanSearch.length >= 10 ? cleanSearch.slice(-10) : cleanSearch;
+
   const filteredCustomers = customers.filter(c => {
-    const matchesSearch = c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      c.mobile.includes(searchTerm);
+    const matchesName = c.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesMobile = c.mobile && (
+      c.mobile.includes(searchTerm) || 
+      (cleanSearch && c.mobile.replace(/\D/g, '').includes(cleanSearch)) ||
+      (last10Search && c.mobile.replace(/\D/g, '').includes(last10Search))
+    );
+    const matchesSearch = matchesName || matchesMobile;
     const matchesBranch = selectedBranch === 'all' || c.branch_id === selectedBranch;
     return matchesSearch && matchesBranch;
   });
