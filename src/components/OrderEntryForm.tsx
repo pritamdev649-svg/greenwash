@@ -380,6 +380,25 @@ export const OrderEntryForm: React.FC<OrderEntryFormProps> = ({ onClose, onSucce
     setRows([...rows, newRow]);
   };
 
+  // Automatically append a new row when the last row has a category or item name selected
+  useEffect(() => {
+    const lastRow = rows[rows.length - 1];
+    if (lastRow && (lastRow.category !== '' || lastRow.item_name !== '')) {
+      const newRow: SaleRow = {
+        id: (Date.now() + Math.random()).toString(),
+        category: '',
+        item_id: '',
+        item_name: '',
+        description: '',
+        qty: 1,
+        unit: 'PCS',
+        price: 0,
+        amount: 0
+      };
+      setRows(prev => [...prev, newRow]);
+    }
+  }, [rows]);
+
   const updateRow = (id: string, updates: Partial<SaleRow>) => {
     setRows(prev => prev.map(row => {
       if (row.id === id) {
