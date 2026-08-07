@@ -187,7 +187,10 @@ export default function Orders() {
   const handleOrderSuccess = () => {
     setIsModalOpen(false);
     setEditingOrderId(null);
-    fetchData();
+    // Defer fetching data to allow the modal to close instantly and smoothly
+    setTimeout(() => {
+      fetchData();
+    }, 50);
   };
 
   const togglePaymentStatus = async (order: any) => {
