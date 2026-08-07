@@ -145,7 +145,16 @@ export default function Settings() {
             <div className="relative">
               <select
                 value={weeklyOffDay}
-                onChange={(e) => setWeeklyOffDay(e.target.value)}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setWeeklyOffDay(val);
+                  if (vendorId) {
+                    localStorage.setItem(`weekly_off_day_${vendorId}`, val);
+                    // Show a quick success alert/visual feedback
+                    setShowSuccess(true);
+                    setTimeout(() => setShowSuccess(false), 2000);
+                  }
+                }}
                 className="w-full h-12 pl-4 pr-10 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold text-slate-700 focus:bg-white focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 outline-none transition-all appearance-none cursor-pointer"
               >
                 <option value="none">{t('none')}</option>
