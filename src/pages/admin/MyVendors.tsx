@@ -227,7 +227,7 @@ return (
               <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Phone</p>
               <p className="font-bold text-slate-700 truncate">{v.phone ?? '—'}</p>
             </div>
-            <div className="flex items-center gap-2 mt-2 pt-4 border-t border-slate-50">
+            <div className="col-span-full flex items-center gap-2 mt-2 pt-4 border-t border-slate-50">
               <button onClick={() => handleToggle(v)} title={v.is_active ? 'Deactivate' : 'Activate'} className="flex-1 flex justify-center p-2 rounded-lg hover:bg-slate-100 text-slate-500 transition-colors">
                 {v.is_active ? <ToggleRight size={18} className="text-emerald-500" /> : <ToggleLeft size={18} />}
               </button>
@@ -250,7 +250,7 @@ return (
             </div>
 
             <button onClick={() => openPayment(v)}
-              className="flex items-center justify-center gap-2 w-full border border-emerald-200 text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-xl py-2 text-xs font-bold transition-colors mt-2">
+              className="col-span-full flex items-center justify-center gap-2 w-full border border-emerald-200 text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-xl py-2 text-xs font-bold transition-colors mt-2">
               <QrCode size={14} /> Payment Settings
             </button>
           </div>
