@@ -71,7 +71,7 @@ const AdminDashboard: React.FC = () => {
       </div>
 
       {/* KPIs */}
-      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {kpis.map((kpi, i) => (
           <div key={i} onClick={() => navigate(kpi.path)}
             className="card p-5 flex flex-col justify-between group hover:-translate-y-1 hover:shadow-xl transition-all duration-300 cursor-pointer bg-white border-slate-100 relative overflow-hidden">

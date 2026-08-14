@@ -32,7 +32,7 @@ const PlatformAnalytics: React.FC = () => {
       </div>
 
       {/* Revenue summary */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
         {[
           { label: 'Total Revenue', value: `₹${s.totalRevenue.toLocaleString()}`, color: 'text-emerald-600 bg-emerald-50' },
           { label: 'Outstanding', value: `₹${s.pendingRevenue.toLocaleString()}`, color: 'text-rose-600 bg-rose-50' },
