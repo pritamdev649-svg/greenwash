@@ -97,8 +97,8 @@ const Home: React.FC = () => {
   const setQty = (cloth: any, service: string, delta: number) => {
     const price =
       service === 'wash' ? Number(cloth.wash_price || 0) :
-      service === 'iron' ? Number(cloth.iron_price || 0) :
-      Number(cloth.dry_clean_price || 0);
+        service === 'iron' ? Number(cloth.iron_price || 0) :
+          Number(cloth.dry_clean_price || 0);
 
     setCart(prev => {
       const existing = prev.find(c => c.cloth_type_id === cloth.id && c.service === service);
@@ -193,7 +193,7 @@ const Home: React.FC = () => {
       {/* Navbar */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-white shadow-sm border-b border-emerald-50">
         <div className="max-w-7xl mx-auto px-6 h-28 flex items-center justify-between">
-          <div className="flex items-center cursor-pointer transition-transform active:scale-95" onClick={() => window.scrollTo(0, 0)}>
+          <div className="flex items-center cursor-pointer transition-transform active:scale-95" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
             <img
               src="/assets/logo.jpeg"
               alt="Green Wash Co Logo"
@@ -534,8 +534,8 @@ const Home: React.FC = () => {
                               {services.map(svc => {
                                 const price =
                                   svc === 'wash' ? Number(cloth.wash_price || 0) :
-                                  svc === 'iron' ? Number(cloth.iron_price || 0) :
-                                  Number(cloth.dry_clean_price || 0);
+                                    svc === 'iron' ? Number(cloth.iron_price || 0) :
+                                      Number(cloth.dry_clean_price || 0);
                                 const cartItem = getCartItem(cloth.id, svc);
                                 const label = svc === 'wash' ? 'Wash' : svc === 'iron' ? 'Iron' : 'Dry Clean';
 
@@ -735,14 +735,14 @@ const Home: React.FC = () => {
       </section>
 
       {/* Footer */}
-      <footer className="bg-slate-50 border-t border-emerald-50 pt-16 pb-8 px-6">
-        <div className="max-w-7xl mx-auto grid md:grid-cols-4 gap-12">
+      <footer className="bg-slate-50 border-t border-emerald-50 pt-16 pb-8">
+        <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-4 gap-12">
           <div className="col-span-2 md:col-span-1">
-            <div className="flex items-center mb-6 -ml-4">
+            <div className="flex items-center mb-6 cursor-pointer transition-transform active:scale-95" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
               <img
                 src="/assets/logo.jpeg"
                 alt="Green Wash Co Logo"
-                className="h-28 w-auto object-contain"
+                className="h-24 w-auto object-contain"
               />
             </div>
             <p className="text-slate-400 text-sm leading-relaxed mb-4 font-medium">
@@ -789,7 +789,7 @@ const Home: React.FC = () => {
             </ul>
           </div>
         </div>
-        <div className="max-w-7xl mx-auto pt-10 mt-16 border-t border-emerald-100 flex flex-col md:flex-row items-center justify-between gap-6 text-[10px] text-slate-400 font-black uppercase tracking-widest">
+        <div className="max-w-7xl mx-auto px-6 pt-10 mt-16 border-t border-emerald-100 flex flex-col md:flex-row items-center justify-between gap-6 text-[10px] text-slate-400 font-black uppercase tracking-widest">
           <p>© 2026 Green Wash Co. All rights reserved.</p>
           <div className="flex gap-8">
             <span className="cursor-pointer hover:text-emerald-600">LinkedIn</span>

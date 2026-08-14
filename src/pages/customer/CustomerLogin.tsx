@@ -17,11 +17,12 @@ type Mode = 'login' | 'signup';
 
 const CustomerLogin: React.FC = () => {
   const navigate = useNavigate();
-  const { session, role } = useAuth();
+  const { session, role, signOut } = useAuth();
 
   const [mode, setMode] = useState<Mode>('login');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
@@ -38,6 +39,9 @@ const CustomerLogin: React.FC = () => {
 
   // Redirect if already logged in as customer
   useEffect(() => {
+    if (localStorage.getItem('greenwash_is_signing_up') === 'true') {
+      return;
+    }
     if (session && role === 'customer') {
       const pending = localStorage.getItem('greenwash_pending_order');
       if (pending) {
@@ -50,6 +54,7 @@ const CustomerLogin: React.FC = () => {
 
   const resetForm = () => {
     setError('');
+    setSuccessMessage('');
     setIdentifier('');
     setPassword('');
     setName('');
@@ -102,6 +107,8 @@ const CustomerLogin: React.FC = () => {
 
     setLoading(true);
     setError('');
+    setSuccessMessage('');
+    localStorage.setItem('greenwash_is_signing_up', 'true');
     try {
       const { data, error: err } = await authService.customerSignUp({
         name: name.trim(),
@@ -111,16 +118,27 @@ const CustomerLogin: React.FC = () => {
       });
       if (err) {
         setError(err.message || 'Sign up failed. Please try again.');
+        localStorage.removeItem('greenwash_is_signing_up');
       } else if (data) {
-        const pending = localStorage.getItem('greenwash_pending_order');
-        if (pending) {
-          navigate('/customer/new-order', { replace: true });
-        } else {
-          navigate('/customer/dashboard', { replace: true });
-        }
+        // Sign out to clean up any automatic session state in React AuthContext
+        await signOut();
+        
+        // Prefill login input and redirect to the login tab
+        setIdentifier(phone.trim());
+        setSuccessMessage('Account created successfully! Please sign in using your credentials.');
+        setMode('login');
+
+        // Clear signup fields
+        setName('');
+        setPhone('');
+        setEmail('');
+        setSignupPassword('');
+        setConfirmPassword('');
+        localStorage.removeItem('greenwash_is_signing_up');
       }
     } catch (e: any) {
       setError(e.message || 'Something went wrong. Please try again.');
+      localStorage.removeItem('greenwash_is_signing_up');
     } finally {
       setLoading(false);
     }
@@ -199,6 +217,14 @@ const CustomerLogin: React.FC = () => {
                 </div>
               )}
 
+              {/* Success */}
+              {successMessage && (
+                <div className="flex items-start gap-3 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-2xl px-4 py-3 mb-5 text-sm font-semibold">
+                  <Info size={16} className="shrink-0 mt-0.5 text-emerald-500" />
+                  {successMessage}
+                </div>
+              )}
+
               {/* ── LOGIN FORM ── */}
               {mode === 'login' && (
                 <form onSubmit={handleLogin} className="space-y-4">
@@ -206,7 +232,14 @@ const CustomerLogin: React.FC = () => {
                     <input
                       type="text"
                       value={identifier}
-                      onChange={e => setIdentifier(e.target.value)}
+                      onChange={e => {
+                        const val = e.target.value;
+                        if (/^\d+$/.test(val)) {
+                          setIdentifier(val.slice(0, 10));
+                        } else {
+                          setIdentifier(val);
+                        }
+                      }}
                       placeholder="9876543210 or you@email.com"
                       className={inputCls}
                       autoComplete="username"
@@ -250,7 +283,7 @@ const CustomerLogin: React.FC = () => {
                     <input
                       type="tel"
                       value={phone}
-                      onChange={e => setPhone(e.target.value)}
+                      onChange={e => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
                       placeholder="9876543210"
                       className={inputCls}
                       autoComplete="tel"

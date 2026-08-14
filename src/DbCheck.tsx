@@ -19,7 +19,7 @@ export const DbCheck: React.FC = () => {
 
       for (const u of users) {
         addLog(`\nChecking: ${u.email}...`);
-        
+
         // Try to sign up to see if they exist
         const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
           email: u.email,
@@ -83,7 +83,7 @@ export const DbCheck: React.FC = () => {
       <h2>Database Checker Tool</h2>
       {logs.map((l, i) => <div key={i} style={{ whiteSpace: 'pre-wrap' }}>{l}</div>)}
       {done && (
-        <button 
+        <button
           onClick={() => window.location.reload()}
           style={{ marginTop: 20, padding: '10px 20px', background: '#0f0', color: '#000', border: 'none', cursor: 'pointer', fontWeight: 'bold' }}
         >

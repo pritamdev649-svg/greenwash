@@ -232,9 +232,12 @@ const AdminManagement: React.FC = () => {
                   <input
                     type={field === 'email' ? 'email' : 'text'}
                     value={form[field]}
-                    onChange={e => setForm(f => ({ ...f, [field]: e.target.value }))}
+                    onChange={e => {
+                      const val = field === 'phone' ? e.target.value.replace(/\D/g, '').slice(0, 10) : e.target.value;
+                      setForm(f => ({ ...f, [field]: val }));
+                    }}
                     className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300"
-                    placeholder={field === 'email' ? 'admin@example.com' : `Enter ${field}`}
+                    placeholder={field === 'email' ? 'admin@example.com' : field === 'phone' ? 'e.g. 9876543210' : `Enter ${field}`}
                   />
                 </div>
               ))}

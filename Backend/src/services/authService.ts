@@ -178,6 +178,9 @@ export const authService = {
       data: { customer_id: customer.id },
     });
 
+    // Sign out to prevent automatic login on sign up
+    await supabase.auth.signOut();
+
     const profile: UserProfile = {
       id: authData.user.id,
       role: 'customer',
@@ -191,7 +194,7 @@ export const authService = {
     return {
       data: {
         user: authData.user,
-        session: authData.session,
+        session: null,
         role: 'customer' as const,
         userProfile: profile,
       },

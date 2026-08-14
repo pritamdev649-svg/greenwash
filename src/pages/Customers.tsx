@@ -521,7 +521,7 @@ const Customers: React.FC = () => {
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Mobile Number</label>
-                  <input required className="input h-11 bg-slate-50 focus:bg-white" placeholder="+91 0000 0000" value={formData.mobile} onChange={(e) => setFormData({ ...formData, mobile: e.target.value })} />
+                  <input required className="input h-11 bg-slate-50 focus:bg-white" placeholder="0000000000" value={formData.mobile} onChange={(e) => setFormData({ ...formData, mobile: e.target.value.replace(/\D/g, '').slice(0, 10) })} />
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Branch Assignment</label>
@@ -573,7 +573,7 @@ const Customers: React.FC = () => {
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Mobile Number</label>
-                  <input required className="input h-11 bg-slate-50 focus:bg-white" placeholder="+91 0000 0000" value={formData.mobile} onChange={(e) => setFormData({ ...formData, mobile: e.target.value })} />
+                  <input required className="input h-11 bg-slate-50 focus:bg-white" placeholder="0000000000" value={formData.mobile} onChange={(e) => setFormData({ ...formData, mobile: e.target.value.replace(/\D/g, '').slice(0, 10) })} />
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Branch Assignment</label>

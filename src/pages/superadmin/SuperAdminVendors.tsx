@@ -301,9 +301,13 @@ const SuperAdminVendors: React.FC = () => {
               {VENDOR_FIELDS.map(f => (
                 <div key={f.key}>
                   <label className="block text-xs font-black text-slate-500 uppercase tracking-widest mb-1.5">{f.label}</label>
-                  <input type={f.type} value={vendorForm[f.key]} onChange={e => setVendorForm(prev => ({ ...prev, [f.key]: e.target.value }))}
+                  <input type={f.type} value={vendorForm[f.key]}
+                    onChange={e => {
+                      const val = f.key === 'phone' ? e.target.value.replace(/\D/g, '').slice(0, 10) : e.target.value;
+                      setVendorForm(prev => ({ ...prev, [f.key]: val }));
+                    }}
                     className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300"
-                    placeholder={f.ph} />
+                    placeholder={f.key === 'phone' ? '9876543210' : f.ph} />
                 </div>
               ))}
               <div>

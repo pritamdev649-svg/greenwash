@@ -48,6 +48,7 @@ const VENDOR_NAV: NavItem[] = [
 const ADMIN_NAV: NavItem[] = [
   { path: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { path: '/admin/vendors', label: 'My Vendors', icon: Store },
+  { path: '/customers', label: 'Customers', icon: Users },
   { path: '/admin/orders', label: 'History', icon: Receipt },
   { path: '/admin/reports', label: 'Reports', icon: BarChart2 },
   { path: '/admin/deletion-requests', label: 'Deletion Requests', icon: ShieldAlert },
@@ -57,6 +58,7 @@ const SUPER_ADMIN_NAV: NavItem[] = [
   { path: '/super-admin/dashboard', label: 'Dashboard', icon: Crown },
   { path: '/super-admin/admins', label: 'Admins', icon: ShieldCheck },
   { path: '/super-admin/vendors', label: 'All Vendors', icon: Building2 },
+  { path: '/customers', label: 'Customers', icon: Users },
   { path: '/super-admin/orders', label: 'All Orders', icon: ClipboardList },
   { path: '/super-admin/analytics', label: 'Analytics', icon: BarChart2 },
   { path: '/super-admin/audit-logs', label: 'Audit Logs', icon: FileText },
@@ -94,11 +96,13 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
       label: 'My Branch',
       icon: Store,
     });
-    navItems.push({
-      path: '/customers',
-      label: 'Branch Customers',
-      icon: Users,
-    });
+    if (!baseNavItems.some(item => item.path === '/customers')) {
+      navItems.push({
+        path: '/customers',
+        label: 'Branch Customers',
+        icon: Users,
+      });
+    }
     navItems.push({
       path: '/services',
       label: 'Services',
