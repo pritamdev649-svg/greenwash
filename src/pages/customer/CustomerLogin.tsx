@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import {
   Mail, Lock, Phone, User, Eye, EyeOff,
   ChevronRight, AlertCircle, Info, ArrowLeft,
+  Smartphone, KeyRound, ShieldCheck, RefreshCw,
 } from 'lucide-react';
 import { authService } from '@backend/services/authService';
 import { useAuth } from '../../contexts/AuthContext';
@@ -14,19 +15,29 @@ function cn(...inputs: ClassValue[]) {
 }
 
 type Mode = 'login' | 'signup';
+type LoginMethod = 'otp' | 'password';
 
 const CustomerLogin: React.FC = () => {
   const navigate = useNavigate();
   const { session, role, signOut } = useAuth();
 
   const [mode, setMode] = useState<Mode>('login');
+  const [loginMethod, setLoginMethod] = useState<LoginMethod>('otp');
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
-  // Login fields
+  // OTP Login fields
+  const [otpMobile, setOtpMobile] = useState('');
+  const [otpCode, setOtpCode] = useState('');
+  const [otpSent, setOtpSent] = useState(false);
+  const [demoOtpNotice, setDemoOtpNotice] = useState<string | null>(null);
+  const [resendTimer, setResendTimer] = useState(0);
+
+  // Password Login fields
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
 
@@ -52,6 +63,15 @@ const CustomerLogin: React.FC = () => {
     }
   }, [session, role, navigate]);
 
+  // Resend timer countdown
+  useEffect(() => {
+    if (resendTimer <= 0) return;
+    const interval = setInterval(() => {
+      setResendTimer(t => t - 1);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [resendTimer]);
+
   const resetForm = () => {
     setError('');
     setSuccessMessage('');
@@ -62,6 +82,10 @@ const CustomerLogin: React.FC = () => {
     setEmail('');
     setSignupPassword('');
     setConfirmPassword('');
+    setOtpMobile('');
+    setOtpCode('');
+    setOtpSent(false);
+    setDemoOtpNotice(null);
   };
 
   const switchMode = (m: Mode) => {
@@ -69,6 +93,67 @@ const CustomerLogin: React.FC = () => {
     setMode(m);
   };
 
+  // ── OTP Handlers ────────────────────────────────────────────────────────
+  const handleSendOtp = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    const cleanPhone = otpMobile.replace(/\D/g, '');
+    if (!cleanPhone || cleanPhone.length < 10) {
+      setError('Please enter a valid 10-digit mobile number.');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+    setSuccessMessage('');
+    try {
+      const { data, error: err } = await authService.sendCustomerOtp(cleanPhone);
+      if (err) {
+        setError(err.message || 'Failed to send OTP. Please try again.');
+      } else if (data) {
+        setOtpSent(true);
+        setSuccessMessage(`OTP sent successfully to +91 ${cleanPhone}`);
+        if (data.otpCode) {
+          setDemoOtpNotice(`Demo OTP: ${data.otpCode}`);
+          setOtpCode(data.otpCode); // auto-fill for frictionless testing
+        }
+        setResendTimer(60);
+      }
+    } catch (e: any) {
+      setError(e.message || 'Error sending OTP.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!otpCode.trim() || otpCode.trim().length < 6) {
+      setError('Please enter the 6-digit OTP code.');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+    try {
+      const { data, error: err } = await authService.verifyCustomerOtp(otpMobile, otpCode.trim());
+      if (err) {
+        setError(err.message || 'Invalid OTP. Please try again.');
+      } else if (data) {
+        const pending = localStorage.getItem('greenwash_pending_order');
+        if (pending) {
+          navigate('/customer/new-order', { replace: true });
+        } else {
+          navigate('/customer/dashboard', { replace: true });
+        }
+      }
+    } catch (e: any) {
+      setError(e.message || 'Something went wrong verifying OTP.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ── Password Login Handler ──────────────────────────────────────────────
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!identifier.trim() || !password) {
@@ -96,6 +181,7 @@ const CustomerLogin: React.FC = () => {
     }
   };
 
+  // ── Signup Handler ──────────────────────────────────────────────────────
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) { setError('Please enter your full name.'); return; }
@@ -120,15 +206,10 @@ const CustomerLogin: React.FC = () => {
         setError(err.message || 'Sign up failed. Please try again.');
         localStorage.removeItem('greenwash_is_signing_up');
       } else if (data) {
-        // Sign out to clean up any automatic session state in React AuthContext
         await signOut();
-        
-        // Prefill login input and redirect to the login tab
         setIdentifier(phone.trim());
         setSuccessMessage('Account created successfully! Please sign in using your credentials.');
         setMode('login');
-
-        // Clear signup fields
         setName('');
         setPhone('');
         setEmail('');
@@ -160,7 +241,7 @@ const CustomerLogin: React.FC = () => {
         <div className="w-full max-w-md">
           <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/60 overflow-hidden border border-slate-100">
 
-            {/* Tab switcher */}
+            {/* Main Mode switcher (Sign In vs Sign Up) */}
             <div className="flex border-b border-slate-100">
               <button
                 onClick={() => switchMode('login')}
@@ -199,17 +280,39 @@ const CustomerLogin: React.FC = () => {
                 </p>
               </div>
 
-              {/* Important notice banner */}
-              <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3 mb-6">
-                <Info size={16} className="text-amber-500 mt-0.5 shrink-0" />
-                <p className="text-amber-700 text-xs font-semibold leading-relaxed">
-                  {mode === 'signup'
-                    ? 'Please fill your details carefully. Your name and phone number will be used for order pickup, delivery, and communication — they cannot be changed later.'
-                    : 'Enter the phone number or email you registered with, along with your password.'}
-                </p>
-              </div>
+              {/* Sub-toggle for Sign In: OTP vs Password */}
+              {mode === 'login' && (
+                <div className="flex bg-slate-100 p-1 rounded-2xl mb-6">
+                  <button
+                    type="button"
+                    onClick={() => { setLoginMethod('otp'); setError(''); setSuccessMessage(''); }}
+                    className={cn(
+                      'flex-1 py-2 text-xs font-black rounded-xl transition-all flex items-center justify-center gap-1.5',
+                      loginMethod === 'otp'
+                        ? 'bg-white text-emerald-700 shadow-sm'
+                        : 'text-slate-500 hover:text-slate-700'
+                    )}
+                  >
+                    <Smartphone size={14} />
+                    Mobile OTP Login
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setLoginMethod('password'); setError(''); setSuccessMessage(''); }}
+                    className={cn(
+                      'flex-1 py-2 text-xs font-black rounded-xl transition-all flex items-center justify-center gap-1.5',
+                      loginMethod === 'password'
+                        ? 'bg-white text-emerald-700 shadow-sm'
+                        : 'text-slate-500 hover:text-slate-700'
+                    )}
+                  >
+                    <KeyRound size={14} />
+                    Password Login
+                  </button>
+                </div>
+              )}
 
-              {/* Error */}
+              {/* Error Alert */}
               {error && (
                 <div className="flex items-start gap-3 bg-red-50 border border-red-200 text-red-600 rounded-2xl px-4 py-3 mb-5 text-sm font-semibold">
                   <AlertCircle size={16} className="shrink-0 mt-0.5" />
@@ -217,16 +320,89 @@ const CustomerLogin: React.FC = () => {
                 </div>
               )}
 
-              {/* Success */}
+              {/* Success Alert */}
               {successMessage && (
                 <div className="flex items-start gap-3 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-2xl px-4 py-3 mb-5 text-sm font-semibold">
                   <Info size={16} className="shrink-0 mt-0.5 text-emerald-500" />
-                  {successMessage}
+                  <div>
+                    {successMessage}
+                    {demoOtpNotice && (
+                      <div className="mt-1 text-xs font-mono font-bold text-emerald-800 bg-emerald-100/70 px-2 py-0.5 rounded-lg inline-block">
+                        {demoOtpNotice}
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
 
-              {/* ── LOGIN FORM ── */}
-              {mode === 'login' && (
+              {/* ── 1. LOGIN WITH OTP ── */}
+              {mode === 'login' && loginMethod === 'otp' && (
+                <div>
+                  {!otpSent ? (
+                    <form onSubmit={handleSendOtp} className="space-y-4">
+                      <Field label="Mobile Number" icon={<Phone size={17} />}>
+                        <input
+                          type="tel"
+                          value={otpMobile}
+                          onChange={e => setOtpMobile(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                          placeholder="Enter 10-digit mobile number"
+                          className={inputCls}
+                          autoFocus
+                        />
+                      </Field>
+                      <SubmitBtn loading={loading} label="Send OTP" />
+                    </form>
+                  ) : (
+                    <form onSubmit={handleVerifyOtp} className="space-y-4">
+                      <div className="flex items-center justify-between text-xs text-slate-500 font-semibold px-1">
+                        <span>OTP sent to +91 {otpMobile}</span>
+                        <button
+                          type="button"
+                          onClick={() => { setOtpSent(false); setOtpCode(''); setError(''); }}
+                          className="text-emerald-600 font-black hover:underline"
+                        >
+                          Change Number
+                        </button>
+                      </div>
+
+                      <Field label="Enter 6-Digit OTP" icon={<ShieldCheck size={17} />}>
+                        <input
+                          type="text"
+                          value={otpCode}
+                          onChange={e => setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                          placeholder="123456"
+                          className={`${inputCls} font-mono tracking-widest text-lg font-bold text-center pl-4`}
+                          maxLength={6}
+                          autoFocus
+                        />
+                      </Field>
+
+                      <SubmitBtn loading={loading} label="Verify & Sign In" />
+
+                      <div className="text-center pt-2">
+                        {resendTimer > 0 ? (
+                          <span className="text-xs text-slate-400 font-medium">
+                            Resend OTP in <strong className="text-slate-600">{resendTimer}s</strong>
+                          </span>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => handleSendOtp()}
+                            disabled={loading}
+                            className="text-xs font-bold text-emerald-600 hover:text-emerald-700 flex items-center justify-center gap-1 mx-auto"
+                          >
+                            <RefreshCw size={12} />
+                            Resend OTP
+                          </button>
+                        )}
+                      </div>
+                    </form>
+                  )}
+                </div>
+              )}
+
+              {/* ── 2. LOGIN WITH PASSWORD ── */}
+              {mode === 'login' && loginMethod === 'password' && (
                 <form onSubmit={handleLogin} className="space-y-4">
                   <Field label="Phone number or Email" icon={<Phone size={17} />}>
                     <input
@@ -261,11 +437,11 @@ const CustomerLogin: React.FC = () => {
                     />
                   </Field>
 
-                  <SubmitBtn loading={loading} label="Sign In" />
+                  <SubmitBtn loading={loading} label="Sign In with Password" />
                 </form>
               )}
 
-              {/* ── SIGNUP FORM ── */}
+              {/* ── 3. SIGNUP FORM ── */}
               {mode === 'signup' && (
                 <form onSubmit={handleSignup} className="space-y-4">
                   <Field label="Full Name *" icon={<User size={17} />}>
@@ -401,3 +577,4 @@ const SubmitBtn: React.FC<{ loading: boolean; label: string }> = ({ loading, lab
 );
 
 export default CustomerLogin;
+
