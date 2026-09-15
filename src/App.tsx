@@ -48,6 +48,7 @@ import MyVendors from './pages/admin/MyVendors';
 import AdminOrders from './pages/admin/AdminOrders';
 import AdminReports from './pages/admin/AdminReports';
 import DeletionRequests from './pages/admin/DeletionRequests';
+import HeroSettingsPage from './pages/admin/HeroSettings';
 
 const wrap = (role: Parameters<typeof RoleRoute>[0]['allowedRoles'], Page: React.ReactNode) => (
   <RoleRoute allowedRoles={role}>
@@ -109,6 +110,8 @@ const App: React.FC = () => {
             <Route path="/admin/orders"    element={wrap(['admin', 'super_admin'], <AdminOrders />)} />
             <Route path="/admin/reports"   element={wrap(['admin', 'super_admin'], <AdminReports />)} />
             <Route path="/admin/deletion-requests" element={wrap(['admin', 'super_admin'], <DeletionRequests />)} />
+            {/* ─── Admin & Super Admin Shared CMS Routes ─── */}
+            <Route path="/admin/hero-settings" element={wrap(['admin', 'super_admin'], <HeroSettingsPage />)} />
 
             {/* ─── Fallback ─── */}
             <Route path="*" element={<Navigate to="/" replace />} />

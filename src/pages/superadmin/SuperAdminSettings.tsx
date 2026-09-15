@@ -52,6 +52,13 @@ const SuperAdminSettings: React.FC = () => {
             cls: 'border-emerald-100 hover:border-emerald-200',
             badge: 'bg-emerald-50 text-emerald-700',
           },
+          {
+            title: 'Homepage Hero Section',
+            desc: 'Customize hero headline, subtext, CTA buttons, metrics, and banner image.',
+            path: '/admin/hero-settings',
+            cls: 'border-amber-100 hover:border-amber-200',
+            badge: 'bg-amber-50 text-amber-700',
+          },
         ].map(item => (
           <div
             key={item.path}

@@ -3,6 +3,8 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '@backend/config/supabase';
 import { orderService } from '@backend/services/orderService';
+import { heroSettingsService, DEFAULT_HERO_SETTINGS } from '@backend/services/heroSettingsService';
+import type { HeroSettings } from '@backend/services/heroSettingsService';
 
 import {
   Mail,
@@ -58,6 +60,14 @@ const Home: React.FC = () => {
   const [loadingItems, setLoadingItems] = useState(false);
   const [orderStep, setOrderStep] = useState<'vendor' | 'items'>('vendor');
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [heroSettings, setHeroSettings] = useState<HeroSettings>(DEFAULT_HERO_SETTINGS);
+
+  // Fetch dynamic hero settings
+  useEffect(() => {
+    heroSettingsService.getHeroSettings().then(data => {
+      if (data) setHeroSettings(data);
+    });
+  }, []);
 
   // Fetch all active vendors on mount
   useEffect(() => {
@@ -192,12 +202,12 @@ const Home: React.FC = () => {
     <div className="min-h-screen bg-white font-sans text-slate-900 scroll-smooth">
       {/* Navbar */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-white shadow-sm border-b border-emerald-50">
-        <div className="max-w-7xl mx-auto px-6 h-28 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
           <div className="flex items-center cursor-pointer transition-transform active:scale-95" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
             <img
               src="/assets/logo.jpeg"
               alt="Green Wash Co Logo"
-              className="h-24 w-auto object-contain"
+              className="h-14 sm:h-16 w-auto object-contain"
             />
           </div>
 
@@ -253,7 +263,7 @@ const Home: React.FC = () => {
       </nav>
 
       {/* Hero Section */}
-      <section id="home" className="relative pt-40 pb-12 lg:pt-48 lg:pb-20 overflow-hidden bg-emerald-50/20">
+      <section id="home" className="relative pt-24 pb-12 lg:pt-28 lg:pb-20 overflow-hidden bg-emerald-50/20">
         {/* Wave Background */}
         <div className="absolute top-0 right-0 w-[60%] h-full bg-emerald-200/20 blur-[120px] rounded-full translate-x-1/2 -translate-y-1/2 -z-10" />
 
@@ -261,48 +271,82 @@ const Home: React.FC = () => {
           <div className="relative z-10">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-100/50 text-emerald-600 text-[10px] font-bold uppercase tracking-wider mb-4">
               <Zap size={12} className="fill-emerald-600" />
-              <span>Premium Laundry Service</span>
+              <span>{heroSettings.badge_text || 'Premium Laundry Service'}</span>
             </div>
             <h1 className="text-4xl lg:text-6xl font-black text-slate-900 leading-[1.1] mb-6">
-              Perfectly <span className="text-emerald-500 italic bg-white/40 ring-1 ring-emerald-100 rounded-lg px-2">clean</span> clothes, <br />
-              without the hassle.
+              {heroSettings.headline_prefix || 'Perfectly'}{' '}
+              <span className="text-emerald-500 italic bg-white/40 ring-1 ring-emerald-100 rounded-lg px-2">
+                {heroSettings.headline_highlight || 'clean'}
+              </span>{' '}
+              <br />
+              {heroSettings.headline_suffix || 'clothes, without the hassle.'}
             </h1>
             <p className="text-base text-slate-500 mb-8 max-w-lg leading-relaxed font-medium">
-              We take care of your laundry so you can focus on what matters. Fast, reliable, and perfectly pressed every single time.
+              {heroSettings.description}
             </p>
             <div className="flex flex-wrap gap-4">
               <button
-                onClick={() => setIsLoginModalOpen(true)}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-xl text-base font-bold  transition-all active:scale-95 flex items-center gap-2"
+                onClick={() => {
+                  if (heroSettings.primary_button_action === 'custom_url' && heroSettings.primary_button_url) {
+                    if (heroSettings.primary_button_url.startsWith('http')) {
+                      window.open(heroSettings.primary_button_url, '_blank');
+                    } else {
+                      navigate(heroSettings.primary_button_url);
+                    }
+                  } else {
+                    setIsLoginModalOpen(true);
+                  }
+                }}
+                className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-xl text-base font-bold transition-all active:scale-95 flex items-center gap-2"
               >
-                Watch Demo Account
+                {heroSettings.primary_button_text || 'Watch Demo Account'}
                 <ChevronRight size={18} />
               </button>
-              <button className="bg-white border-2 border-emerald-100 hover:border-emerald-200 text-slate-700 px-6 py-3 rounded-xl text-base font-bold transition-all active:scale-95">
-                Our Services
+              <button
+                onClick={() => {
+                  if (heroSettings.secondary_button_action === 'custom_url' && heroSettings.secondary_button_url) {
+                    if (heroSettings.secondary_button_url.startsWith('http')) {
+                      window.open(heroSettings.secondary_button_url, '_blank');
+                    } else if (heroSettings.secondary_button_url.startsWith('#')) {
+                      const el = document.querySelector(heroSettings.secondary_button_url);
+                      el?.scrollIntoView({ behavior: 'smooth' });
+                    } else {
+                      navigate(heroSettings.secondary_button_url);
+                    }
+                  } else {
+                    const el = document.querySelector('#services');
+                    el?.scrollIntoView({ behavior: 'smooth' });
+                  }
+                }}
+                className="bg-white border-2 border-emerald-100 hover:border-emerald-200 text-slate-700 px-6 py-3 rounded-xl text-base font-bold transition-all active:scale-95"
+              >
+                {heroSettings.secondary_button_text || 'Our Services'}
               </button>
             </div>
 
             <div className="mt-10 flex items-center gap-8">
               <div>
-                <p className="text-xl font-black text-slate-900">1,000+</p>
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Happy Clients</p>
+                <p className="text-xl font-black text-slate-900">{heroSettings.stat1_value}</p>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{heroSettings.stat1_label}</p>
               </div>
               <div className="w-px h-6 bg-emerald-100"></div>
               <div>
-                <p className="text-xl font-black text-slate-900">10+</p>
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Store Locations</p>
+                <p className="text-xl font-black text-slate-900">{heroSettings.stat2_value}</p>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{heroSettings.stat2_label}</p>
               </div>
             </div>
           </div>
 
           <div className="relative">
-            <div className="relative z-10 w-full animate-float max-w-lg mx-auto overflow-hidden rounded-[3rem]">
+            <div className="relative z-10 w-full max-w-lg mx-auto overflow-hidden rounded-[3rem]">
               <div className="absolute inset-0 bg-emerald-500/10 blur-3xl rounded-full translate-y-10" />
               <img
-                src="/assets/hero.png"
+                src={heroSettings.image_url || '/assets/hero.png'}
                 alt="Laundry Illustration"
                 className="relative z-10 w-full object-contain"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = '/assets/hero.png';
+                }}
               />
             </div>
           </div>
@@ -742,7 +786,7 @@ const Home: React.FC = () => {
               <img
                 src="/assets/logo.jpeg"
                 alt="Green Wash Co Logo"
-                className="h-24 w-auto object-contain"
+                className="h-28 w-auto object-contain"
               />
             </div>
             <p className="text-slate-400 text-sm leading-relaxed mb-4 font-medium">
