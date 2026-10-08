@@ -20,6 +20,7 @@ import {
   FileText,
   ShieldAlert,
   Plus,
+  Send,
 } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { clsx, type ClassValue } from 'clsx';
@@ -52,6 +53,7 @@ const ADMIN_NAV: NavItem[] = [
   { path: '/admin/orders', label: 'History', icon: Receipt },
   { path: '/admin/reports', label: 'Reports', icon: BarChart2 },
   { path: '/admin/deletion-requests', label: 'Deletion Requests', icon: ShieldAlert },
+  { path: '/admin/broadcast', label: 'Broadcasting message', icon: Send },
 ];
 
 const SUPER_ADMIN_NAV: NavItem[] = [

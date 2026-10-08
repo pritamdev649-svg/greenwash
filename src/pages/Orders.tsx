@@ -22,16 +22,21 @@ import {
   Phone,
   MapPin,
   ArrowRight,
-  Receipt
+  Receipt,
+  Download,
+  Copy
 } from 'lucide-react';
 import { orderService } from '@backend/services/orderService';
 import { customerService } from '@backend/services/customerService';
+import { vendorService } from '@backend/services/vendorService';
 import { notificationService } from '@backend/services/notificationService';
+import { receiptService } from '../lib/receiptService';
 import { OrderEntryForm } from '../components/OrderEntryForm';
 import { PrintReceipt } from '../components/PrintReceipt';
 import type { PrintReceiptProps } from '../components/PrintReceipt';
 import { cn } from '../lib/utils';
 import { useLanguage } from '../contexts/LanguageContext';
+import { QRCodeSVG } from 'qrcode.react';
 
 export default function Orders() {
   const location = useLocation();
@@ -43,7 +48,9 @@ export default function Orders() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [printingOrderData, setPrintingOrderData] = useState<PrintReceiptProps['orderData'] | null>(null);
+  const [sharingOrderData, setSharingOrderData] = useState<PrintReceiptProps['orderData'] | null>(null);
   const [editingOrderId, setEditingOrderId] = useState<string | null>(null);
+  const [paymentModalOrder, setPaymentModalOrder] = useState<any>(null);
 
   // Damage Refund State
   const [isDamageModalOpen, setIsDamageModalOpen] = useState(false);
@@ -58,6 +65,21 @@ export default function Orders() {
   const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
   const [customerOrders, setCustomerOrders] = useState<any[]>([]);
   const [ordersLoading, setOrdersLoading] = useState(false);
+  const [vendorUpiId, setVendorUpiId] = useState<string | null>(null);
+  const [vendorAccountName, setVendorAccountName] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (vendorId) {
+      vendorService.getVendorPayment(vendorId)
+        .then(p => {
+          if (p && p.upi_id) {
+            setVendorUpiId(p.upi_id);
+            setVendorAccountName(p.account_holder_name || null);
+          }
+        })
+        .catch(err => console.error("Failed to load vendor payment settings:", err));
+    }
+  }, [vendorId]);
 
   // Coins & Wallet Adjustment State
   const [isCoinsWalletModalOpen, setIsCoinsWalletModalOpen] = useState(false);
@@ -311,32 +333,60 @@ export default function Orders() {
   };
 
 
-  const handleShareLink = (order: any) => {
-    const orderRef = order.order_number ? `GWC${order.order_number}` : 'GWC' + order.id.slice(0, 4).toUpperCase();
-    const orderDate = new Date(order.created_at).toLocaleDateString('en-GB');
-    const dueDate = order.due_date ? order.due_date.split('-').reverse().join('/') : orderDate;
-    const totalAmount = Number(order.total_amount).toLocaleString();
-    const balanceAmount = (order.balance_amount || 0).toLocaleString();
+  const handleShareLink = async (order: any) => {
+    try {
+      setLoading(true);
+      const detailedOrder = await orderService.getOrderById(order.id);
+      const pData = formatOrderForPrint(detailedOrder);
+      setSharingOrderData(pData);
 
-    // Exact format requested by user
-    const baseUrl = window.location.origin;
-    const publicUrl = `${baseUrl}/receipt/${order.id}`;
+      setTimeout(async () => {
+        try {
+          const orderRef = order.order_number ? `GWC${order.order_number}` : 'GWC' + order.id.slice(0, 4).toUpperCase();
+          const pdfUrl = await receiptService.generateAndUploadReceipt('receipt-print-content', orderRef);
+          
+          const orderDate = new Date(order.created_at).toLocaleDateString('en-GB');
+          const dueDate = order.due_date ? order.due_date.split('-').reverse().join('/') : orderDate;
+          const totalAmount = Number(order.total_amount).toLocaleString();
+          const balanceAmount = (order.balance_amount || 0).toLocaleString();
 
-    const message = `Greetings from Green Wash Co.\n` +
-      `We are pleased to have you as a valuable customer. Please find the details of your transaction.\n` +
-      `Invoice No:-${orderRef}\n\n` +
-      `Sale Order :\n` +
-      `Order Date: ${orderDate}\n` +
-      `Due Date: ${dueDate}\n\n` +
-      `Invoice Amount: ₹${totalAmount}\n` +
-      `Balance: ₹${balanceAmount}\n` +
-      `  View Invoice: ${publicUrl}\n` +
-      `Thanks for doing business with us.\n` +
-      `Regards,\n` +
-      `Green Wash Co.`;
+          const baseUrl = window.location.origin;
+          const publicUrl = `${baseUrl}/receipt/${order.id}`;
 
-    const waLink = notificationService.getWhatsAppLink(order.customers?.mobile || '', message);
-    window.open(waLink, '_blank');
+          const message = `Greetings from Green Wash Co.\n` +
+            `We are pleased to have you as a valuable customer. Please find the details of your transaction.\n` +
+            `Invoice No:-${orderRef}\n\n` +
+            `Sale Order :\n` +
+            `Order Date: ${orderDate}\n` +
+            `Due Date: ${dueDate}\n\n` +
+            `Invoice Amount: ₹${totalAmount}\n` +
+            `Balance: ₹${balanceAmount}\n` +
+            `  View Invoice: ${publicUrl}\n` +
+            (pdfUrl ? `  Download PDF: ${pdfUrl}\n\n` : '\n') +
+            `Thanks for doing business with us.\n` +
+            `Regards,\n` +
+            `Green Wash Co.`;
+
+          const waLink = notificationService.getWhatsAppLink(order.customers?.mobile || '', message);
+          window.open(waLink, '_blank');
+        } catch(err) {
+          console.error("PDF generation failed:", err);
+          alert("Failed to generate PDF.");
+        } finally {
+          setSharingOrderData(null);
+          setLoading(false);
+        }
+      }, 500);
+
+    } catch (err) {
+      console.error(err);
+      alert("Failed to fetch order details for sharing.");
+      setLoading(false);
+    }
+  };
+
+  const handleSharePaymentLink = (order: any) => {
+    setPaymentModalOrder(order);
   };
 
   const formatOrderForPrint = (order: any): PrintReceiptProps['orderData'] => {
@@ -415,6 +465,13 @@ export default function Orders() {
       {printingOrderData && (
         <div className="printable-area">
           <PrintReceipt orderData={printingOrderData} />
+        </div>
+      )}
+
+      {/* Hidden view for PDF capture */}
+      {sharingOrderData && (
+        <div className="absolute -left-[9999px] top-0 overflow-hidden" style={{ width: '800px' }}>
+          <PrintReceipt orderData={sharingOrderData} isCapture={true} />
         </div>
       )}
 
@@ -926,13 +983,27 @@ export default function Orders() {
                           </div>
                         )}
 
-                        <div className="flex justify-end pt-1">
+                        <div className="flex justify-end pt-3 border-t border-slate-100 gap-4 mt-3">
                           <button
                             onClick={() => handlePrintOrder(order.id)}
-                            className="text-[10px] font-bold text-primary-600 uppercase tracking-widest flex items-center gap-1 hover:text-primary-700"
+                            className="text-[10px] font-bold text-primary-600 uppercase tracking-widest flex items-center gap-1.5 hover:text-primary-700 transition-colors cursor-pointer"
                           >
-                            View Receipt <ArrowRight size={10} />
+                            <Download size={12} /> Download Receipt
                           </button>
+                          <button
+                            onClick={() => handleShareLink(order)}
+                            className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest flex items-center gap-1.5 hover:text-emerald-700 transition-colors cursor-pointer"
+                          >
+                            <Share2 size={12} /> Share Receipt
+                          </button>
+                          {(order.balance_amount || 0) > 0 && (
+                            <button
+                              onClick={() => handleSharePaymentLink(order)}
+                              className="text-[10px] font-bold text-indigo-600 uppercase tracking-widest flex items-center gap-1.5 hover:text-indigo-700 transition-colors cursor-pointer"
+                            >
+                              <CreditCard size={12} /> Share Payment Link
+                            </button>
+                          )}
                         </div>
                       </div>
                     ))}
@@ -1034,6 +1105,86 @@ export default function Orders() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Payment QR Modal */}
+      {paymentModalOrder && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setPaymentModalOrder(null)} />
+          <div className="relative w-full max-w-sm bg-white rounded-3xl shadow-2xl p-8 overflow-hidden animate-slide-up flex flex-col items-center text-center">
+            <button onClick={() => setPaymentModalOrder(null)} className="absolute top-4 right-4 p-2 bg-slate-50 hover:bg-slate-100 rounded-full text-slate-400 transition-colors"><X size={20} /></button>
+            <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight mb-2">Payment QR Code</h3>
+            <p className="text-sm font-medium text-slate-500 mb-6">Scan to pay the pending balance of <strong className="text-slate-900">₹{(paymentModalOrder.balance_amount || 0).toLocaleString()}</strong></p>
+
+            <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 mb-6 shadow-inner">
+              <QRCodeSVG
+                value={
+                  vendorUpiId
+                    ? `upi://pay?pa=${vendorUpiId}&pn=${encodeURIComponent(vendorAccountName || 'Green Wash Co')}&am=${paymentModalOrder.balance_amount}&tn=Order_${paymentModalOrder.order_number || paymentModalOrder.id.slice(0, 4).toUpperCase()}&cu=INR`
+                    : `upi://pay?pa=9628562024@kotak811&pn=SUMIT%20KUMAR&am=${paymentModalOrder.balance_amount}&tn=Order_${paymentModalOrder.order_number || paymentModalOrder.id.slice(0, 4).toUpperCase()}&cu=INR`
+                }
+                size={220}
+                level="H"
+                includeMargin={true}
+              />
+            </div>
+
+            <div className="flex gap-2 w-full">
+              <button
+                onClick={() => {
+                  const orderRef = paymentModalOrder.order_number ? `GWC${paymentModalOrder.order_number}` : 'GWC' + paymentModalOrder.id.slice(0, 4).toUpperCase();
+                  const balanceAmount = (paymentModalOrder.balance_amount || 0).toLocaleString();
+                  const baseUrl = window.location.origin;
+                  
+                  const pa = vendorUpiId || '9628562024@kotak811';
+                  const pn = vendorAccountName || 'SUMIT KUMAR';
+                  const am = paymentModalOrder.balance_amount;
+                  const paymentUrl = `${baseUrl}/pay?pa=${pa}&pn=${encodeURIComponent(pn)}&am=${am}&tn=${orderRef}`;
+
+                  const message = `Greetings from Green Wash Co.\n` +
+                    `Your order ${orderRef} is ready.\n` +
+                    `Your pending balance is ₹${balanceAmount}.\n` +
+                    `You can securely pay online using this link: ${paymentUrl}\n\n` +
+                    `Thank you!`;
+
+                  const waLink = notificationService.getWhatsAppLink(paymentModalOrder.customers?.mobile || '', message);
+                  window.open(waLink, '_blank');
+                }}
+                className="flex-1 h-12 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-bold flex items-center justify-center gap-2 transition-all shadow-md active:scale-95"
+              >
+                <Share2 size={18} /> Share Link on WhatsApp
+              </button>
+              <button
+                onClick={() => {
+                  const orderRef = paymentModalOrder.order_number ? `GWC${paymentModalOrder.order_number}` : 'GWC' + paymentModalOrder.id.slice(0, 4).toUpperCase();
+                  const balanceAmount = (paymentModalOrder.balance_amount || 0).toLocaleString();
+                  const baseUrl = window.location.origin;
+                  
+                  const pa = vendorUpiId || '9628562024@kotak811';
+                  const pn = vendorAccountName || 'SUMIT KUMAR';
+                  const am = paymentModalOrder.balance_amount;
+                  const paymentUrl = `${baseUrl}/pay?pa=${pa}&pn=${encodeURIComponent(pn)}&am=${am}&tn=${orderRef}`;
+                  
+                  const message = `Greetings from Green Wash Co.\n` +
+                    `Your order ${orderRef} is ready.\n` +
+                    `Your pending balance is ₹${balanceAmount}.\n` +
+                    `You can securely pay online using this link: ${paymentUrl}\n\n` +
+                    `Thank you!`;
+
+                  navigator.clipboard.writeText(message).then(() => {
+                    alert('Payment message and link copied to clipboard!');
+                  }).catch(err => {
+                    console.error('Failed to copy: ', err);
+                  });
+                }}
+                className="h-12 w-12 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-2xl font-bold flex items-center justify-center transition-all shadow-sm border border-slate-200 active:scale-95 shrink-0"
+                title="Copy Link"
+              >
+                <Copy size={20} />
+              </button>
+            </div>
           </div>
         </div>
       )}
