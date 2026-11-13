@@ -209,15 +209,15 @@ export const PrintReceipt: React.FC<PrintReceiptProps> = ({ orderData, isCapture
                       if (pi?.upiId) {
                         return `upi://pay?pa=${pi.upiId}&pn=${encodeURIComponent(pi.accountHolderName || orderData.vendorName || 'RAM SEVAK')}&am=${orderData.balance}&tn=Order_${orderData.orderNo}&cu=INR`;
                       }
-                      return `upi://pay?pa=rs.9628562024@uboi&pn=${encodeURIComponent('RAM SEVAK')}&am=${orderData.balance}&tn=Order_${orderData.orderNo}&cu=INR`;
+                      return `upi://pay?pa=greenwashco.in@axl&pn=${encodeURIComponent('RAM SEVAK')}&am=${orderData.balance}&tn=Order_${orderData.orderNo}&cu=INR`;
                     })()}
                     size={70}
                   />
                 )}
               </div>
               <div className="bg-[#2FA84B] text-white text-[9px] py-1 mt-1 rounded font-bold w-full mx-auto uppercase">Scan to Pay</div>
-              <p className="text-[8px] text-gray-500 mt-0.5 truncate w-24" title={orderData.paymentInfo?.upiId || 'rs.9628562024@uboi'}>
-                {orderData.paymentInfo?.upiId || 'rs.9628562024@uboi'}
+              <p className="text-[8px] text-gray-500 mt-0.5 truncate w-24" title={orderData.paymentInfo?.upiId || 'greenwashco.in@axl'}>
+                {orderData.paymentInfo?.upiId || 'greenwashco.in@axl'}
               </p>
             </div>
 
