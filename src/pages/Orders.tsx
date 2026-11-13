@@ -365,7 +365,19 @@ export default function Orders() {
       discount: order.discount_amount || 0,
       total: order.total_amount,
       advance: order.advance_amount || 0,
-      balance: order.balance_amount || 0
+      balance: order.balance_amount || 0,
+      paymentInfo: (() => {
+        const p = Array.isArray(order.vendors?.vendor_payments)
+          ? order.vendors?.vendor_payments[0]
+          : order.vendors?.vendor_payments;
+        if (!p) return null;
+        return {
+          upiId: p.upi_id,
+          qrCodeUrl: p.qr_code_url,
+          qrCodeText: p.qr_code_text,
+          accountHolderName: p.account_holder_name,
+        };
+      })()
     };
   };
 

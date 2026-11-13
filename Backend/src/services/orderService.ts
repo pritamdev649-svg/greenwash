@@ -215,7 +215,7 @@ export const orderService = {
         *,
         order_number,
         customers (name, mobile, address),
-        vendors (name, phone, address),
+        vendors (name, phone, address, vendor_payments(*)),
         branches (name, phone, address),
         order_items (
           id, quantity, wash_price, iron_price, subtotal, custom_item_name,

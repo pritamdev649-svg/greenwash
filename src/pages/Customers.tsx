@@ -289,7 +289,19 @@ const Customers: React.FC = () => {
         discount: detailedOrder.discount_amount || 0,
         total: detailedOrder.total_amount,
         advance: detailedOrder.advance_amount || 0,
-        balance: detailedOrder.balance_amount || 0
+        balance: detailedOrder.balance_amount || 0,
+        paymentInfo: (() => {
+          const p = Array.isArray(detailedOrder.vendors?.vendor_payments)
+            ? detailedOrder.vendors?.vendor_payments[0]
+            : detailedOrder.vendors?.vendor_payments;
+          if (!p) return null;
+          return {
+            upiId: p.upi_id,
+            qrCodeUrl: p.qr_code_url,
+            qrCodeText: p.qr_code_text,
+            accountHolderName: p.account_holder_name,
+          };
+        })()
       };
 
       setPrintingOrderData(pData);

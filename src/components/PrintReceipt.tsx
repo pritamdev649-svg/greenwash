@@ -194,24 +194,31 @@ export const PrintReceipt: React.FC<PrintReceiptProps> = ({ orderData, isCapture
             {/* Payment QR Code — uses vendor payment info if available */}
             <div className="text-center w-24">
               <div className="w-20 h-20 border border-gray-400 p-1 rounded inline-block bg-white relative flex items-center justify-center">
-                {orderData.paymentInfo?.qrCodeUrl ? (
+                {orderData.paymentInfo?.qrCodeUrl && (orderData.paymentInfo.qrCodeUrl.startsWith('http') || orderData.paymentInfo.qrCodeUrl.startsWith('data:image/')) ? (
                   <img src={orderData.paymentInfo.qrCodeUrl} alt="Pay QR" style={{ width: 70, height: 70, objectFit: 'contain' }} />
                 ) : (
                   <QRCodeSVG
-                    value={
-                      orderData.paymentInfo?.qrCodeText ||
-                      (orderData.paymentInfo?.upiId
-                        ? `upi://pay?pa=${orderData.paymentInfo.upiId}&pn=${encodeURIComponent(orderData.paymentInfo.accountHolderName || 'Green Wash Co')}&am=${orderData.balance}&tn=Order_${orderData.orderNo}&cu=INR`
-                        : `upi://pay?pa=9628562024@kotak811&pn=SUMIT%20KUMAR&am=${orderData.balance}&tn=Order_${orderData.orderNo}&cu=INR`)
-                    }
+                    value={(() => {
+                      const pi = orderData.paymentInfo;
+                      if (pi?.qrCodeText) {
+                        const txt = pi.qrCodeText.trim();
+                        if (txt.startsWith('upi://') || txt.startsWith('http://') || txt.startsWith('https://')) return txt;
+                        if (txt.includes('pa=')) return `upi://pay?${txt.replace(/^.*[?]/, '')}`;
+                        return `upi://pay?pa=${txt}&pn=${encodeURIComponent(pi.accountHolderName || orderData.vendorName || 'RAM SEVAK')}&am=${orderData.balance}&tn=Order_${orderData.orderNo}&cu=INR`;
+                      }
+                      if (pi?.upiId) {
+                        return `upi://pay?pa=${pi.upiId}&pn=${encodeURIComponent(pi.accountHolderName || orderData.vendorName || 'RAM SEVAK')}&am=${orderData.balance}&tn=Order_${orderData.orderNo}&cu=INR`;
+                      }
+                      return `upi://pay?pa=rs.9628562024@uboi&pn=${encodeURIComponent('RAM SEVAK')}&am=${orderData.balance}&tn=Order_${orderData.orderNo}&cu=INR`;
+                    })()}
                     size={70}
                   />
                 )}
               </div>
               <div className="bg-[#2FA84B] text-white text-[9px] py-1 mt-1 rounded font-bold w-full mx-auto uppercase">Scan to Pay</div>
-              {orderData.paymentInfo?.upiId && (
-                <p className="text-[8px] text-gray-500 mt-0.5 truncate w-24">{orderData.paymentInfo.upiId}</p>
-              )}
+              <p className="text-[8px] text-gray-500 mt-0.5 truncate w-24" title={orderData.paymentInfo?.upiId || 'rs.9628562024@uboi'}>
+                {orderData.paymentInfo?.upiId || 'rs.9628562024@uboi'}
+              </p>
             </div>
 
             {/* Google Review QR Code */}
